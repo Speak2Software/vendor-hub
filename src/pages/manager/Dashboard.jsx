@@ -33,10 +33,13 @@ export default function ManagerDashboard() {
   const [community, setCommunity] = useState(null)
   const [applications, setApplications] = useState([])
 
-  function reload() {
+  async function reload() {
     if (!user?.communityId) return
-    setCommunity(getCommunity(user.communityId))
-    const apps = getApplicationsForCommunity(user.communityId)
+    const [comm, apps] = await Promise.all([
+      getCommunity(user.communityId),
+      getApplicationsForCommunity(user.communityId),
+    ])
+    setCommunity(comm)
     setApplications(apps.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
   }
 

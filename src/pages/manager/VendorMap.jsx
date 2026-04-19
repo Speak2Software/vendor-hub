@@ -140,38 +140,44 @@ export default function VendorMap() {
 
   // ── Data loading ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!user?.communityId) return
-    const comm = getCommunity(user.communityId)
-    setCommunity(comm)
-    if (!comm?.location) return
+    async function load() {
+      if (!user?.communityId) return
+      const comm = await getCommunity(user.communityId)
+      setCommunity(comm)
+      if (!comm?.location) return
 
-    const applications = getApplicationsForCommunity(user.communityId)
-    const appByVendor  = Object.fromEntries(applications.map((a) => [a.vendorId, a]))
+      const [applications, usrs] = await Promise.all([
+        getApplicationsForCommunity(user.communityId),
+        getUsers(),
+      ])
+      const appByVendor = Object.fromEntries(applications.map((a) => [a.vendorId, a]))
 
-    const vendors  = getUsers().filter((u) => u.role === 'vendor')
-    const enriched = vendors
-      .map((v) => {
-        const profile = getVendorProfile(v.id)
-        if (!profile?.location) return null
-        const dist = haversineDistance(
-          comm.location.lat, comm.location.lng,
-          profile.location.lat, profile.location.lng,
-        )
-        const app    = appByVendor[v.id] || null
-        const status = app ? app.status : 'none'
-        return {
-          id: v.id,
-          name: v.name,
-          email: v.email,
-          profile,
-          app,
-          status,
-          distanceMiles: Math.round(dist * 10) / 10,
-        }
-      })
-      .filter(Boolean)
+      const vendors  = usrs.filter((u) => u.role === 'vendor')
+      const enriched = (await Promise.all(
+        vendors.map(async (v) => {
+          const profile = await getVendorProfile(v.id)
+          if (!profile?.location) return null
+          const dist = haversineDistance(
+            comm.location.lat, comm.location.lng,
+            profile.location.lat, profile.location.lng,
+          )
+          const app    = appByVendor[v.id] || null
+          const status = app ? app.status : 'none'
+          return {
+            id: v.id,
+            name: v.name,
+            email: v.email,
+            profile,
+            app,
+            status,
+            distanceMiles: Math.round(dist * 10) / 10,
+          }
+        })
+      )).filter(Boolean)
 
-    setVendorsInRange(enriched.filter((v) => v.distanceMiles <= radius))
+      setVendorsInRange(enriched.filter((v) => v.distanceMiles <= radius))
+    }
+    load()
   }, [user?.communityId, radius])
 
   // ── Filter helpers ────────────────────────────────────────────────────────

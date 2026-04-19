@@ -17,9 +17,17 @@ export default function AdminDashboard() {
   const [applications, setApplications] = useState([])
 
   useEffect(() => {
-    setCommunities(getCommunities())
-    setUsers(getUsers())
-    setApplications(getApplications())
+    async function load() {
+      const [comms, usrs, apps] = await Promise.all([
+        getCommunities(),
+        getUsers(),
+        getApplications(),
+      ])
+      setCommunities(comms)
+      setUsers(usrs)
+      setApplications(apps)
+    }
+    load()
   }, [])
 
   const managers = users.filter((u) => u.role === 'community_manager')

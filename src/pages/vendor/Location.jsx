@@ -66,18 +66,25 @@ export default function VendorLocation() {
   const [communities, setCommunities] = useState([])
   const [nearbyCommunities, setNearbyCommunities] = useState([])
 
-  const isNewVendor = !getVendorProfile(user.id)
+  const [isNewVendor, setIsNewVendor] = useState(false)
 
   useEffect(() => {
-    const profile = getVendorProfile(user.id)
-    if (profile) {
-      setLat(profile.location.lat)
-      setLng(profile.location.lng)
-      setRadius(profile.serviceRadiusMiles)
-    } else {
-      requestGeo()
+    async function load() {
+      const [profile, comms] = await Promise.all([
+        getVendorProfile(user.id),
+        getCommunities(),
+      ])
+      setIsNewVendor(!profile)
+      if (profile) {
+        setLat(profile.location.lat)
+        setLng(profile.location.lng)
+        setRadius(profile.serviceRadiusMiles)
+      } else {
+        requestGeo()
+      }
+      setCommunities(comms)
     }
-    setCommunities(getCommunities())
+    load()
   }, [user.id])
 
   useEffect(() => {
@@ -97,8 +104,8 @@ export default function VendorLocation() {
     )
   }
 
-  function handleSave() {
-    saveVendorProfile({ userId: user.id, location: { lat, lng }, serviceRadiusMiles: radius })
+  async function handleSave() {
+    await saveVendorProfile({ userId: user.id, location: { lat, lng }, serviceRadiusMiles: radius })
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }

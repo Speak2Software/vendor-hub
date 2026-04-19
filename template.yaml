@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: VendorHub API — Express on Lambda + API Gateway
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 15
+    MemorySize: 256
+    Environment:
+      Variables:
+        NODE_ENV: production
+        MONGODB_URI: !Ref MongodbUri
+        JWT_SECRET:  !Ref JwtSecret
+        CORS_ORIGIN: !Ref CorsOrigin
+
+Parameters:
+  MongodbUri:
+    Type: String
+    Description: MongoDB Atlas connection string (set via --parameter-overrides or SSM)
+    NoEcho: true
+  JwtSecret:
+    Type: String
+    Description: Secret used to sign JWT tokens
+    NoEcho: true
+  CorsOrigin:
+    Type: String
+    Description: Allowed CORS origin (e.g. https://www.speak2vendors.com)
+    Default: '*'
+
+Resources:
+  VendorHubApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: vendor-hub-api
+      CodeUri: api/
+      Handler: index.handler
+      Events:
+        ApiRoot:
+          Type: Api
+          Properties:
+            Path: /api/{proxy+}
+            Method: ANY
+        ApiHealth:
+          Type: Api
+          Properties:
+            Path: /api/health
+            Method: GET
+
+Outputs:
+  ApiGatewayUrl:
+    Description: API Gateway base URL (use this as VITE_API_URL in Amplify env vars)
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'

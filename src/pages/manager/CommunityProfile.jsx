@@ -44,24 +44,27 @@ export default function CommunityProfile() {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (!user?.communityId) return
-    const c = getCommunity(user.communityId)
-    if (c) {
-      setCommunity(c)
-      setForm({
-        name:        c.name        || '',
-        address:     c.address     || '',
-        description: c.description || '',
-        size:        c.size        || '',
-        careLevels:  c.careLevels  || [],
-        contactUrl:  c.contactUrl  || '',
-        contactEmail:c.contactEmail|| '',
-        contactPhone:c.contactPhone|| '',
-        showUrl:     c.showUrl     ?? false,
-        showEmail:   c.showEmail   ?? false,
-        showPhone:   c.showPhone   ?? false,
-      })
+    async function load() {
+      if (!user?.communityId) return
+      const c = await getCommunity(user.communityId)
+      if (c) {
+        setCommunity(c)
+        setForm({
+          name:        c.name        || '',
+          address:     c.address     || '',
+          description: c.description || '',
+          size:        c.size        || '',
+          careLevels:  c.careLevels  || [],
+          contactUrl:  c.contactUrl  || '',
+          contactEmail:c.contactEmail|| '',
+          contactPhone:c.contactPhone|| '',
+          showUrl:     c.showUrl     ?? false,
+          showEmail:   c.showEmail   ?? false,
+          showPhone:   c.showPhone   ?? false,
+        })
+      }
     }
+    load()
   }, [user?.communityId])
 
   function set(field, value) {
@@ -88,11 +91,11 @@ export default function CommunityProfile() {
     return Object.keys(errs).length === 0
   }
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault()
     if (!validate()) return
     if (!community) return
-    saveCommunity({
+    await saveCommunity({
       ...community,
       ...form,
       updatedAt: new Date().toISOString(),

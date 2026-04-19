@@ -86,38 +86,41 @@ export default function CompanyProfile() {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    const existing = getCompanyProfile(user.id)
-    if (existing) {
-      setForm({ ...EMPTY, ...existing })
-    } else {
-      // Pre-fill from most recent application if no profile yet
-      const apps = getApplicationsForVendor(user.id)
-      const app = apps.find((a) => a.businessName)
-      if (app) {
-        setForm({
-          ...EMPTY,
-          businessName:        app.businessName        || '',
-          contactName:         app.contactName         || user.name || '',
-          contactEmail:        app.contactEmail        || user.email || '',
-          contactPhone:        app.contactPhone        || '',
-          businessAddress:     app.businessAddress     || '',
-          serviceCategory:     app.serviceCategory     || '',
-          yearsInBusiness:     app.yearsInBusiness     || '',
-          businessDescription: app.businessDescription || '',
-          licenseInfo:         app.licenseInfo         || '',
-          insuranceProvider:   app.insuranceProvider   || '',
-          insurancePolicyNumber: app.insurancePolicyNumber || '',
-          insuranceExpiration: app.insuranceExpiration || '',
-          reference1Name:      app.reference1Name      || '',
-          reference1Company:   app.reference1Company   || '',
-          reference1Phone:     app.reference1Phone     || '',
-          backgroundCheckConsent: app.backgroundCheckConsent || false,
-          termsAgreed:         app.termsAgreed         || false,
-        })
+    async function load() {
+      const existing = await getCompanyProfile(user.id)
+      if (existing) {
+        setForm({ ...EMPTY, ...existing })
       } else {
-        setForm((f) => ({ ...f, contactName: user.name || '', contactEmail: user.email || '' }))
+        // Pre-fill from most recent application if no profile yet
+        const apps = await getApplicationsForVendor(user.id)
+        const app = apps.find((a) => a.businessName)
+        if (app) {
+          setForm({
+            ...EMPTY,
+            businessName:        app.businessName        || '',
+            contactName:         app.contactName         || user.name || '',
+            contactEmail:        app.contactEmail        || user.email || '',
+            contactPhone:        app.contactPhone        || '',
+            businessAddress:     app.businessAddress     || '',
+            serviceCategory:     app.serviceCategory     || '',
+            yearsInBusiness:     app.yearsInBusiness     || '',
+            businessDescription: app.businessDescription || '',
+            licenseInfo:         app.licenseInfo         || '',
+            insuranceProvider:   app.insuranceProvider   || '',
+            insurancePolicyNumber: app.insurancePolicyNumber || '',
+            insuranceExpiration: app.insuranceExpiration || '',
+            reference1Name:      app.reference1Name      || '',
+            reference1Company:   app.reference1Company   || '',
+            reference1Phone:     app.reference1Phone     || '',
+            backgroundCheckConsent: app.backgroundCheckConsent || false,
+            termsAgreed:         app.termsAgreed         || false,
+          })
+        } else {
+          setForm((f) => ({ ...f, contactName: user.name || '', contactEmail: user.email || '' }))
+        }
       }
     }
+    load()
   }, [user.id])
 
   function upd(field) {
@@ -144,12 +147,12 @@ export default function CompanyProfile() {
     return Object.keys(errs).length === 0
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!validate()) {
       document.querySelector('[data-error]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
-    saveCompanyProfile({ ...form, userId: user.id })
+    await saveCompanyProfile({ ...form, userId: user.id })
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }

@@ -128,10 +128,14 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const user = login(form.email, form.password)
-    setLoading(false)
-    if (!user) { setError('Invalid email or password.'); return }
-    navigate(from || roleHome(user.role), { replace: true })
+    try {
+      const user = await login(form.email, form.password)
+      navigate(from || roleHome(user.role), { replace: true })
+    } catch {
+      setError('Invalid email or password.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   function fillDemo(email, password) {

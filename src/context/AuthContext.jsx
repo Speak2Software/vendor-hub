@@ -1,36 +1,48 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { getCurrentUser, login as storageLogin, logout as storageLogout, createUser } from '../utils/storage'
+import { apiPost, apiGet, setToken, clearToken } from '../utils/storage'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser]     = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // On mount: restore session from stored JWT
   useEffect(() => {
-    setUser(getCurrentUser())
-    setLoading(false)
+    const token = localStorage.getItem('vh_jwt')
+    if (!token) {
+      setLoading(false)
+      return
+    }
+    setToken(token)
+    apiGet('/api/users/me')
+      .then((u) => setUser(u))
+      .catch(() => clearToken())
+      .finally(() => setLoading(false))
   }, [])
 
-  function login(email, password) {
-    const u = storageLogin(email, password)
-    if (u) setUser(u)
-    return u
-  }
-
-  function logout() {
-    storageLogout()
-    setUser(null)
-  }
-
-  function signup(data) {
-    const u = createUser({ ...data, role: 'vendor' })
+  async function login(email, password) {
+    const { token, user: u } = await apiPost('/api/auth/login', { email, password })
+    setToken(token)
     setUser(u)
     return u
   }
 
-  function refreshUser() {
-    setUser(getCurrentUser())
+  function logout() {
+    clearToken()
+    setUser(null)
+  }
+
+  async function signup({ name, email, password }) {
+    const { token, user: u } = await apiPost('/api/auth/register', { name, email, password, role: 'vendor' })
+    setToken(token)
+    setUser(u)
+    return u
+  }
+
+  async function refreshUser() {
+    const u = await apiGet('/api/users/me')
+    setUser(u)
   }
 
   return (

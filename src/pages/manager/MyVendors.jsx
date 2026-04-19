@@ -120,10 +120,10 @@ function VendorReview({ app, communityId, existingReview, onSaved }) {
     }
   }, [existingReview?.updatedAt])
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault()
     if (!rating) return
-    saveReview({
+    await saveReview({
       appId: app.id,
       vendorId: app.vendorId,
       communityId,
@@ -250,26 +250,26 @@ function InlineActions({ app, onRefresh }) {
   const [showDeny, setShowDeny] = useState(false)
   const [actionNote, setActionNote] = useState('')
 
-  function handleNote(e) {
+  async function handleNote(e) {
     e.preventDefault()
     if (!note.trim()) return
-    addApplicationNote(app.id, note.trim(), user.id)
+    await addApplicationNote(app.id, note.trim(), user.id)
     setNote('')
-    onRefresh()
+    await onRefresh()
   }
 
-  function handleApprove() {
-    updateApplicationStatus(app.id, 'approved', user.id, actionNote || 'Application approved.')
+  async function handleApprove() {
+    await updateApplicationStatus(app.id, 'approved', user.id, actionNote || 'Application approved.')
     setShowApprove(false)
     setActionNote('')
-    onRefresh()
+    await onRefresh()
   }
 
-  function handleDeny() {
-    updateApplicationStatus(app.id, 'denied', user.id, actionNote || 'Application denied.')
+  async function handleDeny() {
+    await updateApplicationStatus(app.id, 'denied', user.id, actionNote || 'Application denied.')
     setShowDeny(false)
     setActionNote('')
-    onRefresh()
+    await onRefresh()
   }
 
   return (
@@ -542,12 +542,16 @@ export default function MyVendors() {
   const [expandedId, setExpandedId] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState('')
 
-  function load() {
+  async function load() {
     if (!user?.communityId) return
-    setCommunity(getCommunity(user.communityId))
-    setApplications(getApplicationsForCommunity(user.communityId)
-      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
-    setReviews(getReviewsForCommunity(user.communityId))
+    const [comm, apps, revs] = await Promise.all([
+      getCommunity(user.communityId),
+      getApplicationsForCommunity(user.communityId),
+      getReviewsForCommunity(user.communityId),
+    ])
+    setCommunity(comm)
+    setApplications(apps.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
+    setReviews(revs)
   }
 
   useEffect(() => { load() }, [user?.communityId])

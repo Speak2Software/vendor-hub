@@ -213,12 +213,12 @@ function EmailComposer({ approvedApps, vendorInfo, onSent }) {
     setRecipients((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
   }
 
-  function handleSend() {
+  async function handleSend() {
     if (!recipients.length)  { setError('Select at least one community.'); return }
     if (!subject.trim())     { setError('Subject is required.'); return }
     if (!body.trim())        { setError('Message body is required.'); return }
     setError('')
-    saveMessage({
+    await saveMessage({
       id: uuidv4(),
       vendorId: vendorInfo.vendorId,
       type: 'email',
@@ -543,9 +543,9 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
     win.document.close()
   }
 
-  function handleSendFlyer() {
+  async function handleSendFlyer() {
     if (!sendTo.length) return
-    saveMessage({
+    await saveMessage({
       id: uuidv4(),
       vendorId: vendorInfo.vendorId,
       type: 'flyer',
@@ -738,18 +738,27 @@ export default function VendorPortalDashboard() {
   const navigate  = useNavigate()
   const commsRef  = useRef(null)
 
-  const [apps, setApps]           = useState([])
-  const [messages, setMessages]   = useState([])
-  const [commsTab, setCommsTab]   = useState('email')
+  const [apps, setApps]                   = useState([])
+  const [messages, setMessages]           = useState([])
+  const [commsTab, setCommsTab]           = useState('email')
+  const [companyProfile, setCompanyProfile] = useState(null)
+  const [profile, setProfile]             = useState(null)
 
-  function load() {
-    const raw = getApplicationsForVendor(user.id)
-    const enriched = raw.map((a) => ({ ...a, community: getCommunity(a.communityId) }))
+  async function load() {
+    const raw = await getApplicationsForVendor(user.id)
+    const enriched = await Promise.all(
+      raw.map((a) => getCommunity(a.communityId).then((c) => ({ ...a, community: c })))
+    )
     setApps(enriched.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
-    setMessages(getMessagesForVendor(user.id))
+    setMessages(await getMessagesForVendor(user.id))
+    setCompanyProfile(await getCompanyProfile(user.id))
+    setProfile(await getVendorProfile(user.id))
   }
 
-  useEffect(() => { load() }, [user.id])
+  useEffect(() => {
+    async function init() { await load() }
+    init()
+  }, [user.id])
 
   const approvedApps = apps.filter((a) => a.status === 'approved')
   const pendingApps  = apps.filter((a) => a.status === 'pending')
@@ -757,9 +766,7 @@ export default function VendorPortalDashboard() {
   const revokedApps  = apps.filter((a) => a.status === 'revoked')
 
   // Pull vendor info from company profile first, fall back to application data
-  const companyProfile = getCompanyProfile(user.id)
   const primaryApp = apps.find((a) => a.businessName)
-  const profile    = getVendorProfile(user.id)
   const src = companyProfile || primaryApp || {}
   const vendorInfo = {
     vendorId:        user.id,

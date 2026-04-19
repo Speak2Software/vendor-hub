@@ -20,18 +20,20 @@ export default function VendorDashboard() {
   const [apps, setApps] = useState([])
   const [confirmRevokeId, setConfirmRevokeId] = useState(null)
 
-  function load() {
-    const raw = getApplicationsForVendor(user.id)
-    const enriched = raw.map((a) => ({ ...a, community: getCommunity(a.communityId) }))
+  async function load() {
+    const raw = await getApplicationsForVendor(user.id)
+    const enriched = await Promise.all(
+      raw.map(async (a) => ({ ...a, community: await getCommunity(a.communityId) })),
+    )
     setApps(enriched.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
   }
 
   useEffect(() => { load() }, [user.id])
 
-  function handleRevoke(id) {
-    revokeApplication(id)
+  async function handleRevoke(id) {
+    await revokeApplication(id)
     setConfirmRevokeId(null)
-    load()
+    await load()
   }
 
   return (

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { getUsers, getCommunities, createUser, updateUser } from '../../utils/storage'
-import { v4 as uuidv4 } from 'uuid'
 
 const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 
@@ -17,9 +16,10 @@ export default function ManagersAdmin() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  function reload() {
-    setManagers(getUsers().filter((u) => u.role === 'community_manager'))
-    setCommunities(getCommunities())
+  async function reload() {
+    const [usrs, comms] = await Promise.all([getUsers(), getCommunities()])
+    setManagers(usrs.filter((u) => u.role === 'community_manager'))
+    setCommunities(comms)
   }
 
   useEffect(() => { reload() }, [])
@@ -44,24 +44,24 @@ export default function ManagersAdmin() {
     setSuccess('')
   }
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault()
     setError('')
     try {
       if (editingManager) {
         const updates = { name: form.name, communityId: form.communityId }
         if (form.password) updates.password = form.password
-        updateUser(editingManager.id, updates)
+        await updateUser(editingManager.id, updates)
         setSuccess('Manager updated.')
       } else {
         if (!form.password || form.password.length < 6) {
           setError('Password must be at least 6 characters.')
           return
         }
-        createUser({ name: form.name, email: form.email, password: form.password, role: 'community_manager', communityId: form.communityId })
+        await createUser({ name: form.name, email: form.email, password: form.password, role: 'community_manager', communityId: form.communityId })
         setSuccess('Manager created successfully.')
       }
-      reload()
+      await reload()
       setTimeout(() => { setShowForm(false); setSuccess('') }, 1500)
     } catch (err) {
       setError(err.message)

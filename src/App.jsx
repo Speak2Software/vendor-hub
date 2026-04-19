@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { seed, getVendorProfile } from './utils/storage'
+import { getVendorProfile } from './utils/storage'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -24,13 +24,23 @@ import VendorsAdmin from './pages/admin/Vendors'
 
 function RoleRedirect() {
   const { user, loading } = useAuth()
-  if (loading) return null
-  if (!user) return <Navigate to="/login" replace />
-  if (user.role === 'admin') return <Navigate to="/admin" replace />
-  if (user.role === 'community_manager') return <Navigate to="/manager" replace />
-  // Vendors: go to dashboard if profile exists, else location setup first
-  const profile = getVendorProfile(user.id)
-  return <Navigate to={profile ? '/vendor' : '/vendor/location'} replace />
+  const [ready, setReady] = useState(false)
+  const [dest, setDest]   = useState(null)
+
+  useEffect(() => {
+    if (loading) return
+    if (!user) { setDest('/login'); setReady(true); return }
+    if (user.role === 'admin') { setDest('/admin'); setReady(true); return }
+    if (user.role === 'community_manager') { setDest('/manager'); setReady(true); return }
+    // Vendors: check if a location profile exists
+    getVendorProfile(user.id)
+      .then((p) => setDest(p ? '/vendor' : '/vendor/location'))
+      .catch(() => setDest('/vendor/location'))
+      .finally(() => setReady(true))
+  }, [user, loading])
+
+  if (loading || !ready) return null
+  return <Navigate to={dest} replace />
 }
 
 function AppRoutes() {
@@ -96,7 +106,6 @@ function AppRoutes() {
 }
 
 export default function App() {
-  useEffect(() => { seed() }, [])
   return (
     <BrowserRouter>
       <AuthProvider>

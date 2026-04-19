@@ -44,7 +44,7 @@ export default function Signup() {
     if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
     setLoading(true)
     try {
-      signup({ name: form.name, email: form.email, password: form.password })
+      await signup({ name: form.name, email: form.email, password: form.password })
       navigate('/vendor', { replace: true })
     } catch (err) {
       setError(err.message)

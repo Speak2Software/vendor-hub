@@ -17,9 +17,13 @@ export default function VendorsAdmin() {
   const [communities, setCommunities] = useState([])
 
   useEffect(() => {
-    setVendors(getUsers().filter((u) => u.role === 'vendor'))
-    setApplications(getApplications())
-    setCommunities(getCommunities())
+    async function load() {
+      const [usrs, apps, comms] = await Promise.all([getUsers(), getApplications(), getCommunities()])
+      setVendors(usrs.filter((u) => u.role === 'vendor'))
+      setApplications(apps)
+      setCommunities(comms)
+    }
+    load()
   }, [])
 
   const communityMap = Object.fromEntries(communities.map((c) => [c.id, c]))

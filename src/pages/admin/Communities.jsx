@@ -65,9 +65,10 @@ export default function CommunitiesAdmin() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [saved, setSaved] = useState(false)
 
-  function reload() {
-    setCommunities(getCommunities())
-    setManagers(getUsers().filter((u) => u.role === 'community_manager'))
+  async function reload() {
+    const [comms, usrs] = await Promise.all([getCommunities(), getUsers()])
+    setCommunities(comms)
+    setManagers(usrs.filter((u) => u.role === 'community_manager'))
   }
 
   useEffect(() => { reload() }, [])
@@ -95,17 +96,17 @@ export default function CommunitiesAdmin() {
     }))
   }
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault()
-    saveCommunity(form)
+    await saveCommunity(form)
     setSaved(true)
-    setTimeout(() => { setSaved(false); setEditing(null); reload() }, 1000)
+    setTimeout(async () => { setSaved(false); setEditing(null); await reload() }, 1000)
   }
 
-  function handleDelete(id) {
-    deleteCommunity(id)
+  async function handleDelete(id) {
+    await deleteCommunity(id)
     setDeleteConfirm(null)
-    reload()
+    await reload()
   }
 
   if (editing !== null) {

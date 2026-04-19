@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+api/node_modules/
 
 # Build output
 dist/
@@ -9,6 +10,7 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+api/.env
 
 # Editor / OS
 .DS_Store

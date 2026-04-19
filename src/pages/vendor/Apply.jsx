@@ -43,21 +43,27 @@ export default function Apply() {
   const [editApp, setEditApp]           = useState(null)
 
   useEffect(() => {
-    const vp = getVendorProfile(user.id)
-    const cp = getCompanyProfile(user.id)
-    setProfile(vp)
-    setCompany(cp)
-    setAll(getCommunities())
+    async function load() {
+      const [vp, cp, comms] = await Promise.all([
+        getVendorProfile(user.id),
+        getCompanyProfile(user.id),
+        getCommunities(),
+      ])
+      setProfile(vp)
+      setCompany(cp)
+      setAll(comms)
 
-    if (editId) {
-      const existing = getApplication(editId)
-      if (existing && existing.vendorId === user.id) {
-        setEditApp(existing)
-        setIds([existing.communityId])
-        setPitch(existing.servicesOffered || '')
-        setNote('')
+      if (editId) {
+        const existing = await getApplication(editId)
+        if (existing && existing.vendorId === user.id) {
+          setEditApp(existing)
+          setIds([existing.communityId])
+          setPitch(existing.servicesOffered || '')
+          setNote('')
+        }
       }
     }
+    load()
   }, [user.id, editId])
 
   // ── Visible communities (radius-filtered) ──────────────────────────────────
@@ -90,12 +96,12 @@ export default function Apply() {
     return true
   }
 
-  function goNext() {
+  async function goNext() {
     setError('')
     if (step === 0 && !validateStep0()) return
     if (step === 1 && !validateStep1()) return
     if (step === 0) setStep(1)
-    else handleSubmit()
+    else await handleSubmit()
   }
 
   function goPrev() {
@@ -152,29 +158,26 @@ export default function Apply() {
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validateStep1()) return
 
     if (editApp) {
-      saveApplication(buildPayload(editApp.communityId, editApp))
+      await saveApplication(buildPayload(editApp.communityId, editApp))
       setCount(1)
       setSubmitted(true)
       return
     }
 
-    const existing = getApplicationsForVendor(user.id)
-    let count = 0
-    communityIds.forEach((commId) => {
-      const dup = existing.find(
-        (a) => a.communityId === commId && a.status !== 'denied' && a.status !== 'revoked',
-      )
-      if (!dup) { saveApplication(buildPayload(commId)); count++ }
-    })
-    if (count === 0) {
+    const existing = await getApplicationsForVendor(user.id)
+    const newApps = communityIds.filter((commId) =>
+      !existing.find((a) => a.communityId === commId && a.status !== 'denied' && a.status !== 'revoked'),
+    )
+    if (newApps.length === 0) {
       setError('You already have active applications for all selected communities.')
       return
     }
-    setCount(count)
+    await Promise.all(newApps.map((commId) => saveApplication(buildPayload(commId))))
+    setCount(newApps.length)
     setSubmitted(true)
   }
 

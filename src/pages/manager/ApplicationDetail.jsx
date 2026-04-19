@@ -42,32 +42,32 @@ export default function ApplicationDetail() {
   const [showDenyModal, setShowDenyModal] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
 
-  function reload() {
-    const a = getApplication(id)
+  async function reload() {
+    const a = await getApplication(id)
     if (!a) { navigate('/manager'); return }
     setApp(a)
-    setCommunity(getCommunity(a.communityId))
+    setCommunity(await getCommunity(a.communityId))
   }
 
   useEffect(() => { reload() }, [id])
 
-  function handleAddNote(e) {
+  async function handleAddNote(e) {
     e.preventDefault()
     if (!note.trim()) return
-    const updated = addApplicationNote(id, note.trim(), user.id)
+    const updated = await addApplicationNote(id, note.trim(), user.id)
     setApp(updated)
     setNote('')
   }
 
-  function handleApprove() {
-    const updated = updateApplicationStatus(id, 'approved', user.id, actionNote || 'Application approved.')
+  async function handleApprove() {
+    const updated = await updateApplicationStatus(id, 'approved', user.id, actionNote || 'Application approved.')
     setApp(updated)
     setShowApproveModal(false)
     setActionNote('')
   }
 
-  function handleDeny() {
-    const updated = updateApplicationStatus(id, 'denied', user.id, actionNote || 'Application denied.')
+  async function handleDeny() {
+    const updated = await updateApplicationStatus(id, 'denied', user.id, actionNote || 'Application denied.')
     setApp(updated)
     setShowDenyModal(false)
     setActionNote('')
