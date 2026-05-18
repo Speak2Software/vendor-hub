@@ -7,8 +7,7 @@ import L from 'leaflet'
 import { useAuth } from '../../context/AuthContext'
 import {
   getCommunity,
-  getUsers,
-  getVendorProfile,
+  getVendorProfiles,
   getApplicationsForCommunity,
   getReviewsForCommunity,
   haversineDistance,
@@ -149,36 +148,32 @@ export default function VendorMap() {
       setCommunity(comm)
       if (!comm?.location) return
 
-      const [applications, usrs, revs] = await Promise.all([
+      const [applications, vendorProfiles, revs] = await Promise.all([
         getApplicationsForCommunity(user.communityId),
-        getUsers(),
+        getVendorProfiles(),
         getReviewsForCommunity(user.communityId),
       ])
       setReviewByApp(Object.fromEntries(revs.map((r) => [r.appId, r])))
       const appByVendor = Object.fromEntries(applications.map((a) => [a.vendorId, a]))
 
-      const vendors  = usrs.filter((u) => u.role === 'vendor')
-      const enriched = (await Promise.all(
-        vendors.map(async (v) => {
-          const profile = await getVendorProfile(v.id)
-          if (!profile?.location) return null
+      const enriched = vendorProfiles
+        .map((vp) => {
           const dist = haversineDistance(
             comm.location.lat, comm.location.lng,
-            profile.location.lat, profile.location.lng,
+            vp.location.lat, vp.location.lng,
           )
-          const app    = appByVendor[v.id] || null
+          const app    = appByVendor[vp.userId] || null
           const status = app ? app.status : 'none'
           return {
-            id: v.id,
-            name: v.name,
-            email: v.email,
-            profile,
+            id:            vp.userId,
+            name:          vp.name,
+            email:         vp.email,
+            profile:       vp,
             app,
             status,
             distanceMiles: Math.round(dist * 10) / 10,
           }
         })
-      )).filter(Boolean)
 
       setVendorsInRange(enriched.filter((v) => v.distanceMiles <= radius))
     }

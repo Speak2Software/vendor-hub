@@ -1,6 +1,34 @@
 const router = require('express').Router()
 const VendorProfile = require('../models/VendorProfile')
-const { authenticate } = require('../middleware/auth')
+const User = require('../models/User')
+const { authenticate, authorize } = require('../middleware/auth')
+
+// GET /api/vendor-profiles — all profiles with location, joined with user name/email
+// Used by the Vendor Map for community managers
+router.get('/', authenticate, authorize('community_manager', 'admin'), async (req, res) => {
+  try {
+    const profiles = await VendorProfile.find({
+      'location.lat': { $ne: 0 },
+      'location.lng': { $ne: 0 },
+    }).lean()
+
+    const users = await User.find({ role: 'vendor', _id: { $in: profiles.map((p) => p._id) } }).lean()
+    const userMap = Object.fromEntries(users.map((u) => [u._id, u]))
+
+    const result = profiles
+      .map((p) => {
+        const u = userMap[p._id]
+        if (!u) return null
+        return { userId: p._id, name: u.name, email: u.email, location: p.location, serviceRadiusMiles: p.serviceRadiusMiles }
+      })
+      .filter(Boolean)
+
+    res.json(result)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
 
 // GET /api/vendor-profiles/:userId
 router.get('/:userId', authenticate, async (req, res) => {

@@ -85,6 +85,10 @@ export async function deleteCommunity(id) {
 }
 
 // ── Vendor Profiles ───────────────────────────────────────────────────────────
+export async function getVendorProfiles() {
+  return apiGet('/api/vendor-profiles')
+}
+
 export async function getVendorProfile(userId) {
   return apiGet(`/api/vendor-profiles/${userId}`)
 }
