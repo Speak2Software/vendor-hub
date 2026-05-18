@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>April 2026 – Activity Calendar</title>
+<style>
+  /* ── Page setup: 17 × 11 landscape ── */
+  @page {
+    size: 17in 11in landscape;
+    margin: 0.35in;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+    background: #fff;
+    color: #1a1a2e;
+    width: 16.3in;
+    min-height: 10.3in;
+  }
+
+  /* ── Header ── */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a4a7a;
+    color: #fff;
+    padding: 0.18in 0.3in;
+    border-radius: 10px 10px 0 0;
+    position: relative;
+    min-height: 0.7in;
+  }
+
+  .cal-title {
+    font-size: 42pt;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    outline: none;
+    border: none;
+    background: transparent;
+    color: #fff;
+    text-align: center;
+    cursor: text;
+    font-family: inherit;
+    width: 100%;
+    caret-color: #fff;
+  }
+
+  /* ── Day-of-week header row ── */
+  .dow-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #2563a8;
+    color: #fff;
+  }
+
+  .dow-cell {
+    text-align: center;
+    padding: 0.06in 0;
+    font-size: 17pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    outline: none;
+    border: none;
+    background: transparent;
+    color: #fff;
+    cursor: text;
+    font-family: inherit;
+    caret-color: #fff;
+  }
+
+  /* ── Calendar grid ── */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    border-left: 2px solid #1a4a7a;
+    border-bottom: 2px solid #1a4a7a;
+    min-height: 8.55in;
+  }
+
+  .cal-cell {
+    border-right: 2px solid #1a4a7a;
+    border-top: 2px solid #1a4a7a;
+    padding: 0.06in 0.08in 0.05in;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    min-height: 1.71in;
+    background: #fff;
+    position: relative;
+  }
+
+  .cal-cell.filler {
+    background: #f0f4f8;
+  }
+
+  /* Sunday column – light blue tint */
+  .cal-cell:nth-child(7n+1) { background: #f0f6ff; }
+  .cal-cell.filler:nth-child(7n+1) { background: #e4edf7; }
+
+  /* Saturday column – light blue tint */
+  .cal-cell:nth-child(7n) { background: #f0f6ff; }
+  .cal-cell.filler:nth-child(7n) { background: #e4edf7; }
+
+  .day-num {
+    font-size: 19pt;
+    font-weight: 900;
+    color: #1a4a7a;
+    line-height: 1;
+    min-width: 0.28in;
+    display: inline-block;
+    cursor: text;
+    outline: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    caret-color: #1a4a7a;
+    width: 100%;
+  }
+
+  .filler .day-num {
+    color: #9ab0c8;
+  }
+
+  .event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .event-item {
+    font-size: 8pt;
+    line-height: 1.25;
+    background: #dbeafe;
+    border-left: 3px solid #2563a8;
+    border-radius: 3px;
+    padding: 1px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: text;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .event-item.special {
+    background: #fef3c7;
+    border-left-color: #d97706;
+  }
+
+  .event-item.wellness {
+    background: #d1fae5;
+    border-left-color: #059669;
+  }
+
+  .event-item.social {
+    background: #ede9fe;
+    border-left-color: #7c3aed;
+  }
+
+  .event-item.dining {
+    background: #ffe4e6;
+    border-left-color: #e11d48;
+  }
+
+  .event-item.outing {
+    background: #fef9c3;
+    border-left-color: #ca8a04;
+  }
+
+  .event-time {
+    font-weight: 700;
+    margin-right: 2px;
+    font-size: 7.5pt;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    justify-content: center;
+    padding: 0.1in 0.2in;
+    background: #f8fafc;
+    border: 2px solid #1a4a7a;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10pt;
+    font-weight: 600;
+  }
+
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* ── Edit toolbar (screen only) ── */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 16px;
+    background: #1a4a7a;
+    color: #fff;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar button {
+    background: #fff;
+    color: #1a4a7a;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .toolbar button:hover { background: #dbeafe; }
+
+  .toolbar-label {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+  }
+
+  .add-event-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  select, input[type="text"] {
+    border: 1px solid #93c5fd;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: inherit;
+    background: #fff;
+    color: #1a1a2e;
+  }
+
+  /* ── Floating format toolbar ── */
+  #fmt-bar {
+    position: fixed;
+    display: none;
+    align-items: center;
+    gap: 3px;
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 5px 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    z-index: 9999;
+    user-select: none;
+  }
+  #fmt-bar.visible { display: flex; }
+  #fmt-bar button {
+    background: transparent;
+    color: #f1f5f9;
+    border: none;
+    border-radius: 5px;
+    width: 30px;
+    height: 28px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s;
+    font-family: inherit;
+  }
+  #fmt-bar button:hover, #fmt-bar button.active { background: #3b82f6; }
+  #fmt-bar .sep {
+    width: 1px;
+    height: 20px;
+    background: #475569;
+    margin: 0 2px;
+  }
+  #fmt-bar input[type="color"] {
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 1px;
+    background: transparent;
+  }
+  #fmt-bar select {
+    background: #334155;
+    color: #f1f5f9;
+    border: none;
+    border-radius: 5px;
+    padding: 2px 4px;
+    font-size: 11px;
+    cursor: pointer;
+    height: 26px;
+  }
+  #fmt-bar label {
+    color: #94a3b8;
+    font-size: 10px;
+    margin-right: 1px;
+  }
+
+  @media print {
+    .toolbar { display: none !important; }
+    #fmt-bar { display: none !important; }
+    body { width: 100%; }
+    .cal-cell, .cal-header, .dow-row, .cal-grid, .legend { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    [contenteditable] { border: none !important; outline: none !important; }
+  }
+
+  /* Hover highlight for editable cells */
+  [contenteditable]:focus {
+    outline: 2px solid #2563a8;
+    outline-offset: 1px;
+    border-radius: 2px;
+  }
+
+  .cal-cell:focus-within {
+    box-shadow: inset 0 0 0 2px #2563a8;
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating format toolbar -->
+<div id="fmt-bar">
+  <button id="fmt-bold" title="Bold" onclick="fmt('bold')"><b>B</b></button>
+  <button id="fmt-italic" title="Italic" onclick="fmt('italic')"><i>I</i></button>
+  <button id="fmt-underline" title="Underline" onclick="fmt('underline')"><u>U</u></button>
+  <div class="sep"></div>
+  <label>Color</label>
+  <input type="color" id="fmt-color" value="#cc0000" title="Text color" oninput="fmtColor(this.value)">
+  <button title="Remove text color" onclick="fmt('removeFormat')" style="font-size:10px;width:auto;padding:0 5px;">✕ Color</button>
+  <div class="sep"></div>
+  <label>Size</label>
+  <select id="fmt-size" onchange="fmtSize(this.value)" title="Font size">
+    <option value="">–</option>
+    <option value="7pt">7</option>
+    <option value="8pt">8</option>
+    <option value="9pt">9</option>
+    <option value="10pt">10</option>
+    <option value="11pt">11</option>
+    <option value="12pt">12</option>
+    <option value="14pt">14</option>
+    <option value="16pt">16</option>
+    <option value="18pt">18</option>
+  </select>
+  <div class="sep"></div>
+  <button title="Close" onclick="hideFmtBar()" style="color:#94a3b8;font-size:14px;">✕</button>
+</div>
+
+<!-- Screen-only toolbar -->
+<div class="toolbar" id="toolbar">
+  <span class="toolbar-label">✏️ Click any cell or text to edit &nbsp;|</span>
+  <button onclick="window.print()">🖨️ Print / Save PDF</button>
+  <span style="margin-left:8px">Add event:</span>
+  <div class="add-event-row">
+    <select id="add-day">
+      <option value="">-- Day --</option>
+    </select>
+    <input type="text" id="add-time" placeholder="10:00 AM" style="width:80px">
+    <input type="text" id="add-name" placeholder="Event name" style="width:160px">
+    <select id="add-type">
+      <option value="">Default</option>
+      <option value="special">Special</option>
+      <option value="wellness">Wellness</option>
+      <option value="social">Social</option>
+      <option value="dining">Dining</option>
+      <option value="outing">Outing</option>
+    </select>
+    <button onclick="addEvent()">+ Add</button>
+  </div>
+  <span style="margin-left:auto;font-size:11px;opacity:0.8">Right-click an event to delete it</span>
+</div>
+
+<!-- Calendar -->
+<div class="cal-header">
+  <div class="cal-title" contenteditable="true" spellcheck="false">April 2026</div>
+</div>
+
+<div class="dow-row">
+  <div class="dow-cell" contenteditable="true">Sunday</div>
+  <div class="dow-cell" contenteditable="true">Monday</div>
+  <div class="dow-cell" contenteditable="true">Tuesday</div>
+  <div class="dow-cell" contenteditable="true">Wednesday</div>
+  <div class="dow-cell" contenteditable="true">Thursday</div>
+  <div class="dow-cell" contenteditable="true">Friday</div>
+  <div class="dow-cell" contenteditable="true">Saturday</div>
+</div>
+
+<div class="cal-grid" id="cal-grid">
+  <!-- Cells injected by JS -->
+</div>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#dbeafe;border-left:3px solid #2563a8"></span>Activity</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#d1fae5;border-left:3px solid #059669"></span>Wellness / Exercise</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#ede9fe;border-left:3px solid #7c3aed"></span>Social / Games</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#ffe4e6;border-left:3px solid #e11d48"></span>Dining</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#fef3c7;border-left:3px solid #d97706"></span>Special Event</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#fef9c3;border-left:3px solid #ca8a04"></span>Outing</span>
+</div>
+
+<script>
+// ── Raw event data from Calendar.csv ──
+const rawEvents = [
+  {date:"04-01",time:"08:00 AM",name:"April Fool's Day",type:"special"},
+  {date:"04-01",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-01",time:"10:00 AM",name:"The Loop",type:"outing"},
+  {date:"04-01",time:"11:00 AM",name:"½ off Wine Day",type:"dining"},
+  {date:"04-01",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-01",time:"12:00 PM",name:"Outing – Neil Diamond $",type:"outing"},
+  {date:"04-01",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-01",time:"04:00 PM",name:"Stand-up Comedy",type:"social"},
+  {date:"04-01",time:"04:00 PM",name:"Seder Ceremony",type:"special"},
+
+  {date:"04-02",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-02",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-02",time:"12:00 PM",name:"TV Rewinds",type:"social"},
+  {date:"04-02",time:"01:00 PM",name:"Fitness Boxing",type:"wellness"},
+  {date:"04-02",time:"02:00 PM",name:"Cornhole Tournament",type:"social"},
+  {date:"04-02",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+
+  {date:"04-03",time:"08:00 AM",name:"Good Friday – Fish Fry",type:"special"},
+  {date:"04-03",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-03",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-03",time:"01:00 PM",name:"Jeopardy",type:"social"},
+  {date:"04-03",time:"01:00 PM",name:"The Loop",type:"outing"},
+  {date:"04-03",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-03",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-03",time:"04:00 PM",name:"Drinks by the Pool",type:"social"},
+  {date:"04-03",time:"04:00 PM",name:"Fish Fry & BBQ",type:"dining"},
+
+  {date:"04-04",time:"10:00 AM",name:"Easter Egg Hunt",type:"special"},
+  {date:"04-04",time:"01:00 PM",name:"Learning Bridge",type:"social"},
+  {date:"04-04",time:"02:00 PM",name:"Matinee Movie",type:"social"},
+  {date:"04-04",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-04",time:"06:00 PM",name:"Puzzle Mania",type:"social"},
+  {date:"04-04",time:"07:00 PM",name:"Movie Night",type:"social"},
+  {date:"04-04",time:"07:00 PM",name:"Sunset Walk",type:"wellness"},
+
+  {date:"04-05",time:"08:00 AM",name:"Easter Day – Family & Brunch",type:"special"},
+  {date:"04-05",time:"09:00 AM",name:"Catholic Service",type:"special"},
+  {date:"04-05",time:"10:00 AM",name:"Virtual Church",type:"special"},
+  {date:"04-05",time:"12:00 PM",name:"Prayer Group",type:"special"},
+  {date:"04-05",time:"12:00 PM",name:"Easter Brunch",type:"dining"},
+  {date:"04-05",time:"03:00 PM",name:"Rummikub Group",type:"social"},
+  {date:"04-05",time:"04:00 PM",name:"Movie – Passion of Christ",type:"social"},
+
+  {date:"04-06",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-06",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-06",time:"01:00 PM",name:"Fitness Boxing",type:"wellness"},
+  {date:"04-06",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-06",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-06",time:"04:00 PM",name:"Team Trivia",type:"social"},
+  {date:"04-06",time:"06:00 PM",name:"I Spy in the Night Sky",type:"special"},
+
+  {date:"04-07",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-07",time:"11:00 AM",name:"Bible Study",type:"special"},
+  {date:"04-07",time:"01:00 PM",name:"Jeopardy",type:"social"},
+  {date:"04-07",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-07",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-07",time:"04:00 PM",name:"Pasta Night in Palmer's",type:"dining"},
+  {date:"04-07",time:"04:00 PM",name:"Courtyard Tennis",type:"wellness"},
+
+  {date:"04-08",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-08",time:"10:00 AM",name:"The Loop",type:"outing"},
+  {date:"04-08",time:"11:00 AM",name:"½ off Wine Day",type:"dining"},
+  {date:"04-08",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-08",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-08",time:"05:00 PM",name:"Live Entertainment",type:"special"},
+  {date:"04-08",time:"05:30 PM",name:"Live Music in the Bar",type:"special"},
+
+  {date:"04-09",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-09",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-09",time:"01:00 PM",name:"Fitness Boxing",type:"wellness"},
+  {date:"04-09",time:"02:00 PM",name:"Atlas Through the Years",type:"social"},
+  {date:"04-09",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-09",time:"06:00 PM",name:"Trivia at the Elks",type:"outing"},
+
+  {date:"04-10",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-10",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-10",time:"01:00 PM",name:"Beat the Director",type:"social"},
+  {date:"04-10",time:"01:00 PM",name:"The Loop",type:"outing"},
+  {date:"04-10",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-10",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-10",time:"04:45 PM",name:"Dinner Club – Waterfront",type:"outing"},
+
+  {date:"04-11",time:"10:00 AM",name:"Morning Walk",type:"wellness"},
+  {date:"04-11",time:"01:00 PM",name:"Educational – Parkinson's",type:"special"},
+  {date:"04-11",time:"02:00 PM",name:"Coffee Chat",type:"social"},
+  {date:"04-11",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-11",time:"06:00 PM",name:"Bingo with Chris",type:"social"},
+  {date:"04-11",time:"08:00 PM",name:"Movie Night",type:"social"},
+
+  {date:"04-12",time:"09:00 AM",name:"Catholic Service",type:"special"},
+  {date:"04-12",time:"11:00 AM",name:"Virtual Church",type:"special"},
+  {date:"04-12",time:"12:00 PM",name:"Prayer Group",type:"special"},
+  {date:"04-12",time:"02:00 PM",name:"Ice Cream Social",type:"social"},
+  {date:"04-12",time:"03:00 PM",name:"Rummikub Group",type:"social"},
+  {date:"04-12",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-12",time:"04:00 PM",name:"Matinee Movie",type:"social"},
+
+  {date:"04-13",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-13",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-13",time:"12:00 PM",name:"Activity Pow-wow",type:"special"},
+  {date:"04-13",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-13",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-13",time:"04:00 PM",name:"Speak2 Workshop",type:"special"},
+  {date:"04-13",time:"04:00 PM",name:"Chinese Night in Palmer's",type:"dining"},
+
+  {date:"04-14",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-14",time:"11:00 AM",name:"Bible Study",type:"special"},
+  {date:"04-14",time:"12:00 PM",name:"Afternoon with Alex",type:"dining"},
+  {date:"04-14",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-14",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+
+  {date:"04-15",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-15",time:"10:00 AM",name:"The Loop",type:"outing"},
+  {date:"04-15",time:"11:00 AM",name:"½ off Wine Day",type:"dining"},
+  {date:"04-15",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-15",time:"12:30 PM",name:"Board Games",type:"social"},
+  {date:"04-15",time:"01:30 PM",name:"Atlas Through the Years",type:"social"},
+  {date:"04-15",time:"02:30 PM",name:"Happy Hour",type:"dining"},
+
+  {date:"04-16",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-16",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-16",time:"01:00 PM",name:"Fitness Boxing",type:"wellness"},
+  {date:"04-16",time:"02:00 PM",name:"Chef's Corner",type:"special"},
+  {date:"04-16",time:"04:00 PM",name:"Next Chapter Meeting",type:"special"},
+
+  {date:"04-17",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-17",time:"11:00 AM",name:"Finish the Phrase",type:"social"},
+  {date:"04-17",time:"12:00 PM",name:"Poetry Hour",type:"social"},
+  {date:"04-17",time:"01:00 PM",name:"The Loop",type:"outing"},
+  {date:"04-17",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-17",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-17",time:"04:00 PM",name:"Town Hall Meeting",type:"special"},
+
+  {date:"04-18",time:"10:00 AM",name:"Morning Music",type:"wellness"},
+  {date:"04-18",time:"12:00 PM",name:"Sip & Paint",type:"special"},
+  {date:"04-18",time:"01:00 PM",name:"Learning Bridge",type:"social"},
+  {date:"04-18",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-18",time:"06:00 PM",name:"Puzzle Mania",type:"social"},
+  {date:"04-18",time:"07:00 PM",name:"Movie Night",type:"social"},
+
+  {date:"04-19",time:"09:00 AM",name:"Catholic Service",type:"special"},
+  {date:"04-19",time:"11:00 AM",name:"Virtual Church",type:"special"},
+  {date:"04-19",time:"12:00 PM",name:"Prayer Group",type:"special"},
+  {date:"04-19",time:"02:00 PM",name:"Ice Cream Social",type:"social"},
+  {date:"04-19",time:"03:00 PM",name:"Rummikub Group",type:"social"},
+  {date:"04-19",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-19",time:"04:00 PM",name:"Matinee Movie",type:"social"},
+
+  {date:"04-20",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-20",time:"11:00 AM",name:"Dementia Support Group",type:"special"},
+  {date:"04-20",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-20",time:"01:00 PM",name:"Balance Class",type:"wellness"},
+  {date:"04-20",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-20",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+
+  {date:"04-21",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-21",time:"11:00 AM",name:"Bible Study",type:"special"},
+  {date:"04-21",time:"01:00 PM",name:"The Life of Mahatma",type:"social"},
+  {date:"04-21",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-21",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-21",time:"04:00 PM",name:"Bocce Ball",type:"wellness"},
+
+  {date:"04-22",time:"10:00 AM",name:"The Loop",type:"outing"},
+  {date:"04-22",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-22",time:"11:00 AM",name:"½ off Wine Day",type:"dining"},
+  {date:"04-22",time:"11:00 AM",name:"Lego Challenge",type:"social"},
+  {date:"04-22",time:"02:00 PM",name:"Music for Music Lovers",type:"social"},
+  {date:"04-22",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-22",time:"06:00 PM",name:"Outing – Mark Twain",type:"outing"},
+  {date:"04-22",time:"06:00 PM",name:"Movie Night",type:"social"},
+
+  {date:"04-23",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-23",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-23",time:"12:00 PM",name:"Encompass Tour Lunch",type:"outing"},
+  {date:"04-23",time:"01:00 PM",name:"Fitness Boxing",type:"wellness"},
+  {date:"04-23",time:"02:00 PM",name:"Atlas Through the Years",type:"social"},
+  {date:"04-23",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-23",time:"04:00 PM",name:"Music on Demand",type:"social"},
+
+  {date:"04-24",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-24",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-24",time:"01:00 PM",name:"The Loop",type:"outing"},
+  {date:"04-24",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-24",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-24",time:"05:00 PM",name:"Dinner Club Outing",type:"outing"},
+
+  {date:"04-25",time:"10:00 AM",name:"Morning Walk",type:"wellness"},
+  {date:"04-25",time:"01:00 PM",name:"Matinee Movie",type:"social"},
+  {date:"04-25",time:"01:00 PM",name:"Learning Bridge",type:"social"},
+  {date:"04-25",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-25",time:"03:00 PM",name:"Karaoke",type:"social"},
+  {date:"04-25",time:"06:00 PM",name:"Puzzle Mania",type:"social"},
+  {date:"04-25",time:"06:30 PM",name:"Sunset Walk",type:"wellness"},
+
+  {date:"04-26",time:"09:00 AM",name:"Catholic Service",type:"special"},
+  {date:"04-26",time:"11:00 AM",name:"Virtual Church",type:"special"},
+  {date:"04-26",time:"12:00 PM",name:"Prayer Group",type:"special"},
+  {date:"04-26",time:"02:00 PM",name:"Ice Cream Social",type:"social"},
+  {date:"04-26",time:"03:00 PM",name:"Rummikub Group",type:"social"},
+  {date:"04-26",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-26",time:"04:00 PM",name:"Matinee Movie",type:"social"},
+
+  {date:"04-27",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-27",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-27",time:"12:00 PM",name:"Balance Class",type:"wellness"},
+  {date:"04-27",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-27",time:"02:00 PM",name:"Cooking Demonstration",type:"special"},
+  {date:"04-27",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-27",time:"07:00 PM",name:"I Spy in the Night Sky",type:"special"},
+
+  {date:"04-28",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-28",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-28",time:"11:00 AM",name:"Bible Study",type:"special"},
+  {date:"04-28",time:"01:00 PM",name:"Jeopardy",type:"social"},
+  {date:"04-28",time:"02:00 PM",name:"Bingo",type:"social"},
+  {date:"04-28",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-28",time:"04:00 PM",name:"Surf & Turf Night in Palmer's",type:"dining"},
+
+  {date:"04-29",time:"09:00 AM",name:"Classy Collection Sales",type:"special"},
+  {date:"04-29",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-29",time:"10:00 AM",name:"The Loop",type:"outing"},
+  {date:"04-29",time:"11:00 AM",name:"½ off Wine Day",type:"dining"},
+  {date:"04-29",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-29",time:"11:00 AM",name:"Senior Friendship Center",type:"outing"},
+  {date:"04-29",time:"12:00 PM",name:"Lunch Club Outing",type:"outing"},
+  {date:"04-29",time:"02:00 PM",name:"Music for Music Lovers",type:"social"},
+  {date:"04-29",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+
+  {date:"04-30",time:"09:00 AM",name:"Breakfast Club Outing",type:"outing"},
+  {date:"04-30",time:"10:00 AM",name:"Exercise with Meredith",type:"wellness"},
+  {date:"04-30",time:"11:00 AM",name:"Brain Games",type:"social"},
+  {date:"04-30",time:"01:00 PM",name:"Bocce Ball",type:"wellness"},
+  {date:"04-30",time:"02:00 PM",name:"Atlas Through the Years",type:"social"},
+  {date:"04-30",time:"03:00 PM",name:"Happy Hour",type:"dining"},
+  {date:"04-30",time:"06:00 PM",name:"Trivia",type:"social"},
+];
+
+// Group events by date key "MM-DD"
+const eventsByDay = {};
+rawEvents.forEach(e => {
+  if (!eventsByDay[e.date]) eventsByDay[e.date] = [];
+  eventsByDay[e.date].push(e);
+});
+
+// April 2026: April 1 = Wednesday (index 3 in Sun–Sat week)
+const YEAR = 2026, MONTH = 4;
+const firstDow = 3; // Wednesday
+const daysInMonth = 30;
+
+// Populate day selector
+const addDayEl = document.getElementById('add-day');
+for (let d = 1; d <= daysInMonth; d++) {
+  const o = document.createElement('option');
+  o.value = String(d).padStart(2,'0');
+  o.textContent = d;
+  addDayEl.appendChild(o);
+}
+
+function makeEventEl(ev) {
+  const div = document.createElement('div');
+  div.className = 'event-item' + (ev.type ? ' ' + ev.type : '');
+  div.contentEditable = 'true';
+  div.spellcheck = false;
+  div.innerHTML = `<span class="event-time">${ev.time}</span>${ev.name}`;
+  div.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    if (confirm('Remove this event?')) div.remove();
+  });
+  return div;
+}
+
+function buildGrid() {
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Leading filler cells (prev month days)
+  const prevDaysInMonth = 31; // March
+  for (let i = 0; i < firstDow; i++) {
+    const day = prevDaysInMonth - firstDow + 1 + i;
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell filler';
+    const numEl = document.createElement('div');
+    numEl.className = 'day-num';
+    numEl.contentEditable = 'true';
+    numEl.spellcheck = false;
+    numEl.textContent = day;
+    cell.appendChild(numEl);
+    const evList = document.createElement('div');
+    evList.className = 'event-list';
+    cell.appendChild(evList);
+    grid.appendChild(cell);
+  }
+
+  // April days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    cell.dataset.day = String(d).padStart(2,'0');
+
+    const numEl = document.createElement('div');
+    numEl.className = 'day-num';
+    numEl.contentEditable = 'true';
+    numEl.spellcheck = false;
+    numEl.textContent = d;
+    cell.appendChild(numEl);
+
+    const evList = document.createElement('div');
+    evList.className = 'event-list';
+
+    const key = `04-${String(d).padStart(2,'0')}`;
+    (eventsByDay[key] || []).forEach(ev => {
+      evList.appendChild(makeEventEl(ev));
+    });
+    cell.appendChild(evList);
+    grid.appendChild(cell);
+  }
+
+  // Trailing filler cells to complete last row
+  const totalCells = firstDow + daysInMonth;
+  const remainder = totalCells % 7;
+  const trailing = remainder === 0 ? 0 : 7 - remainder;
+  for (let i = 1; i <= trailing; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell filler';
+    const numEl = document.createElement('div');
+    numEl.className = 'day-num';
+    numEl.contentEditable = 'true';
+    numEl.spellcheck = false;
+    numEl.textContent = i;
+    cell.appendChild(numEl);
+    const evList = document.createElement('div');
+    evList.className = 'event-list';
+    cell.appendChild(evList);
+    grid.appendChild(cell);
+  }
+}
+
+function addEvent() {
+  const day = document.getElementById('add-day').value;
+  const time = document.getElementById('add-time').value.trim();
+  const name = document.getElementById('add-name').value.trim();
+  const type = document.getElementById('add-type').value;
+
+  if (!day || !name) { alert('Please pick a day and enter an event name.'); return; }
+
+  const cell = document.querySelector(`.cal-cell[data-day="${day}"]`);
+  if (!cell) { alert('Day not found.'); return; }
+
+  const ev = { time: time || '', name, type };
+  const evList = cell.querySelector('.event-list');
+  evList.appendChild(makeEventEl(ev));
+
+  // Clear inputs
+  document.getElementById('add-time').value = '';
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-type').value = '';
+  document.getElementById('add-day').value = '';
+}
+
+buildGrid();
+
+// ── Floating format toolbar ──
+const fmtBar = document.getElementById('fmt-bar');
+let savedRange = null;
+
+function saveSelection() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    savedRange = sel.getRangeAt(0).cloneRange();
+  }
+}
+
+function restoreSelection() {
+  if (!savedRange) return;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+}
+
+function fmt(cmd) {
+  restoreSelection();
+  document.execCommand(cmd, false, null);
+  updateFmtState();
+}
+
+function fmtColor(color) {
+  restoreSelection();
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('foreColor', false, color);
+  updateFmtState();
+}
+
+function fmtSize(size) {
+  if (!size) return;
+  restoreSelection();
+  // Wrap selection in a span with the desired font-size
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) return;
+  const span = document.createElement('span');
+  span.style.fontSize = size;
+  try {
+    range.surroundContents(span);
+  } catch(e) {
+    // Partial selection across elements — extract and wrap
+    const frag = range.extractContents();
+    span.appendChild(frag);
+    range.insertNode(span);
+  }
+  document.getElementById('fmt-size').value = '';
+}
+
+function updateFmtState() {
+  document.getElementById('fmt-bold').classList.toggle('active', document.queryCommandState('bold'));
+  document.getElementById('fmt-italic').classList.toggle('active', document.queryCommandState('italic'));
+  document.getElementById('fmt-underline').classList.toggle('active', document.queryCommandState('underline'));
+}
+
+function hideFmtBar() {
+  fmtBar.classList.remove('visible');
+  savedRange = null;
+}
+
+// Show toolbar on text selection within an event or day number
+document.addEventListener('mouseup', (e) => {
+  // Don't trigger when clicking the toolbar itself
+  if (fmtBar.contains(e.target)) return;
+
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+    // Only hide if click was outside the bar
+    if (!fmtBar.contains(e.target)) hideFmtBar();
+    return;
+  }
+
+  // Only show for text inside the calendar (not toolbar inputs)
+  const anchor = sel.anchorNode;
+  const calGrid = document.getElementById('cal-grid');
+  const calHeader = document.querySelector('.cal-header');
+  const dowRow = document.querySelector('.dow-row');
+  if (!anchor) return;
+  const inCalendar = calGrid.contains(anchor) || calHeader.contains(anchor) || dowRow.contains(anchor);
+  if (!inCalendar) return;
+
+  saveSelection();
+  updateFmtState();
+
+  // Position near selection
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  const barW = 380;
+  let left = rect.left + window.scrollX + rect.width / 2 - barW / 2;
+  let top = rect.top + window.scrollY - 46;
+  if (left < 4) left = 4;
+  if (left + barW > window.innerWidth - 4) left = window.innerWidth - barW - 4;
+  if (top < 4) top = rect.bottom + window.scrollY + 6;
+
+  fmtBar.style.left = left + 'px';
+  fmtBar.style.top = top + 'px';
+  fmtBar.classList.add('visible');
+});
+
+// Keep toolbar open when clicking inside it (mousedown prevents selection loss)
+fmtBar.addEventListener('mousedown', (e) => {
+  e.preventDefault(); // Prevent focus loss / selection collapse
+});
+
+// Hide on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideFmtBar();
+});
+</script>
+</body>
+</html>

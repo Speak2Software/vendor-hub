@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calendar Engagement Dashboard</title>
+<style>
+  :root {
+    --bg: #f8f9fc;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --service: #6366f1;
+    --service-light: #eef2ff;
+    --simple: #0ea5e9;
+    --simple-light: #f0f9ff;
+    --both: #8b5cf6;
+    --both-light: #f5f3ff;
+    --none: #94a3b8;
+    --none-light: #f8fafc;
+    --high: #10b981;
+    --med: #f59e0b;
+    --low: #ef4444;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  header { background: #1e293b; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+  header p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .badge { background: #334155; color: #e2e8f0; font-size: 11px; padding: 3px 10px; border-radius: 20px; }
+  .main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* Summary Cards */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+  .card-label { font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .card-value { font-size: 32px; font-weight: 700; line-height: 1; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .card.service .card-value { color: var(--service); }
+  .card.simple .card-value { color: var(--simple); }
+  .card.both .card-value { color: var(--both); }
+  .card.none .card-value { color: var(--none); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 8px 18px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card); color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 7px; }
+  .tab.active { color: #fff; border-color: transparent; }
+  .tab.all.active { background: #1e293b; }
+  .tab.service.active { background: var(--service); }
+  .tab.simple.active { background: var(--simple); }
+  .tab.both.active { background: var(--both); }
+  .tab.none.active { background: var(--none); }
+  .tab-count { font-size: 11px; background: rgba(0,0,0,.12); padding: 1px 7px; border-radius: 10px; }
+  .tab.active .tab-count { background: rgba(255,255,255,.25); }
+
+  /* Controls */
+  .controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .search { flex: 1; min-width: 220px; padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); background: var(--card); }
+  .search:focus { outline: none; border-color: var(--service); }
+  select { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); background: var(--card); cursor: pointer; }
+  select:focus { outline: none; border-color: var(--service); }
+
+  /* Table */
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #f8fafc; }
+  th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: var(--text); }
+  th .sort-icon { margin-left: 4px; opacity: .4; }
+  th.sorted .sort-icon { opacity: 1; color: var(--service); }
+  td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .facility-name { font-weight: 600; font-size: 13px; }
+  .facility-id { font-size: 11px; color: var(--muted); font-family: monospace; margin-top: 1px; }
+
+  .tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .tag.service { background: var(--service-light); color: var(--service); }
+  .tag.simple { background: var(--simple-light); color: #0369a1; }
+  .tag.both { background: var(--both-light); color: var(--both); }
+  .tag.none { background: #f1f5f9; color: #64748b; }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot.service { background: var(--service); }
+  .dot.simple { background: var(--simple); }
+  .dot.both { background: var(--both); }
+  .dot.none { background: var(--none); }
+
+  .eng-bar { display: flex; align-items: center; gap: 8px; }
+  .bar-track { background: #e2e8f0; border-radius: 4px; height: 6px; flex: 1; min-width: 60px; }
+  .bar-fill { height: 6px; border-radius: 4px; transition: width .3s; }
+  .bar-label { font-size: 12px; font-weight: 600; min-width: 28px; text-align: right; }
+
+  .eng-level { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .eng-level.high { background: #dcfce7; color: #15803d; }
+  .eng-level.medium { background: #fef9c3; color: #92400e; }
+  .eng-level.low { background: #fee2e2; color: #b91c1c; }
+  .eng-level.none-eng { background: #f1f5f9; color: #64748b; }
+
+  .action-btn { background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .action-btn:hover { border-color: var(--service); color: var(--service); }
+
+  .num { font-variant-numeric: tabular-nums; }
+  .num-zero { color: #cbd5e1; }
+
+  /* Action Plan Panel */
+  .action-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 28px; overflow: hidden; }
+  .action-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .action-header h2 { font-size: 15px; font-weight: 700; }
+  .action-body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .action-col { padding: 20px; border-right: 1px solid var(--border); }
+  .action-col:last-child { border-right: none; }
+  .action-col h3 { font-size: 13px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .action-col .sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+  .action-step { display: flex; gap: 10px; margin-bottom: 12px; }
+  .step-num { width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-size: 12px; line-height: 1.5; color: #334155; }
+  .action-col.service-col .step-num { background: var(--service-light); color: var(--service); }
+  .action-col.simple-col .step-num { background: var(--simple-light); color: #0369a1; }
+  .action-col.none-col .step-num { background: #f1f5f9; color: #64748b; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 12px; padding: 28px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .modal .facility-tag { margin-bottom: 16px; margin-top: 6px; }
+  .modal-close { float: right; background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; line-height: 1; }
+  .modal-section { margin-bottom: 16px; }
+  .modal-section h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-item { background: #f8fafc; border-radius: 8px; padding: 10px 12px; }
+  .stat-item .s-val { font-size: 22px; font-weight: 700; }
+  .stat-item .s-lab { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .talk-track { background: #f0f9ff; border-left: 3px solid var(--simple); border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; line-height: 1.6; color: #0c4a6e; }
+  .talk-track.service { background: var(--service-light); border-color: var(--service); color: #312e81; }
+  .talk-track.both { background: var(--both-light); border-color: var(--both); color: #3b0764; }
+  .talk-track.none-track { background: #f8fafc; border-color: #94a3b8; color: #334155; }
+
+  .empty-state { padding: 48px; text-align: center; color: var(--muted); }
+  .empty-state svg { margin-bottom: 12px; opacity: .4; }
+  .empty-state p { font-size: 15px; }
+
+  .row-count { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .action-body { grid-template-columns: 1fr; }
+    .action-col { border-right: none; border-bottom: 1px solid var(--border); }
+    .action-col:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Calendar Engagement Dashboard</h1>
+    <p>Senior Living Community Calendar Usage Analysis</p>
+  </div>
+  <span class="badge" id="last-updated">As of April 2026</span>
+</header>
+
+<div class="main">
+  <div class="cards" id="summary-cards"></div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab all active" data-filter="all">All Communities <span class="tab-count" id="count-all">0</span></button>
+    <button class="tab service" data-filter="service">Service Calendar <span class="tab-count" id="count-service">0</span></button>
+    <button class="tab simple" data-filter="simple">Simple Calendar <span class="tab-count" id="count-simple">0</span></button>
+    <button class="tab both" data-filter="both">Both Types <span class="tab-count" id="count-both">0</span></button>
+    <button class="tab none" data-filter="none">Not Using <span class="tab-count" id="count-none">0</span></button>
+  </div>
+
+  <div class="controls">
+    <input class="search" id="search" placeholder="Search community name..." />
+    <select id="sort-select">
+      <option value="name-asc">Sort: Name A–Z</option>
+      <option value="name-desc">Sort: Name Z–A</option>
+      <option value="events-desc">Sort: Most Events</option>
+      <option value="events-asc">Sort: Fewest Events</option>
+      <option value="engagement-desc">Sort: Engagement ↓</option>
+      <option value="engagement-asc">Sort: Engagement ↑</option>
+    </select>
+    <span class="row-count" id="row-count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Community</th>
+          <th>Calendar Type</th>
+          <th>Total Events</th>
+          <th>Service Events</th>
+          <th>Simple Events</th>
+          <th>Signage Used</th>
+          <th>Announcements</th>
+          <th>Registered</th>
+          <th>Attended</th>
+          <th>Engagement</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div id="empty-state" class="empty-state" style="display:none;">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <p>No communities match your filters.</p>
+    </div>
+  </div>
+
+  <div class="action-panel">
+    <div class="action-header">
+      <h2>📋 Action Plan by Segment</h2>
+      <span style="font-size:12px;color:var(--muted);">Use these talk tracks when reaching out to each segment</span>
+    </div>
+    <div class="action-body">
+      <div class="action-col service-col">
+        <h3><span class="dot service"></span> Service Calendar Users</h3>
+        <p class="sub">Already using the advanced calendar — focus on depth of features</p>
+        <div class="action-step"><div class="step-num">1</div><div class="step-text"><strong>Review signage adoption</strong> — Many have events but zero signage checked. Walk them through how to enable digital signage display.</div></div>
+        <div class="action-step"><div class="step-num">2</div><div class="step-text"><strong>Push announcements feature</strong> — Communities with no announcements are missing a key engagement tool. Demo how announcements drive attendance.</div></div>
+        <div class="action-step"><div class="step-num">3</div><div class="step-text"><strong>Enable RSVP / attendance tracking</strong> — Communities without registration/attendance data can't measure ROI. Help them turn this on.</div></div>
+        <div class="action-step"><div class="step-num">4</div><div class="step-text"><strong>Share best-practice benchmarks</strong> — Show them how top performers (mather-tysons, atlas-legacy-fairview) are using the platform.</div></div>
+      </div>
+      <div class="action-col simple-col">
+        <h3><span class="dot simple"></span> Simple Calendar Users</h3>
+        <p class="sub">Using basic calendar only — opportunity to upgrade engagement</p>
+        <div class="action-step"><div class="step-num">1</div><div class="step-text"><strong>Understand why they chose Simple</strong> — Ask if it was a deliberate choice or just what they set up first. Many may not know Service calendars exist.</div></div>
+        <div class="action-step"><div class="step-num">2</div><div class="step-text"><strong>Demo the Service calendar upgrade path</strong> — Show them signage, announcements, RSVP, and attendance tracking as features they're missing.</div></div>
+        <div class="action-step"><div class="step-num">3</div><div class="step-text"><strong>Offer migration assistance</strong> — Removing friction for the switchover is key. Offer a 30-min setup call.</div></div>
+        <div class="action-step"><div class="step-num">4</div><div class="step-text"><strong>Note: Juniper group</strong> has 10+ communities on Simple. A single group conversation could unlock a bulk upgrade.</div></div>
+      </div>
+      <div class="action-col none-col">
+        <h3><span class="dot none"></span> Not Using Calendar</h3>
+        <p class="sub">Zero activity — re-engagement and onboarding priority</p>
+        <div class="action-step"><div class="step-num">1</div><div class="step-text"><strong>Audit if account is live</strong> — Some entries may be test/corp accounts. Confirm which are real communities with staff.</div></div>
+        <div class="action-step"><div class="step-num">2</div><div class="step-text"><strong>Identify the blocker</strong> — Is it a training gap? Staff turnover? Technical issue? A 15-minute check-in call will surface the real reason.</div></div>
+        <div class="action-step"><div class="step-num">3</div><div class="step-text"><strong>Send a "Quick Win" onboarding email</strong> — Share a 3-step setup guide. Low-lift tasks drive activation. Offer a live screen-share session.</div></div>
+        <div class="action-step"><div class="step-num">4</div><div class="step-text"><strong>Set a 30-day follow-up</strong> — If still zero after outreach, escalate to customer success or account manager review.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">×</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const RAW = {"Facility02":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Facility03":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"English Meadow":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Fallbrook":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Reformed Church Home":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Aldersgate":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-downtown":{"number_of_calendar_entries":268,"number_of_service_events":268,"number_of_service_signage_checked":268,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Pleasant Hill Concord":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-pleasant-hill-martinez":{"number_of_calendar_entries":206,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":206,"number_of_simple_with_people_registered":23,"number_of_simple_with_people_attended":134},"Crozet":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-Sacramento":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-SL":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"vitality-mill-creek":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-Davis":{"number_of_calendar_entries":112,"number_of_service_events":112,"number_of_service_signage_checked":67,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-Fremont":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"testing":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Home Office":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"MOW-1":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-Concord":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Life Care Center PSL":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"njhm":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-Orangevale":{"number_of_calendar_entries":175,"number_of_service_events":175,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":162,"number_of_service_announcements_checked_all":61,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":323,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-ElkGrove":{"number_of_calendar_entries":225,"number_of_service_events":225,"number_of_service_signage_checked":225,"number_of_service_announcements_checked":38,"number_of_service_announcements_checked_all":34,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":433,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"LIVIA at East Hanover":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-lincoln-manor":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"watermark-park":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Carlton-SanJose":{"number_of_calendar_entries":198,"number_of_service_events":159,"number_of_service_signage_checked":153,"number_of_service_announcements_checked":98,"number_of_service_announcements_checked_all":37,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":39,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"The Watermark at 3030 Park":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"StJohnsHome":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"njhsn":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"TheWesleyan-AL":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"carlton-corporate":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"valley-vista-hg":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Dev test":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"crozet-em":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"FP-VDM":{"number_of_calendar_entries":334,"number_of_service_events":334,"number_of_service_signage_checked":332,"number_of_service_announcements_checked":138,"number_of_service_announcements_checked_all":131,"number_of_service_with_people_registered":24,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"PPH":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"brilliant-blaze-demo-2":{"number_of_calendar_entries":3,"number_of_service_events":3,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Trillium-Woods":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"pph-mid":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"reg-fb":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-tp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"vi-theglen":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Dev Healthcare Subscription Test":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Sac-atr":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"uch-bruns":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-ph":{"number_of_calendar_entries":39,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":39,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-sc":{"number_of_calendar_entries":1044,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":1044,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-sws":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-chat":{"number_of_calendar_entries":360,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":360,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-param":{"number_of_calendar_entries":977,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":977,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-linc":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-guad":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"uch-miamitwp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-bl":{"number_of_calendar_entries":819,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":819,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-fo-hill":{"number_of_calendar_entries":512,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":512,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-leb":{"number_of_calendar_entries":356,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":356,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-mead":{"number_of_calendar_entries":397,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":397,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-monroe":{"number_of_calendar_entries":702,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":702,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-mj":{"number_of_calendar_entries":453,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":453,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-so-hill":{"number_of_calendar_entries":673,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":673,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-wt":{"number_of_calendar_entries":846,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":846,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-monroe":{"number_of_calendar_entries":240,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":240,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-bc":{"number_of_calendar_entries":546,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":546,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-bc-al":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-tp-mc":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"sra-vero":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"demo-2":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Rcare-corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-carmichael":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Dev-Test-2":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"vista-fifth":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"mather-corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"ijaz test":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"revela-ofallon":{"number_of_calendar_entries":219,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":219,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"watermark-east-hill":{"number_of_calendar_entries":70,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":70,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"mather-tysons":{"number_of_calendar_entries":719,"number_of_service_events":719,"number_of_service_signage_checked":708,"number_of_service_announcements_checked":707,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":3674,"number_of_service_with_people_attended":772,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"new-test":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-bl-sn":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"juniper-bl-mc":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Atlas-Corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"mather-place":{"number_of_calendar_entries":749,"number_of_service_events":749,"number_of_service_signage_checked":748,"number_of_service_announcements_checked":1,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":440,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"waymark-gardens":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Dev-test-4":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"fellowship-square-mesa":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-goldton-stpete":{"number_of_calendar_entries":270,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":270,"number_of_simple_with_people_registered":12,"number_of_simple_with_people_attended":0},"atlas-goldton-venice":{"number_of_calendar_entries":193,"number_of_service_events":193,"number_of_service_signage_checked":47,"number_of_service_announcements_checked":32,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":22,"number_of_service_with_people_attended":136,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-oldtown":{"number_of_calendar_entries":349,"number_of_service_events":52,"number_of_service_signage_checked":52,"number_of_service_announcements_checked":52,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":258,"number_of_service_with_people_attended":29,"number_of_simple_events":297,"number_of_simple_with_people_registered":195,"number_of_simple_with_people_attended":108},"admiral-lake":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"intrex-corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"ah-dearborn-heights":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"ah-farmington-hills":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-lgr":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-roseville":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-lgb":{"number_of_calendar_entries":173,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":173,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-trousdale":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-vgv":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-placerville":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"mch":{"number_of_calendar_entries":92,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":92,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"cl-creekview":{"number_of_calendar_entries":262,"number_of_service_events":262,"number_of_service_signage_checked":211,"number_of_service_announcements_checked":251,"number_of_service_announcements_checked_all":249,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":639,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-beacon-woods":{"number_of_calendar_entries":254,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":254,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"mather-evanston":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"mather-splendido":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"dev-test-demo":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"WebRTC-TEST":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"symphony-park":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"total-home":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-oscar-gtown":{"number_of_calendar_entries":560,"number_of_service_events":560,"number_of_service_signage_checked":560,"number_of_service_announcements_checked":44,"number_of_service_announcements_checked_all":17,"number_of_service_with_people_registered":65,"number_of_service_with_people_attended":8,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Dev test 6":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"esk-support-center":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Rishi":{"number_of_calendar_entries":2,"number_of_service_events":2,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":2,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"regency-fallbrook":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"cl-corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-madison":{"number_of_calendar_entries":110,"number_of_service_events":110,"number_of_service_signage_checked":110,"number_of_service_announcements_checked":106,"number_of_service_announcements_checked_all":1,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-starkville":{"number_of_calendar_entries":98,"number_of_service_events":70,"number_of_service_signage_checked":70,"number_of_service_announcements_checked":70,"number_of_service_announcements_checked_all":61,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":28,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"ah-livonia":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-goldton-athens":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-legacy-ridge":{"number_of_calendar_entries":54,"number_of_service_events":54,"number_of_service_signage_checked":54,"number_of_service_announcements_checked":38,"number_of_service_announcements_checked_all":6,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-goldton-springhill":{"number_of_calendar_entries":34,"number_of_service_events":34,"number_of_service_signage_checked":34,"number_of_service_announcements_checked":32,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-southaven":{"number_of_calendar_entries":130,"number_of_service_events":110,"number_of_service_signage_checked":88,"number_of_service_announcements_checked":38,"number_of_service_announcements_checked_all":37,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":20,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-legacy-buckhead":{"number_of_calendar_entries":350,"number_of_service_events":350,"number_of_service_signage_checked":221,"number_of_service_announcements_checked":210,"number_of_service_announcements_checked_all":183,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-legacy-alpharetta":{"number_of_calendar_entries":104,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":104,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-legacy-fairview":{"number_of_calendar_entries":639,"number_of_service_events":639,"number_of_service_signage_checked":639,"number_of_service_announcements_checked":578,"number_of_service_announcements_checked_all":567,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-legacy-fritz":{"number_of_calendar_entries":98,"number_of_service_events":98,"number_of_service_signage_checked":98,"number_of_service_announcements_checked":98,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":74,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-oakview":{"number_of_calendar_entries":86,"number_of_service_events":86,"number_of_service_signage_checked":83,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-spring-park":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-wildcat":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-ocoee":{"number_of_calendar_entries":107,"number_of_service_events":107,"number_of_service_signage_checked":104,"number_of_service_announcements_checked":104,"number_of_service_announcements_checked_all":73,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-clermont":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-oviedo":{"number_of_calendar_entries":129,"number_of_service_events":17,"number_of_service_signage_checked":16,"number_of_service_announcements_checked":14,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":1,"number_of_service_with_people_attended":0,"number_of_simple_events":112,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-legacy-marietta":{"number_of_calendar_entries":81,"number_of_service_events":71,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":10,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"uch-pickfair":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Test_Department_facility":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"villadeguerra":{"number_of_calendar_entries":45,"number_of_service_events":44,"number_of_service_signage_checked":41,"number_of_service_announcements_checked":44,"number_of_service_announcements_checked_all":22,"number_of_service_with_people_registered":1,"number_of_service_with_people_attended":1,"number_of_simple_events":1,"number_of_simple_with_people_registered":1,"number_of_simple_with_people_attended":1},"atlas-legacy-pooler":{"number_of_calendar_entries":349,"number_of_service_events":340,"number_of_service_signage_checked":171,"number_of_service_announcements_checked":322,"number_of_service_announcements_checked_all":42,"number_of_service_with_people_registered":14,"number_of_service_with_people_attended":194,"number_of_simple_events":9,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"atlas-westridge":{"number_of_calendar_entries":178,"number_of_service_events":178,"number_of_service_signage_checked":176,"number_of_service_announcements_checked":178,"number_of_service_announcements_checked_all":5,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Sharikh":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"Adharsh":{"number_of_calendar_entries":6,"number_of_service_events":6,"number_of_service_signage_checked":1,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"test-hospital":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"smarter-service-corp":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0},"bm-orchard-estate":{"number_of_calendar_entries":0,"number_of_service_events":0,"number_of_service_signage_checked":0,"number_of_service_announcements_checked":0,"number_of_service_announcements_checked_all":0,"number_of_service_with_people_registered":0,"number_of_service_with_people_attended":0,"number_of_simple_events":0,"number_of_simple_with_people_registered":0,"number_of_simple_with_people_attended":0}};
+
+// Process data
+const facilities = Object.entries(RAW).map(([name, d]) => {
+  const svc = d.number_of_service_events;
+  const sim = d.number_of_simple_events;
+  let type = 'none';
+  if (svc > 0 && sim > 0) type = 'both';
+  else if (svc > 0) type = 'service';
+  else if (sim > 0) type = 'simple';
+
+  // Engagement score (0-100) based on feature adoption
+  let score = 0;
+  const total = d.number_of_calendar_entries;
+  if (total === 0) { score = 0; }
+  else {
+    // Events existence: 20pts
+    score += 20;
+    // Signage adoption (for service): 20pts
+    if (svc > 0) score += Math.min(20, Math.round((d.number_of_service_signage_checked / svc) * 20));
+    // Announcements: 20pts
+    const annBase = svc || sim;
+    if (annBase > 0) score += Math.min(20, Math.round(((d.number_of_service_announcements_checked) / annBase) * 20));
+    // People registered: 20pts
+    const regTotal = d.number_of_service_with_people_registered + d.number_of_simple_with_people_registered;
+    if (regTotal > 0) score += Math.min(20, Math.round(Math.min(regTotal / 100, 1) * 20));
+    // People attended: 20pts
+    const attTotal = d.number_of_service_with_people_attended + d.number_of_simple_with_people_attended;
+    if (attTotal > 0) score += Math.min(20, Math.round(Math.min(attTotal / 200, 1) * 20));
+  }
+
+  return { name, ...d, type, score,
+    totalReg: d.number_of_service_with_people_registered + d.number_of_simple_with_people_registered,
+    totalAtt: d.number_of_service_with_people_attended + d.number_of_simple_with_people_attended,
+  };
+});
+
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSort = 'events-desc';
+
+function engLabel(score, type) {
+  if (type === 'none') return { cls: 'none-eng', label: 'Not Active' };
+  if (score >= 60) return { cls: 'high', label: 'High' };
+  if (score >= 30) return { cls: 'medium', label: 'Medium' };
+  return { cls: 'low', label: 'Low' };
+}
+
+function barColor(type) {
+  return type === 'service' ? '#6366f1' : type === 'simple' ? '#0ea5e9' : type === 'both' ? '#8b5cf6' : '#94a3b8';
+}
+
+function fmt(n) { return n === 0 ? '<span class="num-zero">—</span>' : `<span class="num">${n.toLocaleString()}</span>`; }
+
+function getFiltered() {
+  return facilities.filter(f => {
+    const matchType = currentFilter === 'all' || f.type === currentFilter;
+    const matchSearch = f.name.toLowerCase().includes(currentSearch.toLowerCase());
+    return matchType && matchSearch;
+  }).sort((a, b) => {
+    if (currentSort === 'name-asc') return a.name.localeCompare(b.name);
+    if (currentSort === 'name-desc') return b.name.localeCompare(a.name);
+    if (currentSort === 'events-desc') return b.number_of_calendar_entries - a.number_of_calendar_entries;
+    if (currentSort === 'events-asc') return a.number_of_calendar_entries - b.number_of_calendar_entries;
+    if (currentSort === 'engagement-desc') return b.score - a.score;
+    if (currentSort === 'engagement-asc') return a.score - b.score;
+    return 0;
+  });
+}
+
+function renderSummary() {
+  const counts = { service: 0, simple: 0, both: 0, none: 0 };
+  facilities.forEach(f => counts[f.type]++);
+  document.getElementById('count-all').textContent = facilities.length;
+  document.getElementById('count-service').textContent = counts.service;
+  document.getElementById('count-simple').textContent = counts.simple;
+  document.getElementById('count-both').textContent = counts.both;
+  document.getElementById('count-none').textContent = counts.none;
+
+  document.getElementById('summary-cards').innerHTML = `
+    <div class="card service">
+      <div class="card-label">Service Calendar</div>
+      <div class="card-value">${counts.service + counts.both}</div>
+      <div class="card-sub">communities using service type</div>
+    </div>
+    <div class="card simple">
+      <div class="card-label">Simple Calendar Only</div>
+      <div class="card-value">${counts.simple}</div>
+      <div class="card-sub">communities on simple calendar</div>
+    </div>
+    <div class="card both">
+      <div class="card-label">Using Both Types</div>
+      <div class="card-value">${counts.both}</div>
+      <div class="card-sub">blended calendar communities</div>
+    </div>
+    <div class="card none">
+      <div class="card-label">No Calendar Activity</div>
+      <div class="card-value">${counts.none}</div>
+      <div class="card-sub">communities with zero events</div>
+    </div>
+  `;
+}
+
+function renderTable() {
+  const rows = getFiltered();
+  const maxEvents = Math.max(...facilities.map(f => f.number_of_calendar_entries), 1);
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('row-count').textContent = '0 communities';
+    return;
+  }
+  empty.style.display = 'none';
+  document.getElementById('row-count').textContent = `${rows.length} communit${rows.length === 1 ? 'y' : 'ies'}`;
+
+  tbody.innerHTML = rows.map(f => {
+    const eng = engLabel(f.score, f.type);
+    const pct = Math.round((f.number_of_calendar_entries / maxEvents) * 100);
+    const color = barColor(f.type);
+    const typeLabel = { service: 'Service', simple: 'Simple', both: 'Both', none: 'None' }[f.type];
+    return `<tr>
+      <td>
+        <div class="facility-name">${f.name}</div>
+      </td>
+      <td><span class="tag ${f.type}"><span class="dot ${f.type}"></span>${typeLabel}</span></td>
+      <td>
+        <div class="eng-bar">
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+          <span class="bar-label num">${f.number_of_calendar_entries > 0 ? f.number_of_calendar_entries.toLocaleString() : '<span class="num-zero">0</span>'}</span>
+        </div>
+      </td>
+      <td>${fmt(f.number_of_service_events)}</td>
+      <td>${fmt(f.number_of_simple_events)}</td>
+      <td>${fmt(f.number_of_service_signage_checked)}</td>
+      <td>${fmt(f.number_of_service_announcements_checked)}</td>
+      <td>${fmt(f.totalReg)}</td>
+      <td>${fmt(f.totalAtt)}</td>
+      <td><span class="eng-level ${eng.cls}">${eng.label}</span></td>
+      <td><button class="action-btn" onclick="openModal('${f.name.replace(/'/g,"\\'")}')">Details</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(name) {
+  const f = facilities.find(x => x.name === name);
+  if (!f) return;
+  const eng = engLabel(f.score, f.type);
+  const typeLabel = { service: 'Service Calendar', simple: 'Simple Calendar', both: 'Both Calendar Types', none: 'No Activity' }[f.type];
+
+  const talkTrackClass = f.type === 'service' ? 'service' : f.type === 'both' ? 'both' : f.type === 'simple' ? '' : 'none-track';
+  let talkTrack = '';
+  if (f.type === 'service') {
+    const gaps = [];
+    if (f.number_of_service_signage_checked === 0) gaps.push('digital signage is not being used');
+    if (f.number_of_service_announcements_checked === 0) gaps.push('announcements are not enabled');
+    if (f.totalReg === 0 && f.totalAtt === 0) gaps.push('no resident registration or attendance is being tracked');
+    talkTrack = gaps.length
+      ? `"Hi [Name], I was looking at your calendar activity and you're doing great with ${f.number_of_service_events} service events. I noticed ${gaps.join(' and ')}. I'd love to walk you through those features — they can make a big difference in resident engagement. Do you have 20 minutes this week?"`
+      : `"Hi [Name], you're one of our top-performing communities with ${f.number_of_service_events} service events and strong engagement. I'd love to learn what's working for you and share some advanced tips to take it even further."`;
+  } else if (f.type === 'simple') {
+    talkTrack = `"Hi [Name], I see you're actively using the simple calendar with ${f.number_of_simple_events} events — that's great! I wanted to reach out because many communities like yours have found a lot of value in our service calendar features like digital signage, event announcements, and resident attendance tracking. Would you be open to a quick 20-minute demo to see what you might be missing?"`;
+  } else if (f.type === 'both') {
+    talkTrack = `"Hi [Name], I can see you're using both calendar types — that's great engagement! I'd love to connect to make sure you're getting the most out of both and potentially consolidate your workflow into the service calendar for maximum impact."`;
+  } else {
+    talkTrack = `"Hi [Name], I'm reaching out because I noticed your community hasn't had any calendar activity yet in our system. I want to make sure you're set up for success — can we schedule a 15-minute call to walk through getting your first events added? It only takes a few minutes to get started."`;
+  }
+
+  document.getElementById('modal-body').innerHTML = `
+    <h2>${f.name}</h2>
+    <div class="facility-tag"><span class="tag ${f.type}"><span class="dot ${f.type}"></span>${typeLabel}</span> &nbsp;<span class="eng-level ${eng.cls}">${eng.label} Engagement</span></div>
+    <div class="modal-section">
+      <h3>Activity Metrics</h3>
+      <div class="stat-grid">
+        <div class="stat-item"><div class="s-val">${f.number_of_calendar_entries.toLocaleString()}</div><div class="s-lab">Total Events</div></div>
+        <div class="stat-item"><div class="s-val">${f.number_of_service_events.toLocaleString()}</div><div class="s-lab">Service Events</div></div>
+        <div class="stat-item"><div class="s-val">${f.number_of_simple_events.toLocaleString()}</div><div class="s-lab">Simple Events</div></div>
+        <div class="stat-item"><div class="s-val">${f.number_of_service_signage_checked.toLocaleString()}</div><div class="s-lab">Signage Checked</div></div>
+        <div class="stat-item"><div class="s-val">${f.number_of_service_announcements_checked.toLocaleString()}</div><div class="s-lab">Announcements</div></div>
+        <div class="stat-item"><div class="s-val">${f.totalReg.toLocaleString()}</div><div class="s-lab">Residents Registered</div></div>
+        <div class="stat-item"><div class="s-val">${f.totalAtt.toLocaleString()}</div><div class="s-lab">Residents Attended</div></div>
+        <div class="stat-item"><div class="s-val">${f.score}</div><div class="s-lab">Engagement Score / 100</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <h3>Suggested Talk Track</h3>
+      <div class="talk-track ${talkTrackClass}">${talkTrack}</div>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+// Tabs
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('[data-filter]');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentFilter = tab.dataset.filter;
+  renderTable();
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  renderTable();
+});
+
+document.getElementById('sort-select').addEventListener('change', e => {
+  currentSort = e.target.value;
+  renderTable();
+});
+
+renderSummary();
+renderTable();
+</script>
+</body>
+</html>
