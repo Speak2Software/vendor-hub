@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { getCommunity, getApplicationsForCommunity } from '../../utils/storage'
+import { getCommunity, getApplicationsForCommunity, getReviewsForCommunity } from '../../utils/storage'
+import StarRating from '../../components/StarRating'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -32,15 +33,18 @@ export default function ManagerDashboard() {
   const { user } = useAuth()
   const [community, setCommunity] = useState(null)
   const [applications, setApplications] = useState([])
+  const [reviews, setReviews] = useState([])
 
   async function reload() {
     if (!user?.communityId) return
-    const [comm, apps] = await Promise.all([
+    const [comm, apps, revs] = await Promise.all([
       getCommunity(user.communityId),
       getApplicationsForCommunity(user.communityId),
+      getReviewsForCommunity(user.communityId),
     ])
     setCommunity(comm)
     setApplications(apps.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
+    setReviews(revs)
   }
 
   useEffect(() => { reload() }, [user?.communityId])
@@ -48,6 +52,7 @@ export default function ManagerDashboard() {
   const approved = applications.filter((a) => a.status === 'approved')
   const pending  = applications.filter((a) => a.status === 'pending')
   const denied   = applications.filter((a) => a.status === 'denied')
+  const reviewByApp = Object.fromEntries(reviews.map((r) => [r.appId, r]))
 
   const firstName = user?.name?.split(' ')[0] || 'Manager'
 
@@ -246,6 +251,12 @@ export default function ManagerDashboard() {
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5 truncate">{app.serviceCategory}</p>
                         <p className="text-xs text-gray-400">{app.contactPhone}</p>
+                        {reviewByApp[app.id]?.rating > 0 && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <StarRating rating={reviewByApp[app.id].rating} />
+                            <span className="text-[11px] text-amber-600 font-medium">{reviewByApp[app.id].rating}/5</span>
+                          </div>
+                        )}
                         {lastApproved && (
                           <p className="text-xs text-gray-400 mt-1">Since {formatDate(lastApproved.timestamp)}</p>
                         )}

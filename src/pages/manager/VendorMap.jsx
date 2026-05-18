@@ -10,8 +10,10 @@ import {
   getUsers,
   getVendorProfile,
   getApplicationsForCommunity,
+  getReviewsForCommunity,
   haversineDistance,
 } from '../../utils/storage'
+import StarRating from '../../components/StarRating'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 function makeVendorIcon(status) {
@@ -128,6 +130,7 @@ export default function VendorMap() {
   const [community,      setCommunity]      = useState(null)
   const [radius,         setRadius]         = useState(25)
   const [vendorsInRange, setVendorsInRange] = useState([])
+  const [reviewByApp,    setReviewByApp]    = useState({})
   const [selectedVendor, setSelectedVendor] = useState(null)
   const [hoveredId,      setHoveredId]      = useState(null)
   const [panelOpen,      setPanelOpen]      = useState(false)
@@ -146,10 +149,12 @@ export default function VendorMap() {
       setCommunity(comm)
       if (!comm?.location) return
 
-      const [applications, usrs] = await Promise.all([
+      const [applications, usrs, revs] = await Promise.all([
         getApplicationsForCommunity(user.communityId),
         getUsers(),
+        getReviewsForCommunity(user.communityId),
       ])
+      setReviewByApp(Object.fromEntries(revs.map((r) => [r.appId, r])))
       const appByVendor = Object.fromEntries(applications.map((a) => [a.vendorId, a]))
 
       const vendors  = usrs.filter((u) => u.role === 'vendor')
@@ -542,7 +547,7 @@ export default function VendorMap() {
               </p>
             </div>
           ) : (
-            <VendorDetail vendor={selectedVendor} communityId={user.communityId} onClose={handleClosePanel} />
+            <VendorDetail vendor={selectedVendor} communityId={user.communityId} review={selectedVendor?.app ? reviewByApp[selectedVendor.app.id] : null} onClose={handleClosePanel} />
           )}
         </div>
       </div>
@@ -551,7 +556,7 @@ export default function VendorMap() {
 }
 
 // ── Vendor Detail Panel ───────────────────────────────────────────────────────
-function VendorDetail({ vendor, communityId, onClose }) {
+function VendorDetail({ vendor, communityId, review, onClose }) {
   const { app, profile, status, distanceMiles } = vendor
   const meta       = STATUS_META[status] || STATUS_META.none
   const businessName = app?.businessName || vendor.name
@@ -567,12 +572,18 @@ function VendorDetail({ vendor, communityId, onClose }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 leading-snug">{businessName}</p>
           {category && <p className="text-xs text-gray-500 mt-0.5">{category}</p>}
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${meta.badge}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
               {meta.label}
             </span>
             <span className="text-xs text-gray-400">{distanceMiles} mi away</span>
+            {review?.rating > 0 && (
+              <div className="flex items-center gap-1">
+                <StarRating rating={review.rating} />
+                <span className="text-[11px] text-amber-600 font-medium">{review.rating}/5</span>
+              </div>
+            )}
           </div>
         </div>
         <button

@@ -139,6 +139,10 @@ export async function getReviewsForCommunity(communityId) {
   return apiGet(`/api/reviews?communityId=${communityId}`)
 }
 
+export async function getReviewsForVendor(vendorId) {
+  return apiGet(`/api/reviews?vendorId=${vendorId}`)
+}
+
 export async function saveReview({ appId, vendorId, communityId, managerId, rating, review }) {
   return apiPut(`/api/reviews/${appId}`, { vendorId, communityId, managerId, rating, review })
 }

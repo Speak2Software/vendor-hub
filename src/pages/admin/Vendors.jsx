@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getUsers, getApplications, getCommunities } from '../../utils/storage'
+import { getUsers, getApplications, getCommunities, getReviewsForVendor } from '../../utils/storage'
+import StarRating from '../../components/StarRating'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -15,13 +16,19 @@ export default function VendorsAdmin() {
   const [vendors, setVendors] = useState([])
   const [applications, setApplications] = useState([])
   const [communities, setCommunities] = useState([])
+  const [reviewsByVendor, setReviewsByVendor] = useState({})
 
   useEffect(() => {
     async function load() {
       const [usrs, apps, comms] = await Promise.all([getUsers(), getApplications(), getCommunities()])
-      setVendors(usrs.filter((u) => u.role === 'vendor'))
+      const vendorList = usrs.filter((u) => u.role === 'vendor')
+      setVendors(vendorList)
       setApplications(apps)
       setCommunities(comms)
+      // Fetch reviews for all vendors in parallel
+      const reviewResults = await Promise.all(vendorList.map((v) => getReviewsForVendor(v.id)))
+      const byVendor = Object.fromEntries(vendorList.map((v, i) => [v.id, reviewResults[i]]))
+      setReviewsByVendor(byVendor)
     }
     load()
   }, [])
@@ -45,6 +52,11 @@ export default function VendorsAdmin() {
             const vendorApps = applications.filter((a) => a.vendorId === vendor.id)
             const approved = vendorApps.filter((a) => a.status === 'approved')
             const pending = vendorApps.filter((a) => a.status === 'pending')
+            const vendorReviews = reviewsByVendor[vendor.id] || []
+            const ratedReviews = vendorReviews.filter((r) => r.rating > 0)
+            const avgRating = ratedReviews.length
+              ? Math.round((ratedReviews.reduce((sum, r) => sum + r.rating, 0) / ratedReviews.length) * 10) / 10
+              : null
             return (
               <div key={vendor.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <div className="flex items-start gap-3">
@@ -56,7 +68,14 @@ export default function VendorsAdmin() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">{vendor.name}</p>
                     <p className="text-xs text-gray-500">{vendor.email}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Joined {formatDate(vendor.createdAt)}</p>
+                    {avgRating ? (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <StarRating rating={Math.round(avgRating)} />
+                        <span className="text-[11px] text-amber-600 font-medium">{avgRating} avg · {ratedReviews.length} review{ratedReviews.length !== 1 ? 's' : ''}</span>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 mt-0.5">Joined {formatDate(vendor.createdAt)}</p>
+                    )}
 
                     {vendorApps.length > 0 && (
                       <div className="mt-2 space-y-1">
