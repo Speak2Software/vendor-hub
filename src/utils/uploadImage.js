@@ -9,12 +9,8 @@
  * Throws on failure.
  */
 export async function uploadImage(file) {
-  const cloudName   = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
-
-  if (!cloudName || !uploadPreset) {
-    throw new Error('Cloudinary env vars not set (VITE_CLOUDINARY_CLOUD_NAME, VITE_CLOUDINARY_UPLOAD_PRESET)')
-  }
+  const cloudName    = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME    || 'devhcr8d8'
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'speak2vendors_logos'
 
   const formData = new FormData()
   formData.append('file', file)
