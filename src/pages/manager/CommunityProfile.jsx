@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { getCommunity, saveCommunity } from '../../utils/storage'
+import { uploadImage } from '../../utils/uploadImage'
 
 const CARE_LEVEL_OPTIONS = [
   'Independent Living',
@@ -39,9 +40,15 @@ export default function CommunityProfile() {
     careLevels: [],
     contactUrl: '', contactEmail: '', contactPhone: '',
     showUrl: false, showEmail: false, showPhone: false,
+    logoUrl: '',
   })
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
+  const [logoFile, setLogoFile]       = useState(null)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     async function load() {
@@ -61,6 +68,7 @@ export default function CommunityProfile() {
           showUrl:     c.showUrl     ?? false,
           showEmail:   c.showEmail   ?? false,
           showPhone:   c.showPhone   ?? false,
+          logoUrl:     c.logoUrl     || '',
         })
       }
     }
@@ -70,6 +78,23 @@ export default function CommunityProfile() {
   function set(field, value) {
     setForm((p) => ({ ...p, [field]: value }))
     setErrors((p) => ({ ...p, [field]: '' }))
+  }
+
+  function handleLogoSelect(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { setUploadError('Please select an image file.'); return }
+    if (file.size > 5 * 1024 * 1024) { setUploadError('Image must be under 5 MB.'); return }
+    setUploadError('')
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
+  function removeLogo() {
+    setLogoFile(null)
+    setLogoPreview(null)
+    setForm((p) => ({ ...p, logoUrl: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   function toggleCareLevel(level) {
@@ -95,11 +120,30 @@ export default function CommunityProfile() {
     e.preventDefault()
     if (!validate()) return
     if (!community) return
+
+    let logoUrl = form.logoUrl
+    if (logoFile) {
+      setUploading(true)
+      setUploadError('')
+      try {
+        logoUrl = await uploadImage(logoFile)
+        setLogoFile(null)
+        setLogoPreview(null)
+      } catch (err) {
+        setUploadError(err.message || 'Upload failed. Check Cloudinary env vars.')
+        setUploading(false)
+        return
+      }
+      setUploading(false)
+    }
+
     await saveCommunity({
       ...community,
       ...form,
+      logoUrl,
       updatedAt: new Date().toISOString(),
     })
+    setForm((p) => ({ ...p, logoUrl }))
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -123,14 +167,21 @@ export default function CommunityProfile() {
       <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-teal-600">
         <div className="max-w-3xl mx-auto px-4 pt-7 pb-8">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">Community Profile</p>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-                {form.name || 'Your Community'}
-              </h1>
-              {form.address && (
-                <p className="text-blue-200 text-sm mt-1">{form.address}</p>
+            <div className="flex items-center gap-4">
+              {(logoPreview || form.logoUrl) && (
+                <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <img src={logoPreview || form.logoUrl} alt="" className="w-full h-full object-contain p-1" />
+                </div>
               )}
+              <div>
+                <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">Community Profile</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
+                  {form.name || 'Your Community'}
+                </h1>
+                {form.address && (
+                  <p className="text-blue-200 text-sm mt-1">{form.address}</p>
+                )}
+              </div>
             </div>
             {/* Completeness ring */}
             <div className="flex-shrink-0 flex flex-col items-center gap-1">
@@ -179,6 +230,89 @@ export default function CommunityProfile() {
 
       {/* ── Form ─────────────────────────────────────────────────────────────── */}
       <form onSubmit={handleSave} className="max-w-3xl mx-auto px-4 py-7 space-y-6">
+
+        {/* ── Logo Upload ────────────────────────────────────────────────────── */}
+        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">🖼️</div>
+            <div>
+              <h2 className="text-white font-bold text-sm">Community Logo</h2>
+              <p className="text-indigo-100 text-xs">Shown on your dashboard and to approved vendors</p>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="flex items-start gap-6">
+              {/* Preview */}
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                  {logoPreview || form.logoUrl ? (
+                    <img
+                      src={logoPreview || form.logoUrl}
+                      alt="Community logo"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="flex-1 min-w-0">
+                {logoFile ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3 flex items-center gap-3">
+                    <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                    </svg>
+                    <span className="text-sm text-blue-700 font-medium truncate">{logoFile.name}</span>
+                  </div>
+                ) : null}
+
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    {form.logoUrl || logoPreview ? 'Change Logo' : 'Upload Logo'}
+                  </button>
+
+                  {(form.logoUrl || logoPreview) && (
+                    <button
+                      type="button"
+                      onClick={removeLogo}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoSelect}
+                  className="hidden"
+                />
+
+                <p className="text-xs text-gray-400 mt-2">PNG, JPG, SVG or WebP · Max 5 MB · Will be uploaded when you save</p>
+
+                {uploadError && (
+                  <p className="text-xs text-red-500 mt-2 font-medium">{uploadError}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── Basic Info ─────────────────────────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -371,9 +505,18 @@ export default function CommunityProfile() {
           ) : (
             <button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3.5 rounded-2xl text-sm font-bold hover:from-blue-700 hover:to-teal-700 transition-all shadow-sm"
+              disabled={uploading}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3.5 rounded-2xl text-sm font-bold hover:from-blue-700 hover:to-teal-700 disabled:opacity-60 transition-all shadow-sm flex items-center justify-center gap-2"
             >
-              Save Community Profile
+              {uploading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Uploading logo…
+                </>
+              ) : 'Save Community Profile'}
             </button>
           )}
         </div>
