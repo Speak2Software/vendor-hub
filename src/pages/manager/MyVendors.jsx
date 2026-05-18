@@ -664,28 +664,6 @@ export default function MyVendors() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-      {/* ── Recent activity ──────────────────────────────────────────────────── */}
-      {recentActivity.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">Recent Activity</h2>
-          <div className="space-y-2">
-            {recentActivity.map((h, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                  h.status === 'approved' ? 'bg-green-500' : h.status === 'denied' ? 'bg-red-400' : 'bg-amber-400'
-                }`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-700 leading-snug">
-                    <span className="font-medium">{h.businessName}</span> — {h.note}
-                  </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{fmtDateTime(h.timestamp)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── Coverage snapshot ────────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
@@ -800,6 +778,29 @@ export default function MyVendors() {
           </div>
         )}
       </div>
+
+      {/* ── Recent activity ──────────────────────────────────────────────────── */}
+      {recentActivity.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Recent Activity</h2>
+          <div className="space-y-2">
+            {recentActivity.map((h, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                  h.status === 'approved' ? 'bg-green-500' : h.status === 'denied' ? 'bg-red-400' : 'bg-amber-400'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-700 leading-snug">
+                    <span className="font-medium">{h.businessName}</span> — {h.note}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{fmtDateTime(h.timestamp)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   )
