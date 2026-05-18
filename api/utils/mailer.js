@@ -17,13 +17,15 @@ const APP_URL = process.env.APP_URL   || 'https://www.speak2vendors.com'
 // ── Internal helper ───────────────────────────────────────────────────────────
 async function send({ to, subject, html }) {
   if (!process.env.RESEND_API_KEY) {
-    console.log('[mailer] RESEND_API_KEY not set — skipping email to', to)
+    console.error('[mailer] RESEND_API_KEY is not set — skipping email to', to)
     return
   }
   try {
-    await resend.emails.send({ from: FROM, to, subject, html })
+    console.error('[mailer] Sending email to', to, '| subject:', subject)
+    const result = await resend.emails.send({ from: FROM, to, subject, html })
+    console.error('[mailer] Email sent OK to', to, '| id:', result?.data?.id || result?.id)
   } catch (err) {
-    console.error('[mailer] Failed to send email to', to, err?.message)
+    console.error('[mailer] Failed to send email to', to, err?.message, err?.response?.data)
   }
 }
 

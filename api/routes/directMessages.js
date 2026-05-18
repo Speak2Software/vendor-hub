@@ -83,20 +83,23 @@ router.post('/', authenticate, async (req, res) => {
 
     // Fire-and-forget email notification to the other party
     try {
+      console.error('[directMessages] starting notification | role:', req.user.role, '| vendorId:', vendorId, '| communityId:', communityId)
       if (req.user.role === 'vendor') {
         // Vendor sent → notify the community manager(s) for this community
         const managers = await User.find({ communityId, role: 'community_manager' }).lean()
+        console.error('[directMessages] found', managers.length, 'manager(s) to notify')
         const senderName = req.user.name || 'A vendor'
         for (const mgr of managers) {
-          notifyDirectMessage({ toEmail: mgr.email, toName: mgr.name, senderName, messageBody: body.trim() })
+          await notifyDirectMessage({ toEmail: mgr.email, toName: mgr.name, senderName, messageBody: body.trim() })
         }
       } else {
         // Manager sent → notify the vendor
         const vendor = await User.findById(vendorId).lean()
+        console.error('[directMessages] vendor lookup:', vendor ? vendor.email : 'NOT FOUND')
         if (vendor) {
           const community = await Community.findById(communityId).lean()
           const senderName = community?.name || req.user.name || 'A community'
-          notifyDirectMessage({ toEmail: vendor.email, toName: vendor.name, senderName, messageBody: body.trim() })
+          await notifyDirectMessage({ toEmail: vendor.email, toName: vendor.name, senderName, messageBody: body.trim() })
         }
       }
     } catch (mailErr) {
