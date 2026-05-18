@@ -42,14 +42,20 @@ router.post('/', authenticate, authorize('vendor'), async (req, res) => {
         const vendorName = cp?.businessName || req.user.name || 'A vendor'
 
         // Find all community managers for the selected communities
-        const managers = await User.find({
-          communityId: { $in: communityIds },
-          role: 'community_manager',
-        }).lean()
+        const [managers, communities] = await Promise.all([
+          User.find({ communityId: { $in: communityIds }, role: 'community_manager' }).lean(),
+          require('../models/Community').find({ _id: { $in: communityIds } }).lean(),
+        ])
+
+        // Build a map of communityId → contactEmail
+        const communityEmailMap = Object.fromEntries(
+          communities.map((c) => [c._id, c.contactEmail])
+        )
 
         for (const mgr of managers) {
-          notifyVendorEmail({
-            toEmail:    mgr.email,
+          const toEmail = communityEmailMap[mgr.communityId] || mgr.email
+          await notifyVendorEmail({
+            toEmail,
             toName:     mgr.name,
             vendorName,
             subject:    subject?.trim() || '',

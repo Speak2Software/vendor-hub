@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid')
 const DirectMessage  = require('../models/DirectMessage')
 const User           = require('../models/User')
 const Community      = require('../models/Community')
+const CompanyProfile = require('../models/CompanyProfile')
 const { authenticate } = require('../middleware/auth')
 const { notifyDirectMessage } = require('../utils/mailer')
 
@@ -86,20 +87,29 @@ router.post('/', authenticate, async (req, res) => {
       console.error('[directMessages] starting notification | role:', req.user.role, '| vendorId:', vendorId, '| communityId:', communityId)
       if (req.user.role === 'vendor') {
         // Vendor sent → notify the community manager(s) for this community
-        const managers = await User.find({ communityId, role: 'community_manager' }).lean()
+        const [managers, community] = await Promise.all([
+          User.find({ communityId, role: 'community_manager' }).lean(),
+          Community.findById(communityId).lean(),
+        ])
         console.error('[directMessages] found', managers.length, 'manager(s) to notify')
         const senderName = req.user.name || 'A vendor'
+        // Use community contactEmail if set, otherwise each manager's login email
+        const toEmail = community?.contactEmail || null
         for (const mgr of managers) {
-          await notifyDirectMessage({ toEmail: mgr.email, toName: mgr.name, senderName, messageBody: body.trim() })
+          await notifyDirectMessage({ toEmail: toEmail || mgr.email, toName: mgr.name, senderName, messageBody: body.trim() })
         }
       } else {
         // Manager sent → notify the vendor
-        const vendor = await User.findById(vendorId).lean()
-        console.error('[directMessages] vendor lookup:', vendor ? vendor.email : 'NOT FOUND')
+        const [vendor, cp, community] = await Promise.all([
+          User.findById(vendorId).lean(),
+          CompanyProfile.findById(vendorId).lean(),
+          Community.findById(communityId).lean(),
+        ])
+        console.error('[directMessages] vendor lookup:', vendor ? vendor.email : 'NOT FOUND', '| profile email:', cp?.contactEmail || 'none')
         if (vendor) {
-          const community = await Community.findById(communityId).lean()
+          const toEmail = cp?.contactEmail || vendor.email
           const senderName = community?.name || req.user.name || 'A community'
-          await notifyDirectMessage({ toEmail: vendor.email, toName: vendor.name, senderName, messageBody: body.trim() })
+          await notifyDirectMessage({ toEmail, toName: vendor.name, senderName, messageBody: body.trim() })
         }
       }
     } catch (mailErr) {

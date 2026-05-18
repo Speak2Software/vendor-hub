@@ -3,6 +3,7 @@ const { v4: uuidv4 }  = require('uuid')
 const Broadcast        = require('../models/Broadcast')
 const User             = require('../models/User')
 const Community        = require('../models/Community')
+const CompanyProfile   = require('../models/CompanyProfile')
 const { authenticate, authorize } = require('../middleware/auth')
 const { notifyBroadcast } = require('../utils/mailer')
 
@@ -47,9 +48,15 @@ router.post('/', authenticate, authorize('community_manager', 'admin'), async (r
       const query = recipientIds ? { _id: { $in: recipientIds }, role: 'vendor' } : { role: 'vendor' }
       const vendors = await User.find(query).lean()
 
-      for (const vendor of vendors) {
-        notifyBroadcast({
-          toEmail:       vendor.email,
+      // Fetch company profiles in parallel to get preferred contact emails
+      const profiles = await Promise.all(vendors.map((v) => CompanyProfile.findById(v._id).lean()))
+
+      for (let i = 0; i < vendors.length; i++) {
+        const vendor = vendors[i]
+        const cp = profiles[i]
+        const toEmail = cp?.contactEmail || vendor.email
+        await notifyBroadcast({
+          toEmail,
           toName:        vendor.name,
           communityName,
           subject:       subject?.trim() || '',
