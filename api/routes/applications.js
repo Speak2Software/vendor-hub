@@ -1,7 +1,9 @@
 const router = require('express').Router()
 const { v4: uuidv4 } = require('uuid')
 const Application = require('../models/Application')
+const VendorProfile = require('../models/VendorProfile')
 const { authenticate, authorize } = require('../middleware/auth')
+const { geocodeAddress } = require('../utils/geocode')
 
 // GET /api/applications?vendorId=&communityId=
 router.get('/', authenticate, async (req, res) => {
@@ -52,6 +54,28 @@ router.post('/', authenticate, authorize('vendor'), async (req, res) => {
       ...req.body,
     })
     res.status(201).json(toPublic(app.toObject()))
+
+    // Fire-and-forget: geocode businessAddress → seed VendorProfile location
+    // so the vendor appears on the map without manually setting their location
+    if (req.body.businessAddress) {
+      try {
+        const existing = await VendorProfile.findById(req.user.id).lean()
+        const hasLocation = existing?.location?.lat && existing.location.lat !== 0
+        if (!hasLocation) {
+          const coords = await geocodeAddress(req.body.businessAddress)
+          if (coords) {
+            await VendorProfile.findByIdAndUpdate(
+              req.user.id,
+              { _id: req.user.id, location: coords, updatedAt: new Date().toISOString() },
+              { upsert: true },
+            )
+            console.error('[applications] geocoded vendor location:', coords)
+          }
+        }
+      } catch (geoErr) {
+        console.error('[applications] geocode error:', geoErr?.message)
+      }
+    }
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }

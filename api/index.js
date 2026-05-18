@@ -60,6 +60,68 @@ app.use('/api/broadcasts',       broadcastRoutes)
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
+// ── Geocode existing data (run once to seed lat/lng for existing records) ─────
+app.post('/api/admin/geocode-existing', async (req, res) => {
+  try {
+    await connectDB()
+    const { geocodeAddress } = require('./utils/geocode')
+    const Community    = require('./models/Community')
+    const Application  = require('./models/Application')
+    const VendorProfile = require('./models/VendorProfile')
+
+    const results = { communities: 0, vendors: 0, errors: [] }
+
+    // 1. Communities with address but no/zero location
+    const communities = await Community.find({
+      address: { $exists: true, $ne: '' },
+      $or: [{ 'location.lat': 0 }, { 'location.lat': { $exists: false } }],
+    }).lean()
+
+    for (const c of communities) {
+      const coords = await geocodeAddress(c.address)
+      if (coords) {
+        await Community.findByIdAndUpdate(c._id, { location: coords })
+        results.communities++
+        console.error('[geocode-existing] community:', c.address, '->', coords)
+      } else {
+        results.errors.push(`Community not found: ${c.address}`)
+      }
+      await new Promise((r) => setTimeout(r, 1100)) // Nominatim rate limit
+    }
+
+    // 2. Vendors whose VendorProfile has no location — use their latest application's businessAddress
+    const apps = await Application.find({ businessAddress: { $exists: true, $ne: '' } })
+      .sort({ submittedAt: -1 }).lean()
+
+    const seenVendors = new Set()
+    for (const app of apps) {
+      if (seenVendors.has(app.vendorId)) continue
+      seenVendors.add(app.vendorId)
+
+      const profile = await VendorProfile.findById(app.vendorId).lean()
+      if (profile?.location?.lat && profile.location.lat !== 0) continue
+
+      const coords = await geocodeAddress(app.businessAddress)
+      if (coords) {
+        await VendorProfile.findByIdAndUpdate(
+          app.vendorId,
+          { _id: app.vendorId, location: coords, updatedAt: new Date().toISOString() },
+          { upsert: true },
+        )
+        results.vendors++
+        console.error('[geocode-existing] vendor:', app.businessAddress, '->', coords)
+      } else {
+        results.errors.push(`Vendor not found: ${app.businessAddress}`)
+      }
+      await new Promise((r) => setTimeout(r, 1100))
+    }
+
+    res.json({ ok: true, ...results })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Mail test (remove after confirming email works) ───────────────────────────
 app.get('/api/mail-test', async (req, res) => {
   const { to } = req.query

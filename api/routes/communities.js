@@ -2,6 +2,7 @@ const router = require('express').Router()
 const { v4: uuidv4 } = require('uuid')
 const Community = require('../models/Community')
 const { authenticate, authorize } = require('../middleware/auth')
+const { geocodeAddress } = require('../utils/geocode')
 
 // GET /api/communities
 router.get('/', authenticate, async (req, res) => {
@@ -27,7 +28,12 @@ router.get('/:id', authenticate, async (req, res) => {
 // POST /api/communities — admin only
 router.post('/', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const community = await Community.create({ _id: uuidv4(), ...req.body })
+    const data = { ...req.body }
+    if (data.address && (!data.location || !data.location.lat)) {
+      const coords = await geocodeAddress(data.address)
+      if (coords) data.location = coords
+    }
+    const community = await Community.create({ _id: uuidv4(), ...data })
     res.status(201).json(toPublic(community.toObject()))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
@@ -43,6 +49,18 @@ router.put('/:id', authenticate, async (req, res) => {
     const isMgr = req.user.role === 'community_manager' && community.managerId === req.user.id
     const isAdmin = req.user.role === 'admin'
     if (!isMgr && !isAdmin) return res.status(403).json({ error: 'Forbidden' })
+
+    // If the address changed (or location is still 0,0), re-geocode
+    const incomingAddress = req.body.address
+    const needsGeocode = incomingAddress && (
+      incomingAddress !== community.address ||
+      !community.location?.lat ||
+      community.location.lat === 0
+    )
+    if (needsGeocode) {
+      const coords = await geocodeAddress(incomingAddress)
+      if (coords) req.body.location = coords
+    }
 
     Object.assign(community, req.body)
     await community.save()
