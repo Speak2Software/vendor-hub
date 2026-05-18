@@ -165,6 +165,32 @@ export async function saveMessage(message) {
   return apiPost('/api/messages', message)
 }
 
+// ── Direct Messages ───────────────────────────────────────────────────────────
+export async function getDirectMessageThreads() {
+  return apiGet('/api/direct-messages/threads')
+}
+
+export async function getDirectMessageThread(vendorId, communityId) {
+  return apiGet(`/api/direct-messages?vendorId=${vendorId}&communityId=${communityId}`)
+}
+
+export async function sendDirectMessage({ vendorId, communityId, body }) {
+  return apiPost('/api/direct-messages', { vendorId, communityId, body })
+}
+
+export async function markThreadRead(vendorId, communityId) {
+  return apiPut('/api/direct-messages/read', { vendorId, communityId })
+}
+
+// ── Broadcasts (community → vendors) ─────────────────────────────────────────
+export async function getBroadcastsForCommunity(communityId) {
+  return apiGet(`/api/broadcasts?communityId=${communityId}`)
+}
+
+export async function sendBroadcast({ vendorIds, subject, body }) {
+  return apiPost('/api/broadcasts', { vendorIds, subject, body })
+}
+
 // ── Geo helpers (pure math — no API call needed) ──────────────────────────────
 export function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 3958.8 // miles

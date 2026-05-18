@@ -21,6 +21,8 @@ const vendorProfileRoutes   = require('./routes/vendorProfiles')
 const companyProfileRoutes  = require('./routes/companyProfiles')
 const reviewRoutes          = require('./routes/reviews')
 const messageRoutes         = require('./routes/messages')
+const directMessageRoutes   = require('./routes/directMessages')
+const broadcastRoutes       = require('./routes/broadcasts')
 
 const app = express()
 
@@ -52,6 +54,8 @@ app.use('/api/vendor-profiles',  vendorProfileRoutes)
 app.use('/api/company-profiles', companyProfileRoutes)
 app.use('/api/reviews',          reviewRoutes)
 app.use('/api/messages',         messageRoutes)
+app.use('/api/direct-messages',  directMessageRoutes)
+app.use('/api/broadcasts',       broadcastRoutes)
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ ok: true }))

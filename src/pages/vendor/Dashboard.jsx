@@ -5,7 +5,9 @@ import { useAuth } from '../../context/AuthContext'
 import {
   getApplicationsForVendor, getCommunity,
   getVendorProfile, getCompanyProfile, getMessagesForVendor, saveMessage,
+  getDirectMessageThreads,
 } from '../../utils/storage'
+import MessagingCenter from '../../components/MessagingCenter'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -740,6 +742,7 @@ export default function VendorPortalDashboard() {
 
   const [apps, setApps]                   = useState([])
   const [messages, setMessages]           = useState([])
+  const [threads, setThreads]             = useState([])
   const [commsTab, setCommsTab]           = useState('email')
   const [companyProfile, setCompanyProfile] = useState(null)
   const [profile, setProfile]             = useState(null)
@@ -750,9 +753,16 @@ export default function VendorPortalDashboard() {
       raw.map((a) => getCommunity(a.communityId).then((c) => ({ ...a, community: c })))
     )
     setApps(enriched.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
-    setMessages(await getMessagesForVendor(user.id))
-    setCompanyProfile(await getCompanyProfile(user.id))
-    setProfile(await getVendorProfile(user.id))
+    const [msgs, rawThreads, cp, vp] = await Promise.all([
+      getMessagesForVendor(user.id),
+      getDirectMessageThreads(),
+      getCompanyProfile(user.id),
+      getVendorProfile(user.id),
+    ])
+    setMessages(msgs)
+    setThreads(rawThreads)
+    setCompanyProfile(cp)
+    setProfile(vp)
   }
 
   useEffect(() => {
@@ -777,6 +787,23 @@ export default function VendorPortalDashboard() {
     serviceCategory: src.serviceCategory || '',
     yearsInBusiness: src.yearsInBusiness || '',
   }
+
+  // Enrich DM threads with community names derived from applications
+  const communityNameMap = Object.fromEntries(
+    apps.filter((a) => a.community).map((a) => [a.communityId, a.community.name])
+  )
+  const enrichedThreads = threads.map((t) => ({
+    ...t,
+    otherPartyName: communityNameMap[t.communityId] || 'Community',
+  }))
+  const totalUnread = threads.reduce((sum, t) => sum + (t.unreadCount || 0), 0)
+
+  // Parties vendor can message: all communities they've applied to
+  const availableParties = apps.map((a) => ({
+    vendorId:    user.id,
+    communityId: a.communityId,
+    name:        a.community?.name || 'Community',
+  })).filter((p, i, arr) => arr.findIndex((x) => x.communityId === p.communityId) === i)
 
   // Unified activity timeline across all apps
   const activityFeed = apps
@@ -1019,9 +1046,10 @@ export default function VendorPortalDashboard() {
               {/* Tabs */}
               <div className="flex border-b border-gray-100 bg-gray-50/50">
                 {[
-                  { id: 'email', icon: '✉️', label: 'Email Composer' },
-                  { id: 'flyer', icon: '🎨', label: 'Flyer Creator' },
-                  { id: 'sent',  icon: '📨', label: `Sent (${messages.length})` },
+                  { id: 'email',    icon: '✉️', label: 'Email Composer' },
+                  { id: 'flyer',    icon: '🎨', label: 'Flyer Creator' },
+                  { id: 'sent',     icon: '📨', label: `Sent (${messages.length})` },
+                  { id: 'messages', icon: '💬', label: totalUnread > 0 ? `My Messages (${totalUnread})` : 'My Messages' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1051,6 +1079,13 @@ export default function VendorPortalDashboard() {
                     vendorInfo={vendorInfo}
                     approvedApps={approvedApps}
                     onSent={load}
+                  />
+                )}
+                {commsTab === 'messages' && (
+                  <MessagingCenter
+                    threads={enrichedThreads}
+                    availableParties={availableParties}
+                    onRefresh={load}
                   />
                 )}
                 {commsTab === 'sent' && (
