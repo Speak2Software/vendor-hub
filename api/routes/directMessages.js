@@ -1,7 +1,10 @@
 const router        = require('express').Router()
 const { v4: uuidv4 } = require('uuid')
 const DirectMessage  = require('../models/DirectMessage')
+const User           = require('../models/User')
+const Community      = require('../models/Community')
 const { authenticate } = require('../middleware/auth')
+const { notifyDirectMessage } = require('../utils/mailer')
 
 // ── GET /api/direct-messages/threads ─────────────────────────────────────────
 // Returns one entry per (vendorId, communityId) pair for the current user,
@@ -77,6 +80,28 @@ router.post('/', authenticate, async (req, res) => {
       sentAt:     new Date().toISOString(),
     })
     res.status(201).json(toPublic(msg.toObject()))
+
+    // Fire-and-forget email notification to the other party
+    try {
+      if (req.user.role === 'vendor') {
+        // Vendor sent → notify the community manager(s) for this community
+        const managers = await User.find({ communityId, role: 'community_manager' }).lean()
+        const senderName = req.user.name || 'A vendor'
+        for (const mgr of managers) {
+          notifyDirectMessage({ toEmail: mgr.email, toName: mgr.name, senderName, messageBody: body.trim() })
+        }
+      } else {
+        // Manager sent → notify the vendor
+        const vendor = await User.findById(vendorId).lean()
+        if (vendor) {
+          const community = await Community.findById(communityId).lean()
+          const senderName = community?.name || req.user.name || 'A community'
+          notifyDirectMessage({ toEmail: vendor.email, toName: vendor.name, senderName, messageBody: body.trim() })
+        }
+      }
+    } catch (mailErr) {
+      console.error('[directMessages] notification error', mailErr?.message)
+    }
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }

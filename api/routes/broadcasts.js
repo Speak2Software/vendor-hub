@@ -1,7 +1,10 @@
 const router          = require('express').Router()
 const { v4: uuidv4 }  = require('uuid')
 const Broadcast        = require('../models/Broadcast')
+const User             = require('../models/User')
+const Community        = require('../models/Community')
 const { authenticate, authorize } = require('../middleware/auth')
+const { notifyBroadcast } = require('../utils/mailer')
 
 // ── GET /api/broadcasts?communityId= ─────────────────────────────────────────
 router.get('/', authenticate, async (req, res) => {
@@ -33,6 +36,29 @@ router.post('/', authenticate, authorize('community_manager', 'admin'), async (r
       sentAt:     new Date().toISOString(),
     })
     res.status(201).json(toPublic(broadcast.toObject()))
+
+    // Fire-and-forget email notifications to vendor recipients
+    try {
+      const community = await Community.findById(communityId).lean()
+      const communityName = community?.name || 'Your community'
+
+      // Determine which vendors to notify
+      const recipientIds = Array.isArray(vendorIds) && vendorIds.length > 0 ? vendorIds : null
+      const query = recipientIds ? { _id: { $in: recipientIds }, role: 'vendor' } : { role: 'vendor' }
+      const vendors = await User.find(query).lean()
+
+      for (const vendor of vendors) {
+        notifyBroadcast({
+          toEmail:       vendor.email,
+          toName:        vendor.name,
+          communityName,
+          subject:       subject?.trim() || '',
+          body:          body.trim(),
+        })
+      }
+    } catch (mailErr) {
+      console.error('[broadcasts] notification error', mailErr?.message)
+    }
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
