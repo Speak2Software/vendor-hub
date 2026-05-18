@@ -39,9 +39,11 @@ async function send({ to, subject, html }) {
  * @param {string} opts.toName        - recipient's display name
  * @param {string} opts.senderName    - display name of the message sender
  * @param {string} opts.messageBody   - first ~200 chars of the message
+ * @param {string} opts.deepLinkUrl   - URL that opens the specific thread
  */
-async function notifyDirectMessage({ toEmail, toName, senderName, messageBody }) {
+async function notifyDirectMessage({ toEmail, toName, senderName, messageBody, deepLinkUrl }) {
   const preview = messageBody.length > 200 ? messageBody.slice(0, 200) + '…' : messageBody
+  const link = deepLinkUrl || APP_URL
   await send({
     to:      toEmail,
     subject: `New message from ${senderName} — Speak2Vendors`,
@@ -59,8 +61,8 @@ async function notifyDirectMessage({ toEmail, toName, senderName, messageBody })
           <div style="background:#f3f4f6;border-left:3px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 16px;margin:0 0 24px;font-size:14px;color:#374151;line-height:1.6">
             ${preview}
           </div>
-          <a href="${APP_URL}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#0d9488);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700">
-            View Message →
+          <a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#0d9488);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700">
+            Open Conversation →
           </a>
         </div>
         <div style="background:#f9fafb;padding:14px 24px;border-top:1px solid #f3f4f6;text-align:center">

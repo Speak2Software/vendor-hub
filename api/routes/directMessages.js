@@ -85,6 +85,7 @@ router.post('/', authenticate, async (req, res) => {
     // Fire-and-forget email notification to the other party
     try {
       console.error('[directMessages] starting notification | role:', req.user.role, '| vendorId:', vendorId, '| communityId:', communityId)
+      const APP_URL = process.env.APP_URL || 'https://www.speak2vendors.com'
       if (req.user.role === 'vendor') {
         // Vendor sent → notify the community manager(s) for this community
         const [managers, community] = await Promise.all([
@@ -93,10 +94,11 @@ router.post('/', authenticate, async (req, res) => {
         ])
         console.error('[directMessages] found', managers.length, 'manager(s) to notify')
         const senderName = req.user.name || 'A vendor'
-        // Use community contactEmail if set, otherwise each manager's login email
         const toEmail = community?.contactEmail || null
+        // Manager deep-link: opens their dashboard with the vendor thread selected
+        const deepLinkUrl = `${APP_URL}/manager?tab=messages&vendorId=${vendorId}`
         for (const mgr of managers) {
-          await notifyDirectMessage({ toEmail: toEmail || mgr.email, toName: mgr.name, senderName, messageBody: body.trim() })
+          await notifyDirectMessage({ toEmail: toEmail || mgr.email, toName: mgr.name, senderName, messageBody: body.trim(), deepLinkUrl })
         }
       } else {
         // Manager sent → notify the vendor
@@ -109,7 +111,9 @@ router.post('/', authenticate, async (req, res) => {
         if (vendor) {
           const toEmail = cp?.contactEmail || vendor.email
           const senderName = community?.name || req.user.name || 'A community'
-          await notifyDirectMessage({ toEmail, toName: vendor.name, senderName, messageBody: body.trim() })
+          // Vendor deep-link: opens their dashboard with the community thread selected
+          const deepLinkUrl = `${APP_URL}/vendor?tab=messages&communityId=${communityId}`
+          await notifyDirectMessage({ toEmail, toName: vendor.name, senderName, messageBody: body.trim(), deepLinkUrl })
         }
       }
     } catch (mailErr) {

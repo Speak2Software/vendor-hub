@@ -26,7 +26,7 @@ function fmtDate(iso) {
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
 }
 
-export default function MessagingCenter({ threads = [], availableParties = [], onRefresh }) {
+export default function MessagingCenter({ threads = [], availableParties = [], onRefresh, autoOpenCommunityId, autoOpenVendorId }) {
   const { user } = useAuth()
   const [activeThread, setActiveThread] = useState(null)
   const [messages,     setMessages]     = useState([])
@@ -77,6 +77,18 @@ export default function MessagingCenter({ threads = [], availableParties = [], o
       setSending(false)
     }
   }
+
+  // Auto-open a thread from a deep-link (email notification)
+  useEffect(() => {
+    if (!threads.length) return
+    if (autoOpenCommunityId) {
+      const match = threads.find((t) => t.communityId === autoOpenCommunityId)
+      if (match && !activeThread) openThread(match)
+    } else if (autoOpenVendorId) {
+      const match = threads.find((t) => t.vendorId === autoOpenVendorId)
+      if (match && !activeThread) openThread(match)
+    }
+  }, [threads, autoOpenCommunityId, autoOpenVendorId])
 
   // Scroll to bottom whenever messages change
   useEffect(() => {

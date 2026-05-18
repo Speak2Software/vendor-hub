@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -739,6 +739,7 @@ export default function VendorPortalDashboard() {
   const { user } = useAuth()
   const navigate  = useNavigate()
   const commsRef  = useRef(null)
+  const [searchParams] = useSearchParams()
 
   const [apps, setApps]                   = useState([])
   const [messages, setMessages]           = useState([])
@@ -769,6 +770,14 @@ export default function VendorPortalDashboard() {
     async function init() { await load() }
     init()
   }, [user.id])
+
+  // Deep-link from email: ?tab=messages&communityId=xxx
+  useEffect(() => {
+    if (searchParams.get('tab') === 'messages') {
+      setCommsTab('messages')
+      setTimeout(() => commsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
+    }
+  }, [searchParams])
 
   const approvedApps = apps.filter((a) => a.status === 'approved')
   const pendingApps  = apps.filter((a) => a.status === 'pending')
@@ -1086,6 +1095,7 @@ export default function VendorPortalDashboard() {
                     threads={enrichedThreads}
                     availableParties={availableParties}
                     onRefresh={load}
+                    autoOpenCommunityId={searchParams.get('communityId')}
                   />
                 )}
                 {commsTab === 'sent' && (

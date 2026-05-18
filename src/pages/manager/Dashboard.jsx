@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   getCommunity, getApplicationsForCommunity, getReviewsForCommunity,
@@ -35,6 +35,7 @@ const SERVICE_CATEGORY_ICONS = {
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
   const [community, setCommunity] = useState(null)
   const [applications, setApplications] = useState([])
   const [reviews, setReviews] = useState([])
@@ -65,6 +66,17 @@ export default function ManagerDashboard() {
   }
 
   useEffect(() => { reload() }, [user?.communityId])
+
+  // Deep-link from email: ?tab=messages&vendorId=xxx
+  useEffect(() => {
+    if (searchParams.get('tab') === 'messages') {
+      setCommsTab('messages')
+      // Scroll to Communications Center
+      setTimeout(() => {
+        document.getElementById('comms-center')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 200)
+    }
+  }, [searchParams])
 
   const approved = applications.filter((a) => a.status === 'approved')
   const pending  = applications.filter((a) => a.status === 'pending')
@@ -357,7 +369,7 @@ export default function ManagerDashboard() {
         )}
 
         {/* ── Communications Center ──────────────────────────────────────────── */}
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <section id="comms-center" className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-teal-600 px-6 py-5">
             <div className="flex items-center gap-3">
@@ -401,6 +413,7 @@ export default function ManagerDashboard() {
                 threads={enrichedThreads}
                 availableParties={availableParties}
                 onRefresh={reload}
+                autoOpenVendorId={searchParams.get('vendorId')}
               />
             )}
 
