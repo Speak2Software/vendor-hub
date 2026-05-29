@@ -368,9 +368,14 @@ function VendorCard({ app, logoUrl, review, communityId, expanded, onToggle, onR
 
   // Lazy-load company profile (for testimonials) when expanded
   const [companyProfile, setCompanyProfile] = useState(null)
+  const [cpLoading, setCpLoading] = useState(false)
   useEffect(() => {
-    if (expanded && !companyProfile) {
-      getCompanyProfile(app.vendorId).then(setCompanyProfile).catch(() => {})
+    if (expanded && companyProfile === null && !cpLoading) {
+      setCpLoading(true)
+      getCompanyProfile(app.vendorId)
+        .then((cp) => { setCompanyProfile(cp || false) }) // false = loaded but not found
+        .catch(() => { setCompanyProfile(false) })
+        .finally(() => setCpLoading(false))
     }
   }, [expanded, app.vendorId])
 
@@ -513,10 +518,13 @@ function VendorCard({ app, logoUrl, review, communityId, expanded, onToggle, onR
             </div>
           )}
 
-          {/* Portfolio & Testimonials */}
-          {companyProfile?.testimonials?.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Portfolio &amp; Testimonials</p>
+          {/* Portfolio & Testimonials — always shown when expanded */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Portfolio &amp; Testimonials</p>
+            {cpLoading && (
+              <p className="text-xs text-gray-400 italic">Loading…</p>
+            )}
+            {!cpLoading && companyProfile && companyProfile.testimonials?.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {companyProfile.testimonials.map((item) => (
                   <a
@@ -572,8 +580,11 @@ function VendorCard({ app, logoUrl, review, communityId, expanded, onToggle, onR
                   </a>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+            {!cpLoading && (!companyProfile || !companyProfile.testimonials?.length) && (
+              <p className="text-xs text-gray-400 italic">This vendor hasn't added any portfolio items yet.</p>
+            )}
+          </div>
 
           {/* Inline actions */}
           <InlineActions app={app} onRefresh={onRefresh} />

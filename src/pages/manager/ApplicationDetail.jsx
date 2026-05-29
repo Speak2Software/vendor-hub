@@ -209,10 +209,13 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Portfolio & Testimonials */}
-      {companyProfile?.testimonials?.length > 0 && (
+      {/* Portfolio & Testimonials — always shown once profile is loaded */}
+      {companyProfile !== null && (
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-4">
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Portfolio &amp; Testimonials</h2>
+          {!companyProfile || !companyProfile.testimonials?.length ? (
+            <p className="text-sm text-gray-400 italic">This vendor hasn't added any portfolio items yet.</p>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {companyProfile.testimonials.map((item) => (
               <a
@@ -271,6 +274,7 @@ export default function ApplicationDetail() {
               </a>
             ))}
           </div>
+          )}
         </div>
       )}
 
