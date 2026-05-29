@@ -22,6 +22,21 @@ const companyProfileSchema = new mongoose.Schema(
     reference2Name:        { type: String, default: '' },
     reference2Company:     { type: String, default: '' },
     reference2Phone:       { type: String, default: '' },
+    logoUrl:               { type: String, default: '' },
+    testimonials: {
+      type: [
+        {
+          id:          { type: String },
+          type:        { type: String, enum: ['video', 'image', 'document'], default: 'video' },
+          title:       { type: String, default: '' },
+          url:         { type: String, default: '' },
+          description: { type: String, default: '' },
+          fileName:    { type: String, default: '' },
+          addedAt:     { type: String },
+        },
+      ],
+      default: [],
+    },
     backgroundCheckConsent:{ type: Boolean, default: false },
     termsAgreed:           { type: Boolean, default: false },
     updatedAt:             { type: String, default: () => new Date().toISOString() },

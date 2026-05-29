@@ -6,6 +6,7 @@ import {
   addApplicationNote,
   updateApplicationStatus,
   getCommunity,
+  getCompanyProfile,
 } from '../../utils/storage'
 
 function formatDate(iso) {
@@ -37,6 +38,7 @@ export default function ApplicationDetail() {
   const navigate = useNavigate()
   const [app, setApp] = useState(null)
   const [community, setCommunity] = useState(null)
+  const [companyProfile, setCompanyProfile] = useState(null)
   const [note, setNote] = useState('')
   const [actionNote, setActionNote] = useState('')
   const [showDenyModal, setShowDenyModal] = useState(false)
@@ -46,7 +48,12 @@ export default function ApplicationDetail() {
     const a = await getApplication(id)
     if (!a) { navigate('/manager'); return }
     setApp(a)
-    setCommunity(await getCommunity(a.communityId))
+    const [comm, cp] = await Promise.all([
+      getCommunity(a.communityId),
+      getCompanyProfile(a.vendorId),
+    ])
+    setCommunity(comm)
+    setCompanyProfile(cp)
   }
 
   useEffect(() => { reload() }, [id])
@@ -199,6 +206,71 @@ export default function ApplicationDetail() {
               </div>
             )}
           </dl>
+        </div>
+      )}
+
+      {/* Portfolio & Testimonials */}
+      {companyProfile?.testimonials?.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Portfolio &amp; Testimonials</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {companyProfile.testimonials.map((item) => (
+              <a
+                key={item.id}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 hover:shadow-sm transition-all"
+              >
+                {item.type === 'video' && (() => {
+                  const yt = item.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+                  return (
+                    <>
+                      <div className="relative h-28 bg-gray-900 overflow-hidden">
+                        {yt ? (
+                          <img src={`https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg`} alt="" className="w-full h-full object-cover opacity-80" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl">🎬</div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow">
+                            <svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-3 py-2">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
+                        {item.description && <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.description}</p>}
+                        <p className="text-[11px] text-blue-500 mt-0.5">Watch video →</p>
+                      </div>
+                    </>
+                  )
+                })()}
+                {item.type === 'image' && (
+                  <>
+                    <div className="h-28 overflow-hidden bg-gray-100">
+                      <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="px-3 py-2">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
+                      {item.description && <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.description}</p>}
+                    </div>
+                  </>
+                )}
+                {item.type === 'document' && (
+                  <div className="flex items-start gap-3 p-3">
+                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 text-xl border border-red-100">📄</div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
+                      {item.fileName && <p className="text-[11px] text-gray-400 truncate">{item.fileName}</p>}
+                      {item.description && <p className="text-[11px] text-gray-400 truncate">{item.description}</p>}
+                      <p className="text-[11px] text-blue-500 mt-0.5">Open document →</p>
+                    </div>
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
         </div>
       )}
 

@@ -5,6 +5,8 @@ import {
   getCommunity,
   getApplicationsForCommunity,
   getReviewsForCommunity,
+  getVendorProfiles,
+  getCompanyProfile,
   saveReview,
   addApplicationNote,
   updateApplicationStatus,
@@ -359,10 +361,18 @@ function InlineActions({ app, onRefresh }) {
 }
 
 // ── Vendor card ───────────────────────────────────────────────────────────────
-function VendorCard({ app, review, communityId, expanded, onToggle, onRefresh }) {
+function VendorCard({ app, logoUrl, review, communityId, expanded, onToggle, onRefresh }) {
   const cfg = STATUS_CFG[app.status] || STATUS_CFG.pending
   const icon = SERVICE_ICONS[app.serviceCategory] || '📦'
   const lastHistory = app.statusHistory?.[app.statusHistory.length - 1]
+
+  // Lazy-load company profile (for testimonials) when expanded
+  const [companyProfile, setCompanyProfile] = useState(null)
+  useEffect(() => {
+    if (expanded && !companyProfile) {
+      getCompanyProfile(app.vendorId).then(setCompanyProfile).catch(() => {})
+    }
+  }, [expanded, app.vendorId])
 
   return (
     <div className={`bg-white rounded-xl border shadow-sm transition-all ${expanded ? 'border-blue-200 shadow-md' : 'border-gray-200'}`}>
@@ -371,9 +381,13 @@ function VendorCard({ app, review, communityId, expanded, onToggle, onRefresh })
         onClick={onToggle}
         className="w-full text-left p-4 flex items-start gap-3 group"
       >
-        {/* Icon */}
-        <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 text-xl">
-          {icon}
+        {/* Icon / Logo */}
+        <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 text-xl overflow-hidden">
+          {logoUrl ? (
+            <img src={logoUrl} alt={app.businessName} className="w-full h-full object-contain" />
+          ) : (
+            icon
+          )}
         </div>
 
         {/* Main info */}
@@ -499,6 +513,68 @@ function VendorCard({ app, review, communityId, expanded, onToggle, onRefresh })
             </div>
           )}
 
+          {/* Portfolio & Testimonials */}
+          {companyProfile?.testimonials?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Portfolio &amp; Testimonials</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {companyProfile.testimonials.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block bg-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 transition-all"
+                  >
+                    {item.type === 'video' && (() => {
+                      const yt = item.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+                      return (
+                        <div className="flex items-center gap-2.5 p-2.5">
+                          <div className="w-14 h-10 bg-gray-900 rounded overflow-hidden flex-shrink-0 relative">
+                            {yt ? (
+                              <img src={`https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg`} alt="" className="w-full h-full object-cover opacity-80" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xl">🎬</div>
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-5 h-5 bg-white/90 rounded-full flex items-center justify-center">
+                                <svg className="w-2.5 h-2.5 text-gray-800 ml-px" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-gray-800 truncate">{item.title}</p>
+                            <p className="text-[11px] text-blue-500">Watch video →</p>
+                          </div>
+                        </div>
+                      )
+                    })()}
+                    {item.type === 'image' && (
+                      <div className="flex items-center gap-2.5 p-2.5">
+                        <div className="w-14 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                          <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-800 truncate">{item.title}</p>
+                          <p className="text-[11px] text-blue-500">View image →</p>
+                        </div>
+                      </div>
+                    )}
+                    {item.type === 'document' && (
+                      <div className="flex items-center gap-2.5 p-2.5">
+                        <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 text-base border border-red-100">📄</div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-800 truncate">{item.title}</p>
+                          <p className="text-[11px] text-blue-500">Open document →</p>
+                        </div>
+                      </div>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Inline actions */}
           <InlineActions app={app} onRefresh={onRefresh} />
 
@@ -536,6 +612,7 @@ export default function MyVendors() {
   const { user } = useAuth()
   const [applications, setApplications] = useState([])
   const [reviews, setReviews] = useState([])
+  const [logoByVendor, setLogoByVendor] = useState({})
   const [community, setCommunity] = useState(null)
   const [activeTab, setActiveTab] = useState('All')
   const [search, setSearch] = useState('')
@@ -544,14 +621,19 @@ export default function MyVendors() {
 
   async function load() {
     if (!user?.communityId) return
-    const [comm, apps, revs] = await Promise.all([
+    const [comm, apps, revs, vendorProfiles] = await Promise.all([
       getCommunity(user.communityId),
       getApplicationsForCommunity(user.communityId),
       getReviewsForCommunity(user.communityId),
+      getVendorProfiles().catch(() => []),
     ])
     setCommunity(comm)
     setApplications(apps.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
     setReviews(revs)
+    // Build vendorId → logoUrl map
+    const logoMap = {}
+    vendorProfiles.forEach((vp) => { if (vp.logoUrl) logoMap[vp.userId] = vp.logoUrl })
+    setLogoByVendor(logoMap)
   }
 
   useEffect(() => { load() }, [user?.communityId])
@@ -768,6 +850,7 @@ export default function MyVendors() {
               <VendorCard
                 key={app.id}
                 app={app}
+                logoUrl={logoByVendor[app.vendorId] || null}
                 review={reviewByApp[app.id] || null}
                 communityId={user.communityId}
                 expanded={expandedId === app.id}

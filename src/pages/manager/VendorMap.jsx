@@ -561,8 +561,12 @@ function VendorDetail({ vendor, communityId, review, onClose }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-start gap-3 z-10">
-        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 text-xl">
-          {SERVICE_ICONS[category] || '📦'}
+        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 text-xl overflow-hidden">
+          {vendor.profile?.logoUrl ? (
+            <img src={vendor.profile.logoUrl} alt={businessName} className="w-full h-full object-contain" />
+          ) : (
+            SERVICE_ICONS[category] || '📦'
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 leading-snug">{businessName}</p>

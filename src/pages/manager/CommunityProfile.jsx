@@ -491,6 +491,147 @@ export default function CommunityProfile() {
           </div>
         </section>
 
+        {/* ── Vendor Recruitment Flyer ──────────────────────────────────────── */}
+        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-rose-600 to-pink-500 px-6 py-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">📋</div>
+            <div>
+              <h2 className="text-white font-bold text-sm">Vendor Recruitment Flyer</h2>
+              <p className="text-rose-100 text-xs">Print a QR-code flyer for vendors to scan and apply</p>
+            </div>
+          </div>
+          <div className="p-6 space-y-5">
+
+            {/* Flyer preview */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-xs rounded-2xl overflow-hidden border border-gray-200 shadow-md bg-white text-center">
+                {/* Header */}
+                <div className="bg-gradient-to-br from-blue-700 to-teal-600 px-5 py-5">
+                  {form.logoUrl && (
+                    <div className="w-14 h-14 rounded-xl bg-white/20 border border-white/30 overflow-hidden mx-auto mb-3 flex items-center justify-center">
+                      <img src={form.logoUrl} alt="" className="w-full h-full object-contain p-1" />
+                    </div>
+                  )}
+                  <p className="text-white font-extrabold text-base leading-tight">{form.name || 'Your Community'}</p>
+                  {form.address && <p className="text-blue-200 text-xs mt-1 truncate">{form.address}</p>}
+                </div>
+
+                {/* Body */}
+                <div className="px-5 py-4">
+                  <p className="text-gray-900 font-bold text-sm mb-1">Partner With Us as a Vendor</p>
+                  <p className="text-gray-500 text-xs leading-relaxed mb-4">
+                    Scan the code below to register and apply to serve our residents.
+                  </p>
+
+                  {/* QR code */}
+                  <div className="inline-block bg-blue-50 border-2 border-blue-100 rounded-2xl p-3 mb-3">
+                    <img
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https%3A%2F%2Fwww.speak2vendors.com&color=1e40af&bgcolor=f0f7ff&margin=4"
+                      alt="QR code"
+                      className="w-24 h-24 block"
+                    />
+                  </div>
+
+                  <p className="text-blue-700 text-xs font-bold">Scan to Apply</p>
+                  <p className="text-blue-400 text-[11px]">www.speak2vendors.com</p>
+                </div>
+
+                {/* Footer */}
+                <div className="bg-gray-50 border-t border-gray-100 px-5 py-2">
+                  <p className="text-gray-400 text-[10px]">Powered by Speak2Vendors</p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center leading-relaxed">
+              This flyer opens in a new window ready to print. Display it in your lobby or common areas so vendors can easily find and apply on Speak2Vendors.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                const esc = (s = '') => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=https%3A%2F%2Fwww.speak2vendors.com&color=1e40af&bgcolor=f0f7ff&margin=10`
+                const logoHtml = form.logoUrl
+                  ? `<div class="logo-wrap"><img src="${form.logoUrl}" alt="" /></div>`
+                  : ''
+                const addressHtml = form.address
+                  ? `<p class="subtitle">${esc(form.address)}</p>`
+                  : ''
+                const win = window.open('', '_blank', 'width=640,height=920')
+                win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${esc(form.name || 'Community')} – Vendor Recruitment Flyer</title>
+  <style>
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; background:#f3f4f6; display:flex; justify-content:center; padding:40px 20px; min-height:100vh; }
+    .flyer { background:#fff; width:100%; max-width:480px; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,0.18); overflow:hidden; }
+    .header { background:linear-gradient(135deg,#1d4ed8,#0891b2); padding:32px 28px 28px; text-align:center; }
+    .logo-wrap { width:70px; height:70px; border-radius:14px; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3); overflow:hidden; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; }
+    .logo-wrap img { width:100%; height:100%; object-fit:contain; padding:4px; }
+    .community-name { font-size:22px; font-weight:800; color:#fff; line-height:1.2; }
+    .subtitle { font-size:12px; color:rgba(255,255,255,0.8); margin-top:6px; }
+    .body { padding:28px; text-align:center; }
+    .headline { font-size:19px; font-weight:700; color:#111827; margin-bottom:8px; }
+    .desc { font-size:13px; color:#4b5563; line-height:1.65; margin-bottom:26px; }
+    .qr-box { display:inline-block; background:#f0f7ff; border:2px solid #bfdbfe; border-radius:18px; padding:18px; margin-bottom:16px; }
+    .qr-box img { display:block; width:200px; height:200px; }
+    .scan-label { font-size:14px; font-weight:700; color:#1e40af; margin-top:10px; }
+    .url-label { font-size:12px; color:#60a5fa; margin-top:3px; }
+    .steps { text-align:left; background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:16px 18px; margin:20px 0 0; }
+    .steps h3 { font-size:11px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px; }
+    .step { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+    .step:last-child { margin-bottom:0; }
+    .step-num { width:20px; height:20px; background:#0ea5e9; color:#fff; border-radius:50%; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    .step-text { font-size:13px; color:#0c4a6e; line-height:1.45; }
+    .footer { background:#f9fafb; border-top:1px solid #e5e7eb; padding:12px 28px; text-align:center; }
+    .footer p { font-size:10px; color:#9ca3af; }
+    @media print { body { padding:0; background:#fff; } .flyer { box-shadow:none; border-radius:0; max-width:100%; } }
+  </style>
+</head>
+<body>
+  <div class="flyer">
+    <div class="header">
+      ${logoHtml}
+      <div class="community-name">${esc(form.name || 'Our Community')}</div>
+      ${addressHtml}
+    </div>
+    <div class="body">
+      <h2 class="headline">Partner With Us as a Vendor</h2>
+      <p class="desc">We are actively seeking trusted service providers to support our residents. Scan the QR code below to create your free vendor profile and apply.</p>
+      <div class="qr-box">
+        <img src="${qrUrl}" alt="QR code – scan to visit speak2vendors.com" />
+        <p class="scan-label">Scan to Apply</p>
+        <p class="url-label">www.speak2vendors.com</p>
+      </div>
+      <div class="steps">
+        <h3>How it works</h3>
+        <div class="step"><span class="step-num">1</span><span class="step-text">Scan the QR code or visit <strong>speak2vendors.com</strong></span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">Create a free vendor account and complete your profile</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">Submit your application to <strong>${esc(form.name || 'our community')}</strong> for review</span></div>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Powered by Speak2Vendors · speak2vendors.com</p>
+    </div>
+  </div>
+  <script>setTimeout(function(){ window.print(); }, 500);</script>
+</body>
+</html>`)
+                win.document.close()
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-rose-600 to-pink-500 text-white py-3.5 rounded-2xl text-sm font-bold hover:from-rose-700 hover:to-pink-600 transition-all shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+              </svg>
+              Print / Download Flyer
+            </button>
+          </div>
+        </section>
+
         {/* ── Save Button ────────────────────────────────────────────────────── */}
         <div className="flex gap-3 pb-6">
           {saved ? (

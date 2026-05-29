@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getCompanyProfile, saveCompanyProfile, getApplicationsForVendor } from '../../utils/storage'
+import { uploadImage } from '../../utils/uploadImage'
+import { uploadFile }  from '../../utils/uploadFile'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -28,7 +30,24 @@ const EMPTY = {
   businessDescription: '',
   licenseInfo: '', insuranceProvider: '', insurancePolicyNumber: '', insuranceExpiration: '',
   reference1Name: '', reference1Company: '', reference1Phone: '',
+  logoUrl: '',
   backgroundCheckConsent: false, termsAgreed: false,
+}
+
+// ── Testimonial helpers ───────────────────────────────────────────────────────
+
+function ytThumb(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null
+}
+function isYT(url)    { return /youtube\.com|youtu\.be/.test(url) }
+function isVimeo(url) { return /vimeo\.com/.test(url) }
+
+function fmtBytes(b) {
+  if (!b) return ''
+  if (b < 1024) return `${b} B`
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`
+  return `${(b / 1024 / 1024).toFixed(1)} MB`
 }
 
 const REQUIRED_FIELDS = [
@@ -81,15 +100,32 @@ function Field({ label, required, hint, children }) {
 export default function CompanyProfile() {
   const { user } = useAuth()
   const navigate  = useNavigate()
-  const [form, setForm]   = useState(EMPTY)
-  const [saved, setSaved] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [form, setForm]         = useState(EMPTY)
+  const [saved, setSaved]       = useState(false)
+  const [errors, setErrors]     = useState({})
+  const [logoFile, setLogoFile]       = useState(null)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState(null)
+  const fileInputRef = useRef(null)
+
+  // ── Testimonials state ────────────────────────────────────────────────────
+  const [testimonials, setTestimonials]   = useState([])
+  const [addingType, setAddingType]       = useState(null) // 'video' | 'image' | 'document' | null
+  const [addTitle, setAddTitle]           = useState('')
+  const [addUrl, setAddUrl]               = useState('')
+  const [addDesc, setAddDesc]             = useState('')
+  const [addFile, setAddFile]             = useState(null)
+  const [addUploading, setAddUploading]   = useState(false)
+  const [addError, setAddError]           = useState('')
+  const testimonialFileRef = useRef(null)
 
   useEffect(() => {
     async function load() {
       const existing = await getCompanyProfile(user.id)
       if (existing) {
         setForm({ ...EMPTY, ...existing })
+        setTestimonials(existing.testimonials || [])
       } else {
         // Pre-fill from most recent application if no profile yet
         const apps = await getApplicationsForVendor(user.id)
@@ -123,6 +159,79 @@ export default function CompanyProfile() {
     load()
   }, [user.id])
 
+  function handleLogoSelect(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select an image file.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Image must be under 5 MB.')
+      return
+    }
+    setUploadError(null)
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
+  function removeLogo() {
+    setLogoFile(null)
+    setLogoPreview(null)
+    setForm((f) => ({ ...f, logoUrl: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function removeTestimonial(id) {
+    setTestimonials((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  async function handleAddTestimonial() {
+    if (addingType === 'video') {
+      if (!addUrl.trim()) { setAddError('Please enter a video URL.'); return }
+    } else {
+      if (!addFile) { setAddError('Please select a file.'); return }
+    }
+
+    let url = addUrl.trim()
+    let fileName = ''
+
+    if (addingType !== 'video') {
+      setAddUploading(true)
+      setAddError('')
+      try {
+        const result = await uploadFile(addFile)
+        url      = result.url
+        fileName = result.fileName
+      } catch (err) {
+        setAddError(err.message || 'Upload failed.')
+        setAddUploading(false)
+        return
+      }
+      setAddUploading(false)
+    }
+
+    setTestimonials((prev) => [
+      ...prev,
+      {
+        id:          `t_${Date.now()}`,
+        type:        addingType,
+        title:       addTitle.trim() || (addingType === 'video' ? 'Video' : fileName || 'File'),
+        url,
+        description: addDesc.trim(),
+        fileName,
+        addedAt:     new Date().toISOString(),
+      },
+    ])
+    setAddingType(null)
+    setAddTitle('')
+    setAddUrl('')
+    setAddDesc('')
+    setAddFile(null)
+    setAddError('')
+    if (testimonialFileRef.current) testimonialFileRef.current.value = ''
+  }
+
   function upd(field) {
     return (e) => {
       const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value
@@ -152,7 +261,23 @@ export default function CompanyProfile() {
       document.querySelector('[data-error]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
-    await saveCompanyProfile({ ...form, userId: user.id })
+    let finalLogoUrl = form.logoUrl
+    if (logoFile) {
+      setUploading(true)
+      setUploadError(null)
+      try {
+        finalLogoUrl = await uploadImage(logoFile)
+        setLogoFile(null)
+        setLogoPreview(null)
+      } catch (err) {
+        setUploadError('Logo upload failed. Please try again.')
+        setUploading(false)
+        return
+      }
+      setUploading(false)
+    }
+    await saveCompanyProfile({ ...form, logoUrl: finalLogoUrl, testimonials, userId: user.id })
+    setForm((f) => ({ ...f, logoUrl: finalLogoUrl }))
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -195,13 +320,14 @@ export default function CompanyProfile() {
             </div>
             <button
               onClick={handleSave}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
+              disabled={uploading}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm disabled:opacity-60 ${
                 saved
                   ? 'bg-emerald-500 text-white'
                   : 'bg-gradient-to-r from-blue-600 to-teal-600 text-white hover:from-blue-700 hover:to-teal-700'
               }`}
             >
-              {saved ? '✓ Saved!' : 'Save Profile'}
+              {uploading ? 'Uploading logo…' : saved ? '✓ Saved!' : 'Save Profile'}
             </button>
           </div>
         </div>
@@ -244,6 +370,55 @@ export default function CompanyProfile() {
             </div>
           </div>
         )}
+
+        {/* ── 0. Company Logo ──────────────────────────────────────────────── */}
+        <SectionCard icon="🖼️" title="Company Logo" subtitle="Displayed on your profile and vendor listings" accent="from-indigo-600 to-blue-600">
+          <div className="flex items-center gap-5">
+            {/* Preview box */}
+            <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {(logoPreview || form.logoUrl) ? (
+                <img
+                  src={logoPreview || form.logoUrl}
+                  alt="Company logo"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="text-3xl">🏢</span>
+              )}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex flex-col gap-2 flex-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors text-left"
+              >
+                {(logoPreview || form.logoUrl) ? '🔄 Change Logo' : '📁 Upload Logo'}
+              </button>
+              {(logoPreview || form.logoUrl) && (
+                <button
+                  type="button"
+                  onClick={removeLogo}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors text-left"
+                >
+                  🗑️ Remove Logo
+                </button>
+              )}
+              <p className="text-xs text-gray-400 leading-relaxed">PNG, JPG, or SVG · Max 5 MB</p>
+              {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+            </div>
+          </div>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleLogoSelect}
+          />
+        </SectionCard>
 
         {/* ── 1. Business Information ──────────────────────────────────────── */}
         <SectionCard icon="🏢" title="Business Information" subtitle="Your company contact details">
@@ -430,7 +605,198 @@ export default function CompanyProfile() {
           </Field>
         </SectionCard>
 
-        {/* ── 5. Agreements ────────────────────────────────────────────────── */}
+        {/* ── 5. Portfolio & Testimonials ──────────────────────────────────── */}
+        <SectionCard icon="🎬" title="Portfolio & Testimonials" subtitle="Videos, images, and documents that support your application" accent="from-amber-500 to-orange-500">
+
+          {/* Existing items grid */}
+          {testimonials.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+              {testimonials.map((item) => (
+                <div key={item.id} className="relative bg-gray-50 border border-gray-200 rounded-xl overflow-hidden group">
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => removeTestimonial(item.id)}
+                    className="absolute top-1.5 right-1.5 z-10 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-300 transition-colors shadow-sm"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                  </button>
+
+                  {/* Video */}
+                  {item.type === 'video' && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+                      <div className="relative h-28 bg-gray-900 overflow-hidden">
+                        {ytThumb(item.url) ? (
+                          <img src={ytThumb(item.url)} alt="" className="w-full h-full object-cover opacity-80" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl">🎬</div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow">
+                            <svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                          </div>
+                        </div>
+                        {isYT(item.url) && <span className="absolute bottom-1 left-2 text-[10px] text-white/80 font-medium">YouTube</span>}
+                        {isVimeo(item.url) && <span className="absolute bottom-1 left-2 text-[10px] text-white/80 font-medium">Vimeo</span>}
+                      </div>
+                      <div className="px-3 py-2">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
+                        {item.description && <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.description}</p>}
+                      </div>
+                    </a>
+                  )}
+
+                  {/* Image */}
+                  {item.type === 'image' && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+                      <div className="h-28 overflow-hidden bg-gray-100">
+                        <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="px-3 py-2">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
+                        {item.description && <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.description}</p>}
+                      </div>
+                    </a>
+                  )}
+
+                  {/* Document */}
+                  {item.type === 'document' && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3">
+                      <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 text-xl border border-red-100">📄</div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
+                        {item.fileName && <p className="text-[11px] text-gray-400 truncate">{item.fileName}</p>}
+                        {item.description && <p className="text-[11px] text-gray-400 truncate">{item.description}</p>}
+                        <p className="text-[11px] text-blue-500 mt-0.5">View →</p>
+                      </div>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add form */}
+          {addingType === null ? (
+            <div>
+              <p className="text-xs text-gray-500 mb-2 font-medium">Add supporting material:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { type: 'video',    label: '📹 Video Link',    hint: 'YouTube or Vimeo URL' },
+                  { type: 'image',    label: '🖼️ Image',         hint: 'Upload a photo' },
+                  { type: 'document', label: '📄 Document',      hint: 'PDF or Word doc' },
+                ].map(({ type, label, hint }) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => { setAddingType(type); setAddError('') }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors"
+                    title={hint}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-amber-800 uppercase tracking-wide">
+                  {addingType === 'video' ? '📹 Add Video Link' : addingType === 'image' ? '🖼️ Add Image' : '📄 Add Document'}
+                </p>
+                <button type="button" onClick={() => { setAddingType(null); setAddError('') }} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Title (optional)</label>
+                <input
+                  type="text"
+                  value={addTitle}
+                  onChange={(e) => setAddTitle(e.target.value)}
+                  placeholder={addingType === 'video' ? 'e.g. Client Testimonial' : addingType === 'image' ? 'e.g. Our Facility' : 'e.g. Certificate of Insurance'}
+                  className={`${inp} text-sm`}
+                />
+              </div>
+
+              {/* Video URL */}
+              {addingType === 'video' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Video URL <span className="text-red-400">*</span></label>
+                  <input
+                    type="url"
+                    value={addUrl}
+                    onChange={(e) => setAddUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className={inp}
+                  />
+                </div>
+              )}
+
+              {/* File picker */}
+              {(addingType === 'image' || addingType === 'document') && (
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">
+                    {addingType === 'image' ? 'Image File' : 'Document'} <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    ref={testimonialFileRef}
+                    type="file"
+                    accept={addingType === 'image' ? 'image/*' : 'application/pdf,.pdf,.doc,.docx,.txt'}
+                    onChange={(e) => { setAddFile(e.target.files?.[0] || null); setAddError('') }}
+                    className="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200"
+                  />
+                  {addFile && <p className="text-[11px] text-gray-400 mt-1">{addFile.name}</p>}
+                </div>
+              )}
+
+              {/* Description */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  value={addDesc}
+                  onChange={(e) => setAddDesc(e.target.value)}
+                  placeholder="Brief description…"
+                  className={inp}
+                />
+              </div>
+
+              {addError && <p className="text-xs text-red-500">{addError}</p>}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setAddingType(null); setAddError('') }}
+                  className="flex-1 py-2 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddTestimonial}
+                  disabled={addUploading}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors disabled:opacity-60"
+                >
+                  {addUploading ? 'Uploading…' : 'Add Item'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {testimonials.length === 0 && addingType === null && (
+            <p className="text-xs text-gray-400 italic mt-1">No items yet. Add a video, image, or document to showcase your work.</p>
+          )}
+
+          <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex gap-2 text-xs text-amber-700 mt-1">
+            <span className="flex-shrink-0">💡</span>
+            Items are saved when you click Save Profile. Community managers will see these when reviewing your application.
+          </div>
+        </SectionCard>
+
+        {/* ── 6. Agreements ────────────────────────────────────────────────── */}
         <SectionCard icon="✅" title="Agreements" subtitle="Required for all vendor applications" accent="from-emerald-600 to-teal-600">
           <div className="space-y-4">
             <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
@@ -483,13 +849,14 @@ export default function CompanyProfile() {
         <div className="pb-6">
           <button
             onClick={handleSave}
-            className={`w-full py-4 rounded-2xl text-sm font-bold transition-all shadow-md ${
+            disabled={uploading}
+            className={`w-full py-4 rounded-2xl text-sm font-bold transition-all shadow-md disabled:opacity-60 ${
               saved
                 ? 'bg-emerald-500 text-white'
                 : 'bg-gradient-to-r from-blue-600 to-teal-600 text-white hover:from-blue-700 hover:to-teal-700'
             }`}
           >
-            {saved ? '✓ Profile Saved!' : 'Save Company Profile'}
+            {uploading ? '⏳ Uploading logo…' : saved ? '✓ Profile Saved!' : 'Save Company Profile'}
           </button>
           {!isComplete && (
             <p className="text-center text-xs text-gray-400 mt-3">

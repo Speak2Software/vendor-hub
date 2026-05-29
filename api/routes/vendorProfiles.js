@@ -1,9 +1,10 @@
 const router = require('express').Router()
 const VendorProfile = require('../models/VendorProfile')
 const User = require('../models/User')
+const CompanyProfile = require('../models/CompanyProfile')
 const { authenticate, authorize } = require('../middleware/auth')
 
-// GET /api/vendor-profiles — all profiles with location, joined with user name/email
+// GET /api/vendor-profiles — all profiles with location, joined with user name/email + logoUrl
 // Used by the Vendor Map for community managers
 router.get('/', authenticate, authorize('community_manager', 'admin'), async (req, res) => {
   try {
@@ -12,14 +13,29 @@ router.get('/', authenticate, authorize('community_manager', 'admin'), async (re
       'location.lng': { $ne: 0 },
     }).lean()
 
-    const users = await User.find({ role: 'vendor', _id: { $in: profiles.map((p) => p._id) } }).lean()
-    const userMap = Object.fromEntries(users.map((u) => [u._id, u]))
+    const ids = profiles.map((p) => p._id)
+    const [users, companyProfiles] = await Promise.all([
+      User.find({ role: 'vendor', _id: { $in: ids } }).lean(),
+      CompanyProfile.find({ _id: { $in: ids } }).lean(),
+    ])
+    const userMap    = Object.fromEntries(users.map((u) => [u._id, u]))
+    const companyMap = Object.fromEntries(companyProfiles.map((c) => [c._id, c]))
 
     const result = profiles
       .map((p) => {
         const u = userMap[p._id]
         if (!u) return null
-        return { userId: p._id, name: u.name, email: u.email, location: p.location, serviceRadiusMiles: p.serviceRadiusMiles }
+        const cp = companyMap[p._id]
+        return {
+          userId:            p._id,
+          name:              u.name,
+          email:             u.email,
+          location:          p.location,
+          serviceRadiusMiles: p.serviceRadiusMiles,
+          logoUrl:           cp?.logoUrl || '',
+          businessName:      cp?.businessName || '',
+          serviceCategory:   cp?.serviceCategory || '',
+        }
       })
       .filter(Boolean)
 
