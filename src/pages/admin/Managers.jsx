@@ -77,7 +77,7 @@ export default function ManagersAdmin() {
           <h1 className="text-xl font-semibold text-gray-900">Community Managers</h1>
           <p className="text-sm text-gray-500 mt-0.5">{managers.length} manager{managers.length !== 1 ? 's' : ''}</p>
         </div>
-        <button onClick={startNew} className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+        <button onClick={startNew} className="bg-[#1a73c8] text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-[#135aa0] transition-colors">
           + Add manager
         </button>
       </div>
@@ -148,7 +148,7 @@ export default function ManagersAdmin() {
               <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-50">
                 Cancel
               </button>
-              <button type="submit" className="flex-1 py-2.5 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 font-medium">
+              <button type="submit" className="flex-1 py-2.5 rounded-lg text-sm bg-[#1a73c8] text-white hover:bg-[#135aa0] font-medium">
                 {editingManager ? 'Save changes' : 'Create manager'}
               </button>
             </div>

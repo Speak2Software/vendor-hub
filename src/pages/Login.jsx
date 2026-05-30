@@ -7,9 +7,9 @@ import { useAuth } from '../context/AuthContext'
 
 const FEATURES = [
   {
-    gradient: 'from-blue-500 to-indigo-600',
-    bg: 'bg-blue-50',
-    iconBg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+    gradient: 'from-[#1a73c8] to-[#0d3f73]',
+    bg: 'bg-[#f0f7fd]',
+    iconBg: 'bg-gradient-to-br from-[#1a73c8] to-[#0d3f73]',
     icon: (
       <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -59,9 +59,9 @@ const FEATURES = [
 const STEPS = [
   {
     num: '01',
-    color: 'text-blue-600',
-    ring: 'ring-blue-200',
-    bg: 'bg-blue-50',
+    color: 'text-[#1a73c8]',
+    ring: 'ring-[#b3d4ed]',
+    bg: 'bg-[#f0f7fd]',
     title: 'Create Your Account',
     desc: 'Sign up free in under 2 minutes. No credit card needed.',
   },
@@ -146,11 +146,11 @@ export default function Login() {
     <div className="min-h-[calc(100vh-3.5rem)] bg-white">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-teal-700">
+      <section className="relative overflow-hidden" style={{background: 'linear-gradient(145deg, #0d3f73 0%, #135aa0 60%, #1a73c8 100%)'}}>
         {/* decorative blobs */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-16 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-400/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-16 w-80 h-80 bg-[#4a96d4]/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#4a96d4]/10 rounded-full blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-4 py-16 sm:py-24 flex flex-col items-center text-center">
           <img src="/logo.png" alt="Speak2Vendors" className="h-16 sm:h-20 w-auto mb-8" />
@@ -167,7 +167,7 @@ export default function Login() {
             </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-blue-100 max-w-2xl leading-relaxed">
+          <p className="mt-6 text-lg sm:text-xl text-[#b3d4ed] max-w-2xl leading-relaxed">
             VendorHub is the premier marketplace connecting trusted service providers
             with senior living communities nationwide. Join thousands of vendors already
             growing their business with us.
@@ -176,7 +176,7 @@ export default function Login() {
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <Link
               to="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-white text-indigo-700 px-8 py-4 rounded-2xl text-base font-bold hover:bg-yellow-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transform"
+              className="inline-flex items-center justify-center gap-2 bg-white text-[#0d3f73] px-8 py-4 rounded-2xl text-base font-bold hover:bg-[#f0f7fd] transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transform"
             >
               Get Started Free
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -191,7 +191,7 @@ export default function Login() {
             </a>
           </div>
 
-          <p className="mt-5 text-blue-200 text-sm">Free to join · No credit card required · Get approved in days</p>
+          <p className="mt-5 text-[#b3d4ed] text-sm">Free to join · No credit card required · Get approved in days</p>
         </div>
       </section>
 
@@ -199,7 +199,7 @@ export default function Login() {
       <section className="bg-gray-50 py-16 sm:py-20">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-12">
-            <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
+            <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
               Why VendorHub
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Everything you need to succeed</h2>
@@ -251,7 +251,7 @@ export default function Login() {
           <div className="mt-10 text-center">
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-teal-600 text-white px-8 py-4 rounded-2xl text-base font-bold hover:from-blue-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
+              className="inline-flex items-center gap-2 bg-[#1a73c8] text-white px-8 py-4 rounded-2xl text-base font-bold hover:bg-[#135aa0] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
             >
               Start Your Application
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -263,14 +263,14 @@ export default function Login() {
       </section>
 
       {/* ── Service categories ───────────────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-slate-900 to-indigo-950 py-16 sm:py-20">
+      <section className="py-16 sm:py-20" style={{background: 'linear-gradient(135deg, #1a2535 0%, #0d3f73 100%)'}}>
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-10">
-            <span className="inline-block bg-white/10 text-indigo-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
+            <span className="inline-block bg-white/10 text-[#b3d4ed] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
               Who we serve
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white">We work with all service types</h2>
-            <p className="mt-3 text-indigo-300 max-w-xl mx-auto">
+            <p className="mt-3 text-[#b3d4ed] max-w-xl mx-auto">
               Whether you provide healthcare, transportation, food service, or anything in between — there's a community waiting for you.
             </p>
           </div>
@@ -282,7 +282,7 @@ export default function Login() {
                 className="bg-white/8 hover:bg-white/15 border border-white/10 rounded-xl p-3 text-center transition-colors cursor-default group"
               >
                 <div className="text-2xl mb-1.5 group-hover:scale-110 transition-transform inline-block">{c.emoji}</div>
-                <p className="text-[11px] text-indigo-200 font-medium leading-tight">{c.label}</p>
+                <p className="text-[11px] text-[#b3d4ed] font-medium leading-tight">{c.label}</p>
               </div>
             ))}
           </div>
@@ -297,7 +297,7 @@ export default function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
             </Link>
-            <p className="mt-3 text-indigo-400 text-sm">Already a member? <a href="#sign-in" className="text-indigo-200 hover:text-white underline">Sign in below ↓</a></p>
+            <p className="mt-3 text-[#7693aa] text-sm">Already a member? <a href="#sign-in" className="text-[#b3d4ed] hover:text-white underline">Sign in below ↓</a></p>
           </div>
         </div>
       </section>
@@ -306,7 +306,7 @@ export default function Login() {
       <section id="sign-in" className="bg-gray-50 py-16">
         <div className="max-w-sm mx-auto px-4">
           <div className="text-center mb-6">
-            <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
+            <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
               Member access
             </span>
             <h2 className="text-2xl font-extrabold text-gray-900">Welcome back</h2>
@@ -327,7 +327,7 @@ export default function Login() {
                   autoComplete="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-gray-50"
                   placeholder="you@example.com"
                 />
               </div>
@@ -339,14 +339,14 @@ export default function Login() {
                   autoComplete="current-password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-gray-50"
                   placeholder="••••••••"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-teal-700 transition-all shadow-md disabled:opacity-60"
+                className="w-full bg-[#1a73c8] text-white py-3 rounded-xl text-sm font-bold hover:bg-[#135aa0] transition-all shadow-md disabled:opacity-60"
               >
                 {loading ? 'Signing in…' : 'Sign In'}
               </button>
@@ -354,7 +354,7 @@ export default function Login() {
 
             <p className="text-center text-sm text-gray-500 mt-5">
               New vendor?{' '}
-              <Link to="/signup" className="text-indigo-600 hover:underline font-semibold">
+              <Link to="/signup" className="text-[#1a73c8] hover:underline font-semibold">
                 Create a free account →
               </Link>
             </p>

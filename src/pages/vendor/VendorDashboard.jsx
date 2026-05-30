@@ -45,7 +45,7 @@ export default function VendorDashboard() {
         </div>
         <Link
           to="/vendor/apply"
-          className="text-sm bg-gradient-to-r from-blue-600 to-teal-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-blue-700 hover:to-teal-700 shadow-sm transition-all"
+          className="text-sm bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white px-4 py-2 rounded-xl font-semibold hover:from-[#135aa0] hover:to-[#0d3f73] shadow-sm transition-all"
         >
           + New application
         </Link>
@@ -60,7 +60,7 @@ export default function VendorDashboard() {
           </div>
           <h3 className="text-sm font-semibold text-gray-900 mb-1">No applications yet</h3>
           <p className="text-sm text-gray-500 mb-4">Apply to a senior living community to get started.</p>
-          <Link to="/vendor/apply" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700">
+          <Link to="/vendor/apply" className="text-sm bg-[#1a73c8] text-white px-4 py-2 rounded-xl font-semibold hover:bg-[#135aa0]">
             Start application
           </Link>
         </div>
@@ -147,7 +147,7 @@ export default function VendorDashboard() {
                         </div>
                         <button
                           onClick={() => navigate(`/vendor/apply?edit=${app.id}`)}
-                          className="text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 px-3 py-1.5 rounded-lg transition-all shadow-sm whitespace-nowrap"
+                          className="text-xs font-bold text-white bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] hover:from-[#135aa0] hover:to-[#0d3f73] px-3 py-1.5 rounded-lg transition-all shadow-sm whitespace-nowrap"
                         >
                           Edit &amp; Resubmit →
                         </button>

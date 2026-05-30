@@ -326,7 +326,7 @@ export default function ApplicationDetail() {
           <button
             type="submit"
             disabled={!note.trim()}
-            className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40 transition-colors"
+            className="bg-[#1a73c8] text-white px-3 py-2 rounded-lg text-sm hover:bg-[#135aa0] disabled:opacity-40 transition-colors"
           >
             Add
           </button>

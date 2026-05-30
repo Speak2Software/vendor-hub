@@ -68,7 +68,7 @@ function computeCompleteness(form) {
 
 const inp = 'w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-300'
 
-function SectionCard({ icon, title, subtitle, accent = 'from-blue-600 to-teal-600', children }) {
+function SectionCard({ icon, title, subtitle, accent = 'from-[#1a73c8] to-[#0d3f73]', children }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       <div className={`bg-gradient-to-r ${accent} px-5 py-4 flex items-center gap-3`}>
@@ -324,7 +324,7 @@ export default function CompanyProfile() {
               className={`px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm disabled:opacity-60 ${
                 saved
                   ? 'bg-emerald-500 text-white'
-                  : 'bg-gradient-to-r from-blue-600 to-teal-600 text-white hover:from-blue-700 hover:to-teal-700'
+                  : 'bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white hover:from-[#135aa0] hover:to-[#0d3f73]'
               }`}
             >
               {uploading ? 'Uploading logo…' : saved ? '✓ Saved!' : 'Save Profile'}
@@ -350,7 +350,7 @@ export default function CompanyProfile() {
 
         {/* Intro banner */}
         {!isComplete && (
-          <div className="bg-gradient-to-r from-blue-600 to-teal-600 rounded-2xl px-5 py-4 text-white">
+          <div className="bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] rounded-2xl px-5 py-4 text-white">
             <p className="font-bold text-sm">📋 Complete your profile once — apply in seconds</p>
             <p className="text-blue-100 text-xs mt-1 leading-relaxed">
               This information is submitted with every application. You'll never need to re-enter it. Required fields are marked with *.
@@ -853,7 +853,7 @@ export default function CompanyProfile() {
             className={`w-full py-4 rounded-2xl text-sm font-bold transition-all shadow-md disabled:opacity-60 ${
               saved
                 ? 'bg-emerald-500 text-white'
-                : 'bg-gradient-to-r from-blue-600 to-teal-600 text-white hover:from-blue-700 hover:to-teal-700'
+                : 'bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white hover:from-[#135aa0] hover:to-[#0d3f73]'
             }`}
           >
             {uploading ? '⏳ Uploading logo…' : saved ? '✓ Profile Saved!' : 'Save Company Profile'}

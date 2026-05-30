@@ -153,7 +153,7 @@ export default function CommunitiesAdmin() {
                     onClick={() => toggleCareLevel(level)}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                       form.careLevels.includes(level)
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[#1a73c8] text-white border-blue-600'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
                     }`}
                   >
@@ -217,7 +217,7 @@ export default function CommunitiesAdmin() {
             <button
               type="submit"
               className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                saved ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+                saved ? 'bg-green-600 text-white' : 'bg-[#1a73c8] text-white hover:bg-[#135aa0]'
               }`}
             >
               {saved ? 'Saved!' : editing === 'new' ? 'Add community' : 'Save changes'}
@@ -237,7 +237,7 @@ export default function CommunitiesAdmin() {
         </div>
         <button
           onClick={startNew}
-          className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="bg-[#1a73c8] text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-[#135aa0] transition-colors"
         >
           + Add community
         </button>

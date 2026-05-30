@@ -88,7 +88,7 @@ const RADIUS_OPTIONS = [5, 10, 15, 25, 50, 75, 100]
 const STATUS_META = {
   approved: { label: 'Approved',         dot: 'bg-green-500',  text: 'text-green-700',  badge: 'bg-green-100 text-green-700' },
   pending:  { label: 'Pending',          dot: 'bg-amber-400',  text: 'text-amber-700',  badge: 'bg-amber-100 text-amber-700' },
-  none:     { label: 'No application',   dot: 'bg-indigo-400', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
+  none:     { label: 'No application',   dot: 'bg-indigo-400', text: 'text-[#1a73c8]', badge: 'bg-[#deeef9] text-[#1a73c8]' },
 }
 
 const STATUS_FILTER_OPTIONS = [
@@ -280,7 +280,7 @@ export default function VendorMap() {
                   }}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
                     active
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-[#1a73c8] text-white border-blue-600 shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                   }`}
                 >
@@ -461,7 +461,7 @@ export default function VendorMap() {
                   onClick={() => setRadius(r)}
                   className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
                     radius === r
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-[#1a73c8] text-white border-blue-600'
                       : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300'
                   }`}
                 >
@@ -492,7 +492,7 @@ export default function VendorMap() {
           {/* ── Legend ─────────────────────────────────────────────────────── */}
           <div className="absolute bottom-4 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow border border-gray-200 px-3 py-2 text-xs space-y-1.5">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-600 border-2 border-white shadow-sm flex-shrink-0" style={{ borderRadius: 4 }} />
+              <div className="w-4 h-4 bg-[#1a73c8] border-2 border-white shadow-sm flex-shrink-0" style={{ borderRadius: 4 }} />
               <span className="text-gray-600">Your community</span>
             </div>
             <div className="flex items-center gap-2">
@@ -658,7 +658,7 @@ function VendorDetail({ vendor, communityId, review, onClose }) {
             {/* CTA */}
             <Link
               to={`/manager/application/${app.id}`}
-              className="block w-full text-center py-2.5 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              className="block w-full text-center py-2.5 rounded-xl text-sm font-medium bg-[#1a73c8] text-white hover:bg-[#135aa0] transition-colors"
             >
               {status === 'pending' ? 'Review application →' : 'View full application →'}
             </Link>

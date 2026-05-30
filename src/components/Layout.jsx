@@ -29,9 +29,9 @@ const roleLabels = {
 }
 
 const roleBadgeColors = {
-  vendor: 'bg-blue-100 text-blue-700',
-  community_manager: 'bg-green-100 text-green-700',
-  admin: 'bg-teal-100 text-teal-700',
+  vendor: 'bg-white/15 text-blue-100',
+  community_manager: 'bg-green-500/20 text-green-200',
+  admin: 'bg-white/15 text-blue-100',
 }
 
 export default function Layout({ children }) {
@@ -49,7 +49,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <header className="bg-[#0d3f73] sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -66,8 +66,8 @@ export default function Layout({ children }) {
                   className={`whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     location.pathname === link.to ||
                     (link.to !== '/' && link.to !== '/vendor' && link.to !== '/manager' && link.to !== '/admin' && location.pathname.startsWith(link.to))
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-white/20 text-white'
+                      : 'text-blue-100 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   {link.label}
@@ -84,17 +84,17 @@ export default function Layout({ children }) {
               </span>
               <button
                 onClick={handleLogout}
-                className="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-100 transition-colors whitespace-nowrap"
+                className="text-xs text-blue-200 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors whitespace-nowrap"
               >
                 Sign out
               </button>
             </div>
           ) : (
             <div className="flex gap-2 shrink-0">
-              <Link to="/login" className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-100">
+              <Link to="/login" className="text-sm text-blue-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-white/10">
                 Sign in
               </Link>
-              <Link to="/signup" className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700">
+              <Link to="/signup" className="text-sm bg-white text-[#0d3f73] font-semibold px-3 py-1.5 rounded-md hover:bg-blue-50 transition-colors">
                 Sign up
               </Link>
             </div>

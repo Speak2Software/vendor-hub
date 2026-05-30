@@ -274,7 +274,7 @@ export default function CommunityProfile() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1a73c8] text-white rounded-xl text-sm font-semibold hover:bg-[#135aa0] transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
@@ -647,7 +647,7 @@ export default function CommunityProfile() {
             <button
               type="submit"
               disabled={uploading}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3.5 rounded-2xl text-sm font-bold hover:from-blue-700 hover:to-teal-700 disabled:opacity-60 transition-all shadow-sm flex items-center justify-center gap-2"
+              className="flex-1 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white py-3.5 rounded-2xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] disabled:opacity-60 transition-all shadow-sm flex items-center justify-center gap-2"
             >
               {uploading ? (
                 <>

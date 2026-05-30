@@ -198,7 +198,7 @@ export default function Apply() {
           </p>
           <Link
             to="/vendor/profile"
-            className="block w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-teal-700 shadow-sm"
+            className="block w-full bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white py-3 rounded-xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] shadow-sm"
           >
             Set Up Company Profile →
           </Link>
@@ -234,7 +234,7 @@ export default function Apply() {
           </p>
           <button
             onClick={() => navigate('/vendor')}
-            className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-3 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-teal-700 shadow-md mb-3"
+            className="w-full bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white py-3 rounded-xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] shadow-md mb-3"
           >
             Back to Dashboard →
           </button>
@@ -265,7 +265,7 @@ export default function Apply() {
               <div className="flex flex-col items-center flex-1">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                   i < step   ? 'bg-teal-500 border-teal-500 text-white' :
-                  i === step  ? 'bg-blue-600 border-blue-600 text-white' :
+                  i === step  ? 'bg-[#1a73c8] border-blue-600 text-white' :
                                 'bg-white border-gray-200 text-gray-400'
                 }`}>
                   {i < step
@@ -289,7 +289,7 @@ export default function Apply() {
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
 
           {/* Gradient header */}
-          <div className="bg-gradient-to-r from-blue-600 to-teal-600 px-6 py-5">
+          <div className="bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] px-6 py-5">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">{STEPS[step].icon}</span>
               <div>
@@ -380,7 +380,7 @@ export default function Apply() {
                           >
                             <div className="flex items-start gap-3">
                               <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
-                                selected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
+                                selected ? 'bg-[#1a73c8] border-blue-600' : 'border-gray-300'
                               }`}>
                                 {selected && (
                                   <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -509,7 +509,7 @@ export default function Apply() {
               )}
               <button
                 onClick={goNext}
-                className="flex-1 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-600 to-teal-600 text-white hover:from-blue-700 hover:to-teal-700 transition-all shadow-md"
+                className="flex-1 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white hover:from-[#135aa0] hover:to-[#0d3f73] transition-all shadow-md"
               >
                 {step === STEPS.length - 1
                   ? editApp

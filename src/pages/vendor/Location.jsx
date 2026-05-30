@@ -120,7 +120,7 @@ export default function VendorLocation() {
         <div className="max-w-2xl mx-auto px-4 py-4">
           {/* Welcome message for new vendors */}
           {isNewVendor && (
-            <div className="mb-4 bg-gradient-to-r from-blue-600 to-teal-600 rounded-xl px-4 py-3 text-white">
+            <div className="mb-4 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] rounded-xl px-4 py-3 text-white">
               <p className="text-sm font-bold">👋 Welcome to VendorHub, {user.name?.split(' ')[0]}!</p>
               <p className="text-xs text-blue-100 mt-0.5">Complete these 3 steps to start connecting with senior living communities in your area.</p>
             </div>
@@ -133,7 +133,7 @@ export default function VendorLocation() {
                 <div className="flex flex-col items-center flex-1">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
                     step.active
-                      ? 'bg-blue-600 border-blue-600 text-white'
+                      ? 'bg-[#1a73c8] border-blue-600 text-white'
                       : 'bg-white border-gray-300 text-gray-400'
                   }`}>
                     {step.num}
@@ -213,7 +213,7 @@ export default function VendorLocation() {
             {/* Map legend */}
             <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow border border-gray-200 px-2.5 py-2 text-xs space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-sm flex-shrink-0" />
+                <div className="w-3 h-3 rounded-full bg-[#1a73c8] border-2 border-white shadow-sm flex-shrink-0" />
                 <span className="text-gray-600">Your location</span>
               </div>
               <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function VendorLocation() {
                     onClick={() => setRadius(r)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                       radius === r
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[#1a73c8] text-white border-blue-600'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
                     }`}
                   >
@@ -276,7 +276,7 @@ export default function VendorLocation() {
               className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${
                 saved
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                  : 'bg-[#1a73c8] text-white hover:bg-[#135aa0] shadow-sm'
               }`}
             >
               {saved ? '✓ Location Saved!' : 'Save Location & Radius'}
@@ -285,7 +285,7 @@ export default function VendorLocation() {
         </div>
 
         {/* ── Step 2 CTA card ─────────────────────────────────────────────── */}
-        <div className="bg-gradient-to-br from-blue-600 to-teal-600 rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a73c8] to-[#0d3f73] rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
               2

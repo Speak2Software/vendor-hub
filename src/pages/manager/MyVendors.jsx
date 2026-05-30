@@ -340,7 +340,7 @@ function InlineActions({ app, onRefresh }) {
           placeholder="Add a note…"
           className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <button type="submit" disabled={!note.trim()}
-          className="text-xs px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors">
+          className="text-xs px-3 py-2 bg-[#1a73c8] text-white rounded-lg hover:bg-[#135aa0] disabled:opacity-40 transition-colors">
           Add
         </button>
       </form>
