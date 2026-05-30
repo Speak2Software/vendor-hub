@@ -53,7 +53,7 @@ export default function Layout({ children }) {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src="/logo.svg" alt="VendorHub" className="h-8 w-auto" />
+            <img src="/logo.png" alt="Speak2Vendors" className="h-8 w-auto" />
           </Link>
 
           {/* Nav — always visible */}
