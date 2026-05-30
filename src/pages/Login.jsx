@@ -153,7 +153,7 @@ export default function Login() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-400/10 rounded-full blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-4 py-16 sm:py-24 flex flex-col items-center text-center">
-          <img src="/logo.svg" alt="VendorHub" className="h-16 sm:h-20 w-auto mb-8 drop-shadow-xl" />
+          <img src="/logo.png" alt="Speak2Vendors" className="h-16 sm:h-20 w-auto mb-8" />
 
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold px-4 py-1.5 rounded-full mb-6 tracking-wide uppercase">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
