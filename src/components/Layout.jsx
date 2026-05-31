@@ -91,7 +91,7 @@ export default function Layout({ children }) {
             </div>
           ) : (
             <div className="flex gap-2 shrink-0">
-              <Link to="/login" className="text-sm text-blue-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-white/10">
+              <Link to="/signin" className="text-sm text-blue-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-white/10">
                 Sign in
               </Link>
               <Link to="/signup" className="text-sm bg-white text-[#0d3f73] font-semibold px-3 py-1.5 rounded-md hover:bg-blue-50 transition-colors">

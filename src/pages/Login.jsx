@@ -1,6 +1,4 @@
-import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { Link } from 'react-router-dom'
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -109,39 +107,6 @@ const CATEGORIES = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Login() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const from = location.state?.from?.pathname
-
-  function roleHome(role) {
-    if (role === 'admin') return '/admin'
-    if (role === 'community_manager') return '/manager'
-    return '/vendor'
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const user = await login(form.email, form.password)
-      navigate(from || roleHome(user.role), { replace: true })
-    } catch {
-      setError('Invalid email or password.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  function fillDemo(email, password) {
-    setForm({ email, password })
-  }
-
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-white">
 
@@ -183,12 +148,12 @@ export default function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
             </Link>
-            <a
-              href="#sign-in"
+            <Link
+              to="/signin"
               className="inline-flex items-center justify-center px-8 py-4 rounded-2xl text-base font-semibold text-white border-2 border-white/30 hover:bg-white/10 transition-all"
             >
               Sign In
-            </a>
+            </Link>
           </div>
 
           <p className="mt-5 text-[#b3d4ed] text-sm">Free to join · No credit card required · Get approved in days</p>
@@ -297,90 +262,11 @@ export default function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
             </Link>
-            <p className="mt-3 text-[#7693aa] text-sm">Already a member? <a href="#sign-in" className="text-[#b3d4ed] hover:text-white underline">Sign in below ↓</a></p>
+            <p className="mt-3 text-[#7693aa] text-sm">Already a member? <a href="/signin" className="text-[#b3d4ed] hover:text-white underline">Sign in below ↓</a></p>
           </div>
         </div>
       </section>
 
-      {/* ── Sign-in form ─────────────────────────────────────────────────── */}
-      <section id="sign-in" className="bg-gray-50 py-16">
-        <div className="max-w-sm mx-auto px-4">
-          <div className="text-center mb-6">
-            <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
-              Member access
-            </span>
-            <h2 className="text-2xl font-extrabold text-gray-900">Welcome back</h2>
-            <p className="text-sm text-gray-500 mt-1">Sign in to your VendorHub account</p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-gray-50"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-gray-50"
-                  placeholder="••••••••"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#1a73c8] text-white py-3 rounded-xl text-sm font-bold hover:bg-[#135aa0] transition-all shadow-md disabled:opacity-60"
-              >
-                {loading ? 'Signing in…' : 'Sign In'}
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-gray-500 mt-5">
-              New vendor?{' '}
-              <Link to="/signup" className="text-[#1a73c8] hover:underline font-semibold">
-                Create a free account →
-              </Link>
-            </p>
-          </div>
-
-          {/* Demo credentials */}
-          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="text-xs font-bold text-amber-800 mb-2">Demo credentials</p>
-            <div className="space-y-1.5">
-              {[
-                { label: 'Admin', email: 'admin@vendorhub.com', pw: 'admin123' },
-                { label: 'Manager', email: 'sandra@sunrisegarden.com', pw: 'manager123' },
-                { label: 'Vendor', email: 'vendor@demo.com', pw: 'vendor123' },
-              ].map(({ label, email, pw }) => (
-                <button
-                  key={label}
-                  onClick={() => fillDemo(email, pw)}
-                  className="w-full text-left text-xs text-amber-700 hover:text-amber-900 hover:bg-amber-100 rounded px-2 py-1 transition-colors"
-                >
-                  <span className="font-semibold">{label}:</span> {email} / {pw}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

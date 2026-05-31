@@ -6,6 +6,7 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 
 import Login from './pages/Login'
+import SignIn from './pages/SignIn'
 import Signup from './pages/Signup'
 import VendorPortalDashboard from './pages/vendor/Dashboard'
 import VendorLocation from './pages/vendor/Location'
@@ -29,7 +30,7 @@ function RoleRedirect() {
 
   useEffect(() => {
     if (loading) return
-    if (!user) { setDest('/login'); setReady(true); return }
+    if (!user) { setDest('/signin'); setReady(true); return }
     if (user.role === 'admin') { setDest('/admin'); setReady(true); return }
     if (user.role === 'community_manager') { setDest('/manager'); setReady(true); return }
     // Vendors: check if a location profile exists
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<RoleRedirect />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<Signup />} />
 
         {/* Vendor */}

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { getCommunities, saveCommunity, deleteCommunity, getUsers } from '../../utils/storage'
-import { v4 as uuidv4 } from 'uuid'
+import { uploadImage } from '../../utils/uploadImage'
 
 const communityIcon = L.divIcon({
   className: '',
@@ -53,7 +53,7 @@ function MapPicker({ position, onChange }) {
 }
 
 const blank = {
-  id: '', name: '', address: '', description: '', careLevels: [],
+  name: '', address: '', description: '', careLevels: [],
   size: '', logoUrl: '', location: null, managerId: '',
 }
 
@@ -64,6 +64,11 @@ export default function CommunitiesAdmin() {
   const [form, setForm] = useState(blank)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [logoFile, setLogoFile] = useState(null)
+  const [logoPreview, setLogoPreview] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const logoInputRef = useRef()
 
   async function reload() {
     const [comms, usrs] = await Promise.all([getCommunities(), getUsers()])
@@ -74,13 +79,33 @@ export default function CommunitiesAdmin() {
   useEffect(() => { reload() }, [])
 
   function startNew() {
-    setForm({ ...blank, id: uuidv4() })
+    setForm({ ...blank })
+    setLogoFile(null)
+    setLogoPreview('')
+    setSaveError('')
     setEditing('new')
   }
 
   function startEdit(c) {
     setForm({ ...c })
+    setLogoFile(null)
+    setLogoPreview(c.logoUrl || '')
+    setSaveError('')
     setEditing(c.id)
+  }
+
+  function handleLogoSelect(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
+  function removeLogo() {
+    setLogoFile(null)
+    setLogoPreview('')
+    setForm((f) => ({ ...f, logoUrl: '' }))
+    if (logoInputRef.current) logoInputRef.current.value = ''
   }
 
   function update(field) {
@@ -98,9 +123,22 @@ export default function CommunitiesAdmin() {
 
   async function handleSave(e) {
     e.preventDefault()
-    await saveCommunity(form)
-    setSaved(true)
-    setTimeout(async () => { setSaved(false); setEditing(null); await reload() }, 1000)
+    setSaveError('')
+    try {
+      setUploading(true)
+      let finalLogoUrl = form.logoUrl
+      if (logoFile) {
+        const result = await uploadImage(logoFile)
+        finalLogoUrl = result.url
+      }
+      await saveCommunity({ ...form, logoUrl: finalLogoUrl })
+      setSaved(true)
+      setTimeout(async () => { setSaved(false); setEditing(null); await reload() }, 1000)
+    } catch (err) {
+      setSaveError(err.message || 'Failed to save community.')
+    } finally {
+      setUploading(false)
+    }
   }
 
   async function handleDelete(id) {
@@ -127,6 +165,9 @@ export default function CommunitiesAdmin() {
             {editing === 'new' ? 'Add community' : 'Edit community'}
           </h1>
 
+          {saveError && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{saveError}</div>
+          )}
           <form onSubmit={handleSave} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Community name <span className="text-red-500">*</span></label>
@@ -171,9 +212,33 @@ export default function CommunitiesAdmin() {
               </select>
             </div>
 
+            {/* Logo upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-              <input type="url" value={form.logoUrl} onChange={update('logoUrl')} className={inputClass} placeholder="https://example.com/logo.png" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Community logo</label>
+              <div className="flex items-center gap-4">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Logo preview" className="w-16 h-16 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75L7.409 10.59a2.25 2.25 0 0 1 3.182 0l1.641 1.642a2.25 2.25 0 0 0 3.182 0l2.909-2.909A2.25 2.25 0 0 1 21.75 9v6.75A2.25 2.25 0 0 1 19.5 18H4.5a2.25 2.25 0 0 1-2.25-2.25V15.75Z" />
+                    </svg>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoSelect} className="hidden" />
+                  <button type="button" onClick={() => logoInputRef.current?.click()}
+                    className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                    {logoPreview ? 'Change logo' : 'Upload logo'}
+                  </button>
+                  {logoPreview && (
+                    <button type="button" onClick={removeLogo}
+                      className="text-xs text-red-500 hover:text-red-700 text-left px-1">
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div>
@@ -216,11 +281,12 @@ export default function CommunitiesAdmin() {
 
             <button
               type="submit"
-              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              disabled={uploading}
+              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 ${
                 saved ? 'bg-green-600 text-white' : 'bg-[#1a73c8] text-white hover:bg-[#135aa0]'
               }`}
             >
-              {saved ? 'Saved!' : editing === 'new' ? 'Add community' : 'Save changes'}
+              {uploading ? 'Uploading…' : saved ? 'Saved!' : editing === 'new' ? 'Add community' : 'Save changes'}
             </button>
           </form>
         </div>
