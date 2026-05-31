@@ -128,8 +128,7 @@ export default function CommunitiesAdmin() {
       setUploading(true)
       let finalLogoUrl = form.logoUrl
       if (logoFile) {
-        const result = await uploadImage(logoFile)
-        finalLogoUrl = result.url
+        finalLogoUrl = await uploadImage(logoFile)
       }
       await saveCommunity({ ...form, logoUrl: finalLogoUrl })
       setSaved(true)
