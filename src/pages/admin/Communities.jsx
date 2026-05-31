@@ -53,7 +53,7 @@ function MapPicker({ position, onChange }) {
 }
 
 const blank = {
-  name: '', address: '', description: '', careLevels: [],
+  name: '', address: '', contactPhone: '', description: '', careLevels: [],
   size: '', logoUrl: '', location: null, managerId: '',
 }
 
@@ -87,7 +87,7 @@ export default function CommunitiesAdmin() {
   }
 
   function startEdit(c) {
-    setForm({ ...c })
+    setForm({ ...blank, ...c })
     setLogoFile(null)
     setLogoPreview(c.logoUrl || '')
     setSaveError('')
@@ -177,6 +177,11 @@ export default function CommunitiesAdmin() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address <span className="text-red-500">*</span></label>
               <input required type="text" value={form.address} onChange={update('address')} className={inputClass} placeholder="123 Garden Way, Phoenix, AZ 85001" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
+              <input type="tel" value={form.contactPhone} onChange={update('contactPhone')} className={inputClass} placeholder="(555) 000-0000" />
             </div>
 
             <div>
@@ -332,6 +337,7 @@ export default function CommunitiesAdmin() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-gray-900">{c.name}</h3>
                     <p className="text-xs text-gray-500 mt-0.5">{c.address}</p>
+                    {c.contactPhone && <p className="text-xs text-gray-400 mt-0.5">📞 {c.contactPhone}</p>}
                     {c.size && <p className="text-xs text-gray-400 mt-0.5">{c.size}</p>}
                     <div className="flex flex-wrap gap-1 mt-2">
                       {c.careLevels?.map((cl) => (
