@@ -13,7 +13,7 @@ async function geocodeAddress(address) {
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
     const res  = await fetch(url, {
-      headers: { 'User-Agent': 'Speak2Vendors/1.0 (speak2vendors.com)' },
+      headers: { 'User-Agent': 'VendorHub/1.0 (speak2vendors.com)' },
     })
     const data = await res.json()
     if (!data?.[0]) return null

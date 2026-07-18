@@ -129,12 +129,12 @@ app.get('/api/mail-test', async (req, res) => {
   try {
     const { Resend } = require('resend')
     const r = new Resend(process.env.RESEND_API_KEY)
-    const FROM = process.env.MAIL_FROM || 'Speak2Vendors <noreply@speak2vendors.com>'
+    const FROM = process.env.MAIL_FROM || 'Vendor Hub <noreply@speak2vendors.com>'
     if (!process.env.RESEND_API_KEY) return res.status(500).json({ error: 'RESEND_API_KEY not set' })
     const result = await r.emails.send({
       from:    FROM,
       to,
-      subject: 'Speak2Vendors mail test',
+      subject: 'Vendor Hub mail test',
       html:    '<p>If you see this, Resend is working! 🎉</p>',
     })
     res.json({ ok: true, result })

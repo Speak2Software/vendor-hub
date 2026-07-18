@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Speak2Vendors** (VendorHub) is a senior living vendor management portal with three user roles: `vendor`, `community_manager`, and `admin`. Vendors apply to serve senior living communities; managers approve/deny applications; admins manage the full platform.
+**Vendor Hub** (formerly Speak2Vendors) is a senior living vendor management portal with three user roles: `vendor`, `community_manager`, and `admin`. Vendors apply to serve senior living communities; managers approve/deny applications; admins manage the full platform.
 
 - **Frontend**: React 18 + Vite 5 + Tailwind CSS v3 + React Router v6
 - **Backend**: Node.js/Express API in `api/` with Mongoose + MongoDB Atlas
