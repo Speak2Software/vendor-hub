@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { getCommunity, saveCommunity } from '../../utils/storage'
 import { uploadImage } from '../../utils/uploadImage'
+import { formatPhone } from '../../utils/formatPhone'
 
 const CARE_LEVEL_OPTIONS = [
   'Independent Living',
@@ -482,7 +483,7 @@ export default function CommunityProfile() {
               label="Phone Number"
               type="tel"
               value={form.contactPhone}
-              onChange={(v) => set('contactPhone', v)}
+              onChange={(v) => set('contactPhone', formatPhone(v))}
               placeholder="(555) 000-0000"
               showChecked={form.showPhone}
               onShowToggle={() => setForm((p) => ({ ...p, showPhone: !p.showPhone }))}

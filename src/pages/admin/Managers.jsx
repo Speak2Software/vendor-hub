@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getUsers, getCommunities, createUser, updateUser } from '../../utils/storage'
 
 const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -15,6 +15,8 @@ export default function ManagersAdmin() {
   const [form, setForm] = useState({ name: '', email: '', password: '', communityId: '' })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [search, setSearch] = useState('')
+  const initialForm = useRef('')
 
   async function reload() {
     const [usrs, comms] = await Promise.all([getUsers(), getCommunities()])
@@ -29,7 +31,9 @@ export default function ManagersAdmin() {
   }
 
   function startNew() {
-    setForm({ name: '', email: '', password: '', communityId: '' })
+    const f = { name: '', email: '', password: '', communityId: '' }
+    setForm(f)
+    initialForm.current = JSON.stringify(f)
     setEditingManager(null)
     setShowForm(true)
     setError('')
@@ -37,11 +41,18 @@ export default function ManagersAdmin() {
   }
 
   function startEdit(mgr) {
-    setForm({ name: mgr.name, email: mgr.email, password: '', communityId: mgr.communityId || '' })
+    const f = { name: mgr.name, email: mgr.email, password: '', communityId: mgr.communityId || '' }
+    setForm(f)
+    initialForm.current = JSON.stringify(f)
     setEditingManager(mgr)
     setShowForm(true)
     setError('')
     setSuccess('')
+  }
+
+  function handleClose() {
+    if (JSON.stringify(form) !== initialForm.current && !window.confirm('You have unsaved changes. Discard them?')) return
+    setShowForm(false)
   }
 
   async function handleSave(e) {
@@ -70,6 +81,13 @@ export default function ManagersAdmin() {
 
   const communityMap = Object.fromEntries(communities.map((c) => [c.id, c]))
 
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? managers.filter((m) =>
+        [m.name, m.email, communityMap[m.communityId]?.name]
+          .some((v) => v?.toLowerCase().includes(q)))
+    : managers
+
   return (
     <div className="max-w-4xl mx-auto p-4 py-6">
       <div className="flex items-center justify-between mb-6">
@@ -89,7 +107,7 @@ export default function ManagersAdmin() {
             <h2 className="text-base font-semibold text-gray-900">
               {editingManager ? 'Edit manager' : 'New community manager'}
             </h2>
-            <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-700">
+            <button onClick={handleClose} className="text-gray-400 hover:text-gray-700">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -145,7 +163,7 @@ export default function ManagersAdmin() {
             </div>
 
             <div className="flex gap-2 pt-1">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-50">
+              <button type="button" onClick={handleClose} className="flex-1 py-2.5 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-50">
                 Cancel
               </button>
               <button type="submit" className="flex-1 py-2.5 rounded-lg text-sm bg-[#1a73c8] text-white hover:bg-[#135aa0] font-medium">
@@ -156,13 +174,32 @@ export default function ManagersAdmin() {
         </div>
       )}
 
+      {managers.length > 0 && (
+        <div className="relative mb-4">
+          <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, email, or community…"
+            className="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-white"
+          />
+        </div>
+      )}
+
       {managers.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
           <p className="text-gray-400 text-sm">No managers yet.</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
+          <p className="text-gray-400 text-sm">No managers match "{search}".</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {managers.map((mgr) => {
+          {filtered.map((mgr) => {
             const community = communityMap[mgr.communityId]
             return (
               <div key={mgr.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
