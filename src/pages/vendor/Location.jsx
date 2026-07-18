@@ -151,7 +151,7 @@ export default function VendorLocation() {
           {/* Welcome message for new vendors */}
           {isNewVendor && (
             <div className="mb-4 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] rounded-xl px-4 py-3 text-white">
-              <p className="text-sm font-bold">👋 Welcome to Speak2Vendors, {user.name?.split(' ')[0]}!</p>
+              <p className="text-sm font-bold">👋 Welcome to Vendor Hub, {user.name?.split(' ')[0]}!</p>
               <p className="text-xs text-blue-100 mt-0.5">Complete these 3 steps to start connecting with senior living communities in your area.</p>
             </div>
           )}

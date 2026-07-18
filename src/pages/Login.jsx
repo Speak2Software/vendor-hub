@@ -118,7 +118,7 @@ export default function Login() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#4a96d4]/10 rounded-full blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-4 py-16 sm:py-24 flex flex-col items-center text-center">
-          <img src="/logo.png" alt="Speak2Vendors" className="h-16 sm:h-20 w-auto mb-8" />
+          <img src="/logo.png" alt="Vendor Hub" className="h-16 sm:h-20 w-auto mb-8" />
 
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold px-4 py-1.5 rounded-full mb-6 tracking-wide uppercase">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -133,7 +133,7 @@ export default function Login() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-[#b3d4ed] max-w-2xl leading-relaxed">
-            Speak2Vendors is the premier marketplace connecting trusted service providers
+            Vendor Hub is the premier marketplace connecting trusted service providers
             with senior living communities nationwide. Join thousands of vendors already
             growing their business with us.
           </p>
@@ -165,7 +165,7 @@ export default function Login() {
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-12">
             <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
-              Why Speak2Vendors
+              Why Vendor Hub
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Everything you need to succeed</h2>
             <p className="mt-3 text-gray-500 max-w-xl mx-auto">

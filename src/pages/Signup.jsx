@@ -74,7 +74,7 @@ export default function Signup() {
           </h1>
           <p className="mt-4 text-[#b3d4ed] text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
             The 65+ population controls over <strong className="text-white">70% of U.S. disposable income</strong>.
-            Senior living communities need trusted vendors — and Speak2Vendors puts you in front of them.
+            Senior living communities need trusted vendors — and Vendor Hub puts you in front of them.
           </p>
         </div>
       </section>
@@ -113,7 +113,7 @@ export default function Signup() {
           {/* Testimonial-style pull quote */}
           <div className="mt-10 bg-[#f0f7fd] border border-[#deeef9] rounded-2xl p-5">
             <p className="text-sm text-gray-700 leading-relaxed italic">
-              "We landed three long-term contracts within 60 days of joining Speak2Vendors.
+              "We landed three long-term contracts within 60 days of joining Vendor Hub.
               The senior care market is consistent, well-funded, and our best source of recurring revenue."
             </p>
             <div className="flex items-center gap-2 mt-3">
@@ -246,7 +246,7 @@ export default function Signup() {
             to="/signup"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-2xl text-base font-bold hover:from-yellow-300 hover:to-orange-300 transition-all shadow-lg hover:-translate-y-0.5 transform"
           >
-            Join Speak2Vendors Free
+            Join Vendor Hub Free
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
             </svg>

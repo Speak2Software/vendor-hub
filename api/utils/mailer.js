@@ -13,7 +13,7 @@ const { Resend } = require('resend')
 // Constructed lazily — new Resend() throws without a key, and the API must
 // still boot in environments (e.g. local dev) where mail isn't configured.
 let resend = null
-const FROM    = process.env.MAIL_FROM || 'Speak2Vendors <noreply@speak2vendors.com>'
+const FROM    = process.env.MAIL_FROM || 'Vendor Hub <noreply@speak2vendors.com>'
 const APP_URL = process.env.APP_URL   || 'https://www.speak2vendors.com'
 
 // ── Internal helper ───────────────────────────────────────────────────────────
@@ -49,17 +49,17 @@ async function notifyDirectMessage({ toEmail, toName, senderName, messageBody, d
   const link = deepLinkUrl || APP_URL
   await send({
     to:      toEmail,
-    subject: `New message from ${senderName} — Speak2Vendors`,
+    subject: `New message from ${senderName} — Vendor Hub`,
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#2563eb,#0d9488);padding:28px 24px">
-          <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Speak2Vendors</p>
+          <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Vendor Hub</p>
           <p style="margin:8px 0 0;font-size:22px;font-weight:800;color:#fff">You have a new message</p>
         </div>
         <div style="padding:24px">
           <p style="margin:0 0 16px;font-size:15px;color:#111827">Hi ${toName},</p>
           <p style="margin:0 0 16px;font-size:14px;color:#4b5563;line-height:1.6">
-            <strong style="color:#111827">${senderName}</strong> sent you a message on Speak2Vendors:
+            <strong style="color:#111827">${senderName}</strong> sent you a message on Vendor Hub:
           </p>
           <div style="background:#f3f4f6;border-left:3px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 16px;margin:0 0 24px;font-size:14px;color:#374151;line-height:1.6">
             ${preview}
@@ -69,7 +69,7 @@ async function notifyDirectMessage({ toEmail, toName, senderName, messageBody, d
           </a>
         </div>
         <div style="background:#f9fafb;padding:14px 24px;border-top:1px solid #f3f4f6;text-align:center">
-          <p style="margin:0;font-size:11px;color:#9ca3af">You received this because you have an account on Speak2Vendors.</p>
+          <p style="margin:0;font-size:11px;color:#9ca3af">You received this because you have an account on Vendor Hub.</p>
         </div>
       </div>
     `,
@@ -90,11 +90,11 @@ async function notifyBroadcast({ toEmail, toName, communityName, subject, body }
   const preview = body.length > 300 ? body.slice(0, 300) + '…' : body
   await send({
     to:      toEmail,
-    subject: subject || `Message from ${communityName} — Speak2Vendors`,
+    subject: subject || `Message from ${communityName} — Vendor Hub`,
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#2563eb,#0d9488);padding:28px 24px">
-          <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Speak2Vendors</p>
+          <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Vendor Hub</p>
           <p style="margin:8px 0 0;font-size:22px;font-weight:800;color:#fff">Message from ${communityName}</p>
         </div>
         <div style="padding:24px">
@@ -104,11 +104,11 @@ async function notifyBroadcast({ toEmail, toName, communityName, subject, body }
             ${preview}
           </div>
           <a href="${APP_URL}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#0d9488);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700">
-            Open Speak2Vendors →
+            Open Vendor Hub →
           </a>
         </div>
         <div style="background:#f9fafb;padding:14px 24px;border-top:1px solid #f3f4f6;text-align:center">
-          <p style="margin:0;font-size:11px;color:#9ca3af">You received this because you are a vendor partner of ${communityName} on Speak2Vendors.</p>
+          <p style="margin:0;font-size:11px;color:#9ca3af">You received this because you are a vendor partner of ${communityName} on Vendor Hub.</p>
         </div>
       </div>
     `,
@@ -129,11 +129,11 @@ async function notifyVendorEmail({ toEmail, toName, vendorName, subject, body })
   const preview = body.length > 400 ? body.slice(0, 400) + '…' : body
   await send({
     to:      toEmail,
-    subject: subject || `Message from ${vendorName} — Speak2Vendors`,
+    subject: subject || `Message from ${vendorName} — Vendor Hub`,
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#2563eb,#0d9488);padding:28px 24px">
-          <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Speak2Vendors</p>
+          <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Vendor Hub</p>
           <p style="margin:8px 0 0;font-size:22px;font-weight:800;color:#fff">Message from ${vendorName}</p>
         </div>
         <div style="padding:24px">
@@ -143,11 +143,11 @@ async function notifyVendorEmail({ toEmail, toName, vendorName, subject, body })
             ${preview}
           </div>
           <a href="${APP_URL}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#0d9488);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700">
-            View on Speak2Vendors →
+            View on Vendor Hub →
           </a>
         </div>
         <div style="background:#f9fafb;padding:14px 24px;border-top:1px solid #f3f4f6;text-align:center">
-          <p style="margin:0;font-size:11px;color:#9ca3af">Sent via Speak2Vendors by ${vendorName}. You received this because you manage a community on Speak2Vendors.</p>
+          <p style="margin:0;font-size:11px;color:#9ca3af">Sent via Vendor Hub by ${vendorName}. You received this because you manage a community on Vendor Hub.</p>
         </div>
       </div>
     `,

@@ -53,7 +53,7 @@ export default function Layout({ children }) {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src="/logo.png" alt="Speak2Vendors" className="h-8 w-auto" />
+            <img src="/logo.png" alt="Vendor Hub" className="h-8 w-auto" />
           </Link>
 
           {/* Nav — always visible */}
@@ -109,7 +109,7 @@ export default function Layout({ children }) {
 
       {/* Footer */}
       <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-100">
-        © {new Date().getFullYear()} Speak2Vendors — Senior Living Partner Portal
+        © {new Date().getFullYear()} Vendor Hub — Senior Living Partner Portal
       </footer>
     </div>
   )

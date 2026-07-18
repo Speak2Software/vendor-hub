@@ -46,7 +46,7 @@ We're excited to share something special with you!
 
 🌟 EXCLUSIVE OFFER: [Describe your offer — e.g., "Complimentary first service visit" or "15% off for the next 30 days"]
 
-This offer is available exclusively for communities in our Speak2Vendors network and is valid through [Date].
+This offer is available exclusively for communities in our Vendor Hub network and is valid through [Date].
 
 At [Business], we take pride in delivering exceptional [Service Category] to the seniors in your care. This is a great opportunity to experience our services with zero risk.
 
@@ -742,7 +742,7 @@ function OnboardingChecklist({ steps }) {
     <section className="bg-white rounded-2xl border-2 border-[#b3d4ed] shadow-sm overflow-hidden">
       <div className="bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] px-6 py-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-white font-bold text-sm">🚀 Get Started with Speak2Vendors</h2>
+          <h2 className="text-white font-bold text-sm">🚀 Get Started with Vendor Hub</h2>
           <p className="text-blue-100 text-xs mt-0.5">Complete these steps to start landing community contracts</p>
         </div>
         <span className="text-xs font-bold text-white bg-white/20 px-2.5 py-1 rounded-full flex-shrink-0">

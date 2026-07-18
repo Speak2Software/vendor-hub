@@ -837,7 +837,7 @@ export default function CompanyProfile() {
                   Terms &amp; Conditions <span className="text-red-400">*</span>
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                  I certify that all information provided is accurate and complete. I agree to Speak2Vendors' vendor terms and conditions.
+                  I certify that all information provided is accurate and complete. I agree to Vendor Hub's vendor terms and conditions.
                 </p>
                 {errors.termsAgreed && (
                   <p className="text-xs text-red-500 mt-1">{errors.termsAgreed}</p>

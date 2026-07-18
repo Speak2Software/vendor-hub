@@ -544,13 +544,13 @@ export default function CommunityProfile() {
 
                 {/* Footer */}
                 <div className="bg-gray-50 border-t border-gray-100 px-5 py-2">
-                  <p className="text-gray-400 text-[10px]">Powered by Speak2Vendors</p>
+                  <p className="text-gray-400 text-[10px]">Powered by Vendor Hub</p>
                 </div>
               </div>
             </div>
 
             <p className="text-xs text-gray-500 text-center leading-relaxed">
-              This flyer opens in a new window ready to print. Display it in your lobby or common areas so vendors can easily find and apply on Speak2Vendors.
+              This flyer opens in a new window ready to print. Display it in your lobby or common areas so vendors can easily find and apply on Vendor Hub.
             </p>
 
             <button
@@ -620,7 +620,7 @@ export default function CommunityProfile() {
       </div>
     </div>
     <div class="footer">
-      <p>Powered by Speak2Vendors · speak2vendors.com</p>
+      <p>Powered by Vendor Hub · speak2vendors.com</p>
     </div>
   </div>
   <script>setTimeout(function(){ window.print(); }, 500);</script>
