@@ -6,6 +6,12 @@
       "runtimeExecutable": "/usr/local/bin/node",
       "runtimeArgs": ["node_modules/.bin/vite", "--port", "5174"],
       "port": 5174
+    },
+    {
+      "name": "vendor-hub-api",
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["--env-file=api/.env", "api/index.js"],
+      "port": 4000
     }
   ]
 }

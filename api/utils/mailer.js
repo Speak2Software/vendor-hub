@@ -10,7 +10,9 @@
 
 const { Resend } = require('resend')
 
-const resend  = new Resend(process.env.RESEND_API_KEY)
+// Constructed lazily — new Resend() throws without a key, and the API must
+// still boot in environments (e.g. local dev) where mail isn't configured.
+let resend = null
 const FROM    = process.env.MAIL_FROM || 'Speak2Vendors <noreply@speak2vendors.com>'
 const APP_URL = process.env.APP_URL   || 'https://www.speak2vendors.com'
 
@@ -20,6 +22,7 @@ async function send({ to, subject, html }) {
     console.error('[mailer] RESEND_API_KEY is not set — skipping email to', to)
     return
   }
+  if (!resend) resend = new Resend(process.env.RESEND_API_KEY)
   try {
     console.error('[mailer] Sending email to', to, '| subject:', subject)
     const result = await resend.emails.send({ from: FROM, to, subject, html })

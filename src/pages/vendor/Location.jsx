@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Circle, Popup, useMap, useMapEvents } 
 import L from 'leaflet'
 import { useAuth } from '../../context/AuthContext'
 import { getVendorProfile, saveVendorProfile, getCommunities, haversineDistance } from '../../utils/storage'
+import { geocodeAddress } from '../../utils/geocode'
 
 const vendorIcon = L.divIcon({
   className: '',
@@ -67,6 +68,28 @@ export default function VendorLocation() {
   const [nearbyCommunities, setNearbyCommunities] = useState([])
 
   const [isNewVendor, setIsNewVendor] = useState(false)
+
+  const [addrQuery, setAddrQuery] = useState('')
+  const [addrStatus, setAddrStatus] = useState('idle') // idle | loading | found | notfound
+
+  async function handleAddressSearch(e) {
+    e?.preventDefault()
+    const addr = addrQuery.trim()
+    if (!addr) return
+    setAddrStatus('loading')
+    try {
+      const loc = await geocodeAddress(addr)
+      if (loc) {
+        setLat(loc.lat)
+        setLng(loc.lng)
+        setAddrStatus('found')
+      } else {
+        setAddrStatus('notfound')
+      }
+    } catch {
+      setAddrStatus('notfound')
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -177,6 +200,32 @@ export default function VendorLocation() {
                 Use my location
               </button>
             </div>
+          </div>
+
+          {/* Address search */}
+          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+            <form onSubmit={handleAddressSearch} className="flex gap-2">
+              <input
+                type="text"
+                value={addrQuery}
+                onChange={(e) => { setAddrQuery(e.target.value); setAddrStatus('idle') }}
+                placeholder="Type your business address — e.g. 305 W Van Buren St, Phoenix, AZ"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-white placeholder-gray-400"
+              />
+              <button
+                type="submit"
+                disabled={addrStatus === 'loading' || !addrQuery.trim()}
+                className="px-4 py-2 bg-[#1a73c8] text-white rounded-lg text-sm font-semibold hover:bg-[#135aa0] disabled:opacity-50 transition-colors flex-shrink-0"
+              >
+                {addrStatus === 'loading' ? 'Finding…' : 'Find'}
+              </button>
+            </form>
+            {addrStatus === 'found' && (
+              <p className="text-xs text-green-600 mt-1.5">📍 Address found — the pin has been placed. Drag it to fine-tune if needed.</p>
+            )}
+            {addrStatus === 'notfound' && (
+              <p className="text-xs text-amber-600 mt-1.5">Couldn't find that address. Try adding city and state, or click the map to place the pin manually.</p>
+            )}
           </div>
 
           {/* Map — fixed height, not full-screen */}

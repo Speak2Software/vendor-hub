@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { getCommunities, saveCommunity, deleteCommunity, getUsers } from '../../utils/storage'
 import { uploadImage } from '../../utils/uploadImage'
+import { geocodeAddress } from '../../utils/geocode'
 
 const communityIcon = L.divIcon({
   className: '',
@@ -37,6 +38,14 @@ const SIZES = [
 
 const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 
+function RecenterMap({ location }) {
+  const map = useMap()
+  useEffect(() => {
+    if (location) map.setView([location.lat, location.lng], 14)
+  }, [location?.lat, location?.lng, map])
+  return null
+}
+
 function MapPicker({ position, onChange }) {
   useMapEvents({
     click(e) {
@@ -69,6 +78,8 @@ export default function CommunitiesAdmin() {
   const [logoPreview, setLogoPreview] = useState('')
   const [uploading, setUploading] = useState(false)
   const logoInputRef = useRef()
+  const [geoStatus, setGeoStatus] = useState('idle') // idle | loading | found | notfound
+  const lastGeocoded = useRef('')
 
   async function reload() {
     const [comms, usrs] = await Promise.all([getCommunities(), getUsers()])
@@ -83,6 +94,8 @@ export default function CommunitiesAdmin() {
     setLogoFile(null)
     setLogoPreview('')
     setSaveError('')
+    setGeoStatus('idle')
+    lastGeocoded.current = ''
     setEditing('new')
   }
 
@@ -91,7 +104,27 @@ export default function CommunitiesAdmin() {
     setLogoFile(null)
     setLogoPreview(c.logoUrl || '')
     setSaveError('')
+    setGeoStatus('idle')
+    lastGeocoded.current = c.address || ''
     setEditing(c.id)
+  }
+
+  async function handleAddressBlur() {
+    const addr = form.address.trim()
+    if (!addr || addr === lastGeocoded.current) return
+    lastGeocoded.current = addr
+    setGeoStatus('loading')
+    try {
+      const loc = await geocodeAddress(addr)
+      if (loc) {
+        setForm((f) => ({ ...f, location: loc }))
+        setGeoStatus('found')
+      } else {
+        setGeoStatus('notfound')
+      }
+    } catch {
+      setGeoStatus('notfound')
+    }
   }
 
   function handleLogoSelect(e) {
@@ -175,7 +208,10 @@ export default function CommunitiesAdmin() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address <span className="text-red-500">*</span></label>
-              <input required type="text" value={form.address} onChange={update('address')} className={inputClass} placeholder="123 Garden Way, Phoenix, AZ 85001" />
+              <input required type="text" value={form.address} onChange={update('address')} onBlur={handleAddressBlur} className={inputClass} placeholder="123 Garden Way, Phoenix, AZ 85001" />
+              {geoStatus === 'loading' && <p className="text-xs text-gray-400 mt-1">Locating address on map…</p>}
+              {geoStatus === 'found' && <p className="text-xs text-green-600 mt-1">📍 Address located — pin placed on the map below.</p>}
+              {geoStatus === 'notfound' && <p className="text-xs text-amber-600 mt-1">Couldn't find that address — click the map below to place the pin manually.</p>}
             </div>
 
             <div>
@@ -258,7 +294,7 @@ export default function CommunitiesAdmin() {
             {/* Map picker */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Community location <span className="text-gray-400 font-normal">(click map to set)</span>
+                Community location <span className="text-gray-400 font-normal">(set automatically from the address — click the map to adjust)</span>
               </label>
               <div className="rounded-xl overflow-hidden border border-gray-200" style={{ height: 280 }}>
                 <MapContainer
@@ -270,6 +306,7 @@ export default function CommunitiesAdmin() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
+                  <RecenterMap location={form.location} />
                   <MapPicker
                     position={form.location}
                     onChange={(lat, lng) => setForm((f) => ({ ...f, location: { lat, lng } }))}
