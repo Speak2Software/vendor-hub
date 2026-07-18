@@ -133,7 +133,7 @@ export default function Login() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-[#b3d4ed] max-w-2xl leading-relaxed">
-            VendorHub is the premier marketplace connecting trusted service providers
+            Speak2Vendors is the premier marketplace connecting trusted service providers
             with senior living communities nationwide. Join thousands of vendors already
             growing their business with us.
           </p>
@@ -165,7 +165,7 @@ export default function Login() {
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-12">
             <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-3">
-              Why VendorHub
+              Why Speak2Vendors
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Everything you need to succeed</h2>
             <p className="mt-3 text-gray-500 max-w-xl mx-auto">

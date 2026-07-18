@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { getVendorProfile } from './utils/storage'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import { ToastProvider } from './components/Toast'
 
 import Login from './pages/Login'
 import SignIn from './pages/SignIn'
@@ -111,7 +112,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   )

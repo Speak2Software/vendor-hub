@@ -5,6 +5,7 @@ import { getCommunities, saveCommunity, deleteCommunity, getUsers } from '../../
 import { uploadImage } from '../../utils/uploadImage'
 import { geocodeAddress } from '../../utils/geocode'
 import { formatPhone } from '../../utils/formatPhone'
+import { useToast } from '../../components/Toast'
 
 const communityIcon = L.divIcon({
   className: '',
@@ -68,14 +69,13 @@ const blank = {
 }
 
 export default function CommunitiesAdmin() {
+  const toast = useToast()
   const [communities, setCommunities] = useState([])
   const [managers, setManagers] = useState([])
   const [editing, setEditing] = useState(null) // null = list, 'new' or id = form
   const [form, setForm] = useState(blank)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
-  const [saved, setSaved] = useState(false)
   const [search, setSearch] = useState('')
-  const [saveError, setSaveError] = useState('')
   const [logoFile, setLogoFile] = useState(null)
   const [logoPreview, setLogoPreview] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -96,7 +96,6 @@ export default function CommunitiesAdmin() {
     setForm({ ...blank })
     setLogoFile(null)
     setLogoPreview('')
-    setSaveError('')
     setGeoStatus('idle')
     lastGeocoded.current = ''
     initialForm.current = JSON.stringify({ ...blank })
@@ -107,7 +106,6 @@ export default function CommunitiesAdmin() {
     setForm({ ...blank, ...c })
     setLogoFile(null)
     setLogoPreview(c.logoUrl || '')
-    setSaveError('')
     setGeoStatus('idle')
     lastGeocoded.current = c.address || ''
     initialForm.current = JSON.stringify({ ...blank, ...c })
@@ -167,7 +165,6 @@ export default function CommunitiesAdmin() {
 
   async function handleSave(e) {
     e.preventDefault()
-    setSaveError('')
     try {
       setUploading(true)
       let finalLogoUrl = form.logoUrl
@@ -175,17 +172,23 @@ export default function CommunitiesAdmin() {
         finalLogoUrl = await uploadImage(logoFile)
       }
       await saveCommunity({ ...form, logoUrl: finalLogoUrl })
-      setSaved(true)
-      setTimeout(async () => { setSaved(false); setEditing(null); await reload() }, 1000)
+      toast.success(editing === 'new' ? 'Community added' : 'Community saved')
+      setEditing(null)
+      await reload()
     } catch (err) {
-      setSaveError(err.message || 'Failed to save community.')
+      toast.error(err.message || 'Failed to save community.')
     } finally {
       setUploading(false)
     }
   }
 
   async function handleDelete(id) {
-    await deleteCommunity(id)
+    try {
+      await deleteCommunity(id)
+      toast.success('Community deleted')
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete community.')
+    }
     setDeleteConfirm(null)
     await reload()
   }
@@ -208,9 +211,6 @@ export default function CommunitiesAdmin() {
             {editing === 'new' ? 'Add community' : 'Edit community'}
           </h1>
 
-          {saveError && (
-            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{saveError}</div>
-          )}
           <form onSubmit={handleSave} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Community name <span className="text-red-500">*</span></label>
@@ -334,11 +334,9 @@ export default function CommunitiesAdmin() {
             <button
               type="submit"
               disabled={uploading}
-              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 ${
-                saved ? 'bg-green-600 text-white' : 'bg-[#1a73c8] text-white hover:bg-[#135aa0]'
-              }`}
+              className="w-full py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 bg-[#1a73c8] text-white hover:bg-[#135aa0]"
             >
-              {uploading ? 'Uploading…' : saved ? 'Saved!' : editing === 'new' ? 'Add community' : 'Save changes'}
+              {uploading ? 'Saving…' : editing === 'new' ? 'Add community' : 'Save changes'}
             </button>
           </form>
         </div>

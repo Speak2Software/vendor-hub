@@ -43,7 +43,7 @@ export default function SignIn() {
         <div className="text-center mb-8">
           <img src="/logo.png" alt="Speak2Vendors" className="h-14 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-extrabold text-white">Welcome back</h1>
-          <p className="text-[#b3d4ed] text-sm mt-1">Sign in to your VendorHub account</p>
+          <p className="text-[#b3d4ed] text-sm mt-1">Sign in to your Speak2Vendors account</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl border border-white/20 p-8">

@@ -109,7 +109,7 @@ export default function Layout({ children }) {
 
       {/* Footer */}
       <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-100">
-        © {new Date().getFullYear()} VendorHub — Senior Living Partner Portal
+        © {new Date().getFullYear()} Speak2Vendors — Senior Living Partner Portal
       </footer>
     </div>
   )

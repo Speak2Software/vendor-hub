@@ -5,6 +5,7 @@ import { getCompanyProfile, saveCompanyProfile, getApplicationsForVendor } from 
 import { uploadImage } from '../../utils/uploadImage'
 import { uploadFile }  from '../../utils/uploadFile'
 import { formatPhone } from '../../utils/formatPhone'
+import { useToast } from '../../components/Toast'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ function Field({ label, required, hint, children }) {
 
 export default function CompanyProfile() {
   const { user } = useAuth()
+  const toast = useToast()
   const navigate  = useNavigate()
   const [form, setForm]         = useState(EMPTY)
   const [saved, setSaved]       = useState(false)
@@ -265,15 +267,21 @@ export default function CompanyProfile() {
         setLogoPreview(null)
       } catch (err) {
         setUploadError('Logo upload failed. Please try again.')
+        toast.error('Logo upload failed — profile not saved.')
         setUploading(false)
         return
       }
       setUploading(false)
     }
-    await saveCompanyProfile({ ...form, logoUrl: finalLogoUrl, testimonials, userId: user.id })
-    setForm((f) => ({ ...f, logoUrl: finalLogoUrl }))
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      await saveCompanyProfile({ ...form, logoUrl: finalLogoUrl, testimonials, userId: user.id })
+      setForm((f) => ({ ...f, logoUrl: finalLogoUrl }))
+      toast.success('Company profile saved')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      toast.error(err.message || 'Failed to save profile.')
+    }
   }
 
   const pct = computeCompleteness(form)
@@ -829,7 +837,7 @@ export default function CompanyProfile() {
                   Terms &amp; Conditions <span className="text-red-400">*</span>
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                  I certify that all information provided is accurate and complete. I agree to VendorHub's vendor terms and conditions.
+                  I certify that all information provided is accurate and complete. I agree to Speak2Vendors' vendor terms and conditions.
                 </p>
                 {errors.termsAgreed && (
                   <p className="text-xs text-red-500 mt-1">{errors.termsAgreed}</p>

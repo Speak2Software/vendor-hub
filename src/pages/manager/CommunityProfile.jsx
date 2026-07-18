@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { getCommunity, saveCommunity } from '../../utils/storage'
 import { uploadImage } from '../../utils/uploadImage'
 import { formatPhone } from '../../utils/formatPhone'
+import { useToast } from '../../components/Toast'
 
 const CARE_LEVEL_OPTIONS = [
   'Independent Living',
@@ -35,6 +36,7 @@ function computeCompleteness(form) {
 
 export default function CommunityProfile() {
   const { user } = useAuth()
+  const toast = useToast()
   const [community, setCommunity] = useState(null)
   const [form, setForm] = useState({
     name: '', address: '', description: '', size: '',
@@ -43,7 +45,6 @@ export default function CommunityProfile() {
     showUrl: false, showEmail: false, showPhone: false,
     logoUrl: '',
   })
-  const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
   const [logoFile, setLogoFile]       = useState(null)
   const [logoPreview, setLogoPreview] = useState(null)
@@ -132,21 +133,25 @@ export default function CommunityProfile() {
         setLogoPreview(null)
       } catch (err) {
         setUploadError(err.message || 'Upload failed. Check Cloudinary env vars.')
+        toast.error('Logo upload failed — profile not saved.')
         setUploading(false)
         return
       }
       setUploading(false)
     }
 
-    await saveCommunity({
-      ...community,
-      ...form,
-      logoUrl,
-      updatedAt: new Date().toISOString(),
-    })
-    setForm((p) => ({ ...p, logoUrl }))
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      await saveCommunity({
+        ...community,
+        ...form,
+        logoUrl,
+        updatedAt: new Date().toISOString(),
+      })
+      setForm((p) => ({ ...p, logoUrl }))
+      toast.success('Community profile saved')
+    } catch (err) {
+      toast.error(err.message || 'Failed to save community profile.')
+    }
   }
 
   const completeness = computeCompleteness(form)
@@ -635,32 +640,21 @@ export default function CommunityProfile() {
 
         {/* ── Save Button ────────────────────────────────────────────────────── */}
         <div className="flex gap-3 pb-6">
-          {saved ? (
-            <div className="flex-1 bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-4 flex items-center justify-center gap-3">
-              <div className="w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          <button
+            type="submit"
+            disabled={uploading}
+            className="flex-1 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white py-3.5 rounded-2xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] disabled:opacity-60 transition-all shadow-sm flex items-center justify-center gap-2"
+          >
+            {uploading ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-              </div>
-              <p className="text-emerald-800 font-semibold text-sm">Community profile saved!</p>
-            </div>
-          ) : (
-            <button
-              type="submit"
-              disabled={uploading}
-              className="flex-1 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white py-3.5 rounded-2xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] disabled:opacity-60 transition-all shadow-sm flex items-center justify-center gap-2"
-            >
-              {uploading ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                  </svg>
-                  Uploading logo…
-                </>
-              ) : 'Save Community Profile'}
-            </button>
-          )}
+                Uploading logo…
+              </>
+            ) : 'Save Community Profile'}
+          </button>
         </div>
       </form>
     </div>

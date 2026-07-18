@@ -5,6 +5,7 @@ import L from 'leaflet'
 import { useAuth } from '../../context/AuthContext'
 import { getVendorProfile, saveVendorProfile, getCommunities, haversineDistance } from '../../utils/storage'
 import { geocodeAddress } from '../../utils/geocode'
+import { useToast } from '../../components/Toast'
 
 const vendorIcon = L.divIcon({
   className: '',
@@ -58,6 +59,7 @@ const STEPS = [
 export default function VendorLocation() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
 
   const [lat, setLat] = useState(33.4484)
   const [lng, setLng] = useState(-112.074)
@@ -128,9 +130,14 @@ export default function VendorLocation() {
   }
 
   async function handleSave() {
-    await saveVendorProfile({ userId: user.id, location: { lat, lng }, serviceRadiusMiles: radius })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+    try {
+      await saveVendorProfile({ userId: user.id, location: { lat, lng }, serviceRadiusMiles: radius })
+      toast.success('Location & radius saved')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      toast.error(err.message || 'Failed to save location.')
+    }
   }
 
   const radiusMeters = radius * 1609.34
@@ -144,7 +151,7 @@ export default function VendorLocation() {
           {/* Welcome message for new vendors */}
           {isNewVendor && (
             <div className="mb-4 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] rounded-xl px-4 py-3 text-white">
-              <p className="text-sm font-bold">👋 Welcome to VendorHub, {user.name?.split(' ')[0]}!</p>
+              <p className="text-sm font-bold">👋 Welcome to Speak2Vendors, {user.name?.split(' ')[0]}!</p>
               <p className="text-xs text-blue-100 mt-0.5">Complete these 3 steps to start connecting with senior living communities in your area.</p>
             </div>
           )}

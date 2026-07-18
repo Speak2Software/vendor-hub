@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getUsers, getCommunities, createUser, updateUser } from '../../utils/storage'
+import { useToast } from '../../components/Toast'
 
 const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 
@@ -8,13 +9,13 @@ function formatDate(iso) {
 }
 
 export default function ManagersAdmin() {
+  const toast = useToast()
   const [managers, setManagers] = useState([])
   const [communities, setCommunities] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingManager, setEditingManager] = useState(null)
   const [form, setForm] = useState({ name: '', email: '', password: '', communityId: '' })
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [search, setSearch] = useState('')
   const initialForm = useRef('')
 
@@ -37,7 +38,6 @@ export default function ManagersAdmin() {
     setEditingManager(null)
     setShowForm(true)
     setError('')
-    setSuccess('')
   }
 
   function startEdit(mgr) {
@@ -47,7 +47,6 @@ export default function ManagersAdmin() {
     setEditingManager(mgr)
     setShowForm(true)
     setError('')
-    setSuccess('')
   }
 
   function handleClose() {
@@ -63,19 +62,19 @@ export default function ManagersAdmin() {
         const updates = { name: form.name, communityId: form.communityId }
         if (form.password) updates.password = form.password
         await updateUser(editingManager.id, updates)
-        setSuccess('Manager updated.')
+        toast.success('Manager updated')
       } else {
         if (!form.password || form.password.length < 6) {
           setError('Password must be at least 6 characters.')
           return
         }
         await createUser({ name: form.name, email: form.email, password: form.password, role: 'community_manager', communityId: form.communityId })
-        setSuccess('Manager created successfully.')
+        toast.success('Manager created')
       }
       await reload()
-      setTimeout(() => { setShowForm(false); setSuccess('') }, 1500)
+      setShowForm(false)
     } catch (err) {
-      setError(err.message)
+      toast.error(err.message || 'Failed to save manager.')
     }
   }
 
@@ -115,7 +114,6 @@ export default function ManagersAdmin() {
           </div>
 
           {error && <div className="mb-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div>}
-          {success && <div className="mb-3 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700">{success}</div>}
 
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

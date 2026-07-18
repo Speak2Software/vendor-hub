@@ -46,7 +46,7 @@ We're excited to share something special with you!
 
 🌟 EXCLUSIVE OFFER: [Describe your offer — e.g., "Complimentary first service visit" or "15% off for the next 30 days"]
 
-This offer is available exclusively for communities in our VendorHub network and is valid through [Date].
+This offer is available exclusively for communities in our Speak2Vendors network and is valid through [Date].
 
 At [Business], we take pride in delivering exceptional [Service Category] to the seniors in your care. This is a great opportunity to experience our services with zero risk.
 
@@ -733,6 +733,62 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
   )
 }
 
+// ── Onboarding Checklist ──────────────────────────────────────────────────────
+
+function OnboardingChecklist({ steps }) {
+  const doneCount = steps.filter((s) => s.done).length
+  if (doneCount === steps.length) return null
+  return (
+    <section className="bg-white rounded-2xl border-2 border-[#b3d4ed] shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] px-6 py-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-white font-bold text-sm">🚀 Get Started with Speak2Vendors</h2>
+          <p className="text-blue-100 text-xs mt-0.5">Complete these steps to start landing community contracts</p>
+        </div>
+        <span className="text-xs font-bold text-white bg-white/20 px-2.5 py-1 rounded-full flex-shrink-0">
+          {doneCount} of {steps.length} done
+        </span>
+      </div>
+      {/* progress bar */}
+      <div className="h-1.5 bg-gray-100">
+        <div
+          className="h-full bg-emerald-500 transition-all duration-500"
+          style={{ width: `${(doneCount / steps.length) * 100}%` }}
+        />
+      </div>
+      <div className="divide-y divide-gray-50">
+        {steps.map((step, i) => (
+          <div key={step.label} className={`px-6 py-4 flex items-center gap-4 ${step.done ? 'opacity-60' : ''}`}>
+            {step.done ? (
+              <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+              </div>
+            ) : (
+              <div className="w-7 h-7 rounded-full border-2 border-[#b3d4ed] bg-[#f0f7fd] flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-[#1a73c8]">{i + 1}</span>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-bold ${step.done ? 'text-gray-500 line-through' : 'text-gray-900'}`}>{step.label}</p>
+              {!step.done && <p className="text-xs text-gray-400 mt-0.5">{step.desc}</p>}
+            </div>
+            {!step.done && (
+              <Link
+                to={step.to}
+                className="flex-shrink-0 text-xs font-bold bg-[#1a73c8] text-white px-3.5 py-2 rounded-xl hover:bg-[#135aa0] transition-colors"
+              >
+                {step.cta} →
+              </Link>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export default function VendorPortalDashboard() {
@@ -747,6 +803,7 @@ export default function VendorPortalDashboard() {
   const [commsTab, setCommsTab]           = useState('email')
   const [companyProfile, setCompanyProfile] = useState(null)
   const [profile, setProfile]             = useState(null)
+  const [loaded, setLoaded]               = useState(false)
 
   async function load() {
     const raw = await getApplicationsForVendor(user.id)
@@ -764,6 +821,7 @@ export default function VendorPortalDashboard() {
     setThreads(rawThreads)
     setCompanyProfile(cp)
     setProfile(vp)
+    setLoaded(true)
   }
 
   useEffect(() => {
@@ -894,6 +952,35 @@ export default function VendorPortalDashboard() {
 
       {/* ── Page body ────────────────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-4 py-7 space-y-7">
+
+        {/* ── Onboarding checklist (hidden once all steps done) ─────────────── */}
+        {loaded && (
+          <OnboardingChecklist
+            steps={[
+              {
+                label: 'Set your business location',
+                desc: 'Tell us where you operate so we can match you with nearby communities.',
+                done: !!profile,
+                to: '/vendor/location',
+                cta: 'Set Location',
+              },
+              {
+                label: 'Complete your company profile',
+                desc: 'Fill it out once — it auto-fills every application you submit.',
+                done: !!companyProfile,
+                to: '/vendor/profile',
+                cta: 'Complete Profile',
+              },
+              {
+                label: 'Apply to a community',
+                desc: 'Submit your first application to a senior living community near you.',
+                done: apps.length > 0,
+                to: '/vendor/apply',
+                cta: 'Apply Now',
+              },
+            ]}
+          />
+        )}
 
         {/* ── My Active Communities ─────────────────────────────────────────── */}
         <section>
@@ -1272,37 +1359,6 @@ export default function VendorPortalDashboard() {
               )}
             </section>
 
-            {/* Profile nudge */}
-            {!companyProfile && (
-              <section className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
-                <p className="text-sm font-bold text-amber-800 mb-1">📋 Complete Your Profile</p>
-                <p className="text-xs text-amber-700 leading-relaxed mb-3">
-                  Set up your Company Profile once and it will auto-fill every future application — no re-entering details.
-                </p>
-                <button
-                  onClick={() => navigate('/vendor/profile')}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-xl text-xs font-bold transition-colors"
-                >
-                  Set Up Profile →
-                </button>
-              </section>
-            )}
-
-            {/* Location nudge */}
-            {!profile && (
-              <section className="bg-gradient-to-br from-blue-50 to-teal-50 border border-blue-200 rounded-2xl p-5">
-                <p className="text-sm font-bold text-blue-800 mb-1">📍 Set Your Location</p>
-                <p className="text-xs text-blue-700 leading-relaxed mb-3">
-                  Add your business location to discover nearby communities in your service radius.
-                </p>
-                <button
-                  onClick={() => navigate('/vendor/location')}
-                  className="w-full bg-blue-500 hover:bg-[#1a73c8] text-white py-2 rounded-xl text-xs font-bold transition-colors"
-                >
-                  Set Location →
-                </button>
-              </section>
-            )}
           </div>
         </div>
       </div>
