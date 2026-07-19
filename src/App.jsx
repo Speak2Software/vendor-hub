@@ -31,7 +31,7 @@ function RoleRedirect() {
 
   useEffect(() => {
     if (loading) return
-    if (!user) { setDest('/signin'); setReady(true); return }
+    if (!user) { setDest('/signup'); setReady(true); return }
     if (user.role === 'admin') { setDest('/admin'); setReady(true); return }
     if (user.role === 'community_manager') { setDest('/manager'); setReady(true); return }
     // Vendors: check if a location profile exists
