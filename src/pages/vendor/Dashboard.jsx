@@ -800,7 +800,7 @@ export default function VendorPortalDashboard() {
   const [apps, setApps]                   = useState([])
   const [messages, setMessages]           = useState([])
   const [threads, setThreads]             = useState([])
-  const [commsTab, setCommsTab]           = useState('email')
+  const [commsTab, setCommsTab]           = useState('messages')
   const [companyProfile, setCompanyProfile] = useState(null)
   const [profile, setProfile]             = useState(null)
   const [loaded, setLoaded]               = useState(false)
@@ -1146,10 +1146,10 @@ export default function VendorPortalDashboard() {
               {/* Tabs */}
               <div className="flex border-b border-gray-100 bg-gray-50/50">
                 {[
+                  { id: 'messages', icon: '💬', label: totalUnread > 0 ? `My Messages (${totalUnread})` : 'My Messages' },
                   { id: 'email',    icon: '✉️', label: 'Email Composer' },
                   { id: 'flyer',    icon: '🎨', label: 'Flyer Creator' },
                   { id: 'sent',     icon: '📨', label: `Sent (${messages.length})` },
-                  { id: 'messages', icon: '💬', label: totalUnread > 0 ? `My Messages (${totalUnread})` : 'My Messages' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
