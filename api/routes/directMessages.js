@@ -111,8 +111,8 @@ router.post('/', authenticate, async (req, res) => {
         if (vendor) {
           const toEmail = cp?.contactEmail || vendor.email
           const senderName = community?.name || req.user.name || 'A community'
-          // Vendor deep-link: opens their dashboard with the community thread selected
-          const deepLinkUrl = `${APP_URL}/vendor?tab=messages&communityId=${communityId}`
+          // Vendor deep-link: opens the Communications page with the community thread selected
+          const deepLinkUrl = `${APP_URL}/vendor/communications?tab=messages&communityId=${communityId}`
           await notifyDirectMessage({ toEmail, toName: vendor.name, senderName, messageBody: body.trim(), deepLinkUrl })
         }
       }

@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext'
 
 const navLinks = {
   vendor: [
-    { to: '/vendor',          label: 'Dashboard' },
-    { to: '/vendor/profile',  label: 'My Profile' },
-    { to: '/vendor/location', label: 'My Location' },
-    { to: '/vendor/status',   label: 'Applications' },
+    { to: '/vendor',                label: 'Dashboard' },
+    { to: '/vendor/communications', label: 'Communications' },
+    { to: '/vendor/status',         label: 'Applications' },
+    { to: '/vendor/profile',        label: 'My Profile' },
+    { to: '/vendor/location',       label: 'My Location' },
   ],
   community_manager: [
     { to: '/manager', label: 'Dashboard' },

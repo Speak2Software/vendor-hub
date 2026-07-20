@@ -10,6 +10,7 @@ import Login from './pages/Login'
 import SignIn from './pages/SignIn'
 import Signup from './pages/Signup'
 import VendorPortalDashboard from './pages/vendor/Dashboard'
+import VendorCommunications from './pages/vendor/Communications'
 import VendorLocation from './pages/vendor/Location'
 import CompanyProfile from './pages/vendor/CompanyProfile'
 import Apply from './pages/vendor/Apply'
@@ -57,6 +58,9 @@ function AppRoutes() {
         {/* Vendor */}
         <Route path="/vendor" element={
           <ProtectedRoute roles={['vendor']}><VendorPortalDashboard /></ProtectedRoute>
+        } />
+        <Route path="/vendor/communications" element={
+          <ProtectedRoute roles={['vendor']}><VendorCommunications /></ProtectedRoute>
         } />
         <Route path="/vendor/location" element={
           <ProtectedRoute roles={['vendor']}><VendorLocation /></ProtectedRoute>
