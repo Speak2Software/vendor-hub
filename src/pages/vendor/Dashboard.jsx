@@ -98,12 +98,187 @@ With warmest regards,
   },
 ]
 
-const FLYER_TEMPLATES = [
-  { id: 'professional', label: 'Professional', gradientFrom: '#2563eb', gradientTo: '#0d9488' },
-  { id: 'emerald',      label: 'Fresh Green',  gradientFrom: '#059669', gradientTo: '#0d9488' },
-  { id: 'bold',         label: 'Bold Dark',    gradientFrom: '#1e293b', gradientTo: '#334155' },
-  { id: 'warm',         label: 'Warm Amber',   gradientFrom: '#d97706', gradientTo: '#ea580c' },
+const FLYER_LAYOUTS = [
+  { id: 'classic', label: 'Classic', hint: 'Header banner' },
+  { id: 'modern',  label: 'Modern',  hint: 'Side panel' },
+  { id: 'bold',    label: 'Bold',    hint: 'Full color' },
+  { id: 'elegant', label: 'Elegant', hint: 'Framed' },
 ]
+
+const FLYER_THEMES = [
+  { id: 'ocean',    label: 'Ocean',    from: '#1a73c8', to: '#0d9488', accent: '#1a73c8', soft: '#eef6fd' },
+  { id: 'emerald',  label: 'Emerald',  from: '#059669', to: '#0d9488', accent: '#047857', soft: '#ecfdf5' },
+  { id: 'sunset',   label: 'Sunset',   from: '#f59e0b', to: '#ea580c', accent: '#ea580c', soft: '#fff7ed' },
+  { id: 'royal',    label: 'Royal',    from: '#6d28d9', to: '#2563eb', accent: '#6d28d9', soft: '#f5f3ff' },
+  { id: 'rose',     label: 'Rose',     from: '#e11d48', to: '#be185d', accent: '#be185d', soft: '#fff1f2' },
+  { id: 'charcoal', label: 'Charcoal', from: '#334155', to: '#0f172a', accent: '#0f766e', soft: '#f1f5f9' },
+]
+
+const flyerGrad = (t) => `linear-gradient(135deg, ${t.from}, ${t.to})`
+
+// Small hook: delays a value so the live preview iframe doesn't rebuild on every keystroke.
+function useDebounced(value, ms) {
+  const [v, setV] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms)
+    return () => clearTimeout(t)
+  }, [value, ms])
+  return v
+}
+
+const escHtml = (s = '') => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+function flyerHighlights(raw) {
+  return String(raw || '').split('\n').map((s) => s.trim()).filter(Boolean).slice(0, 5)
+}
+
+/**
+ * Builds the complete, self-contained HTML document for one flyer.
+ * Used for BOTH the live preview (in an iframe) and the print window,
+ * so what the vendor sees is exactly what prints.
+ */
+function buildFlyerHTML(layoutId, theme, data, { autoPrint = false } = {}) {
+  const d = {
+    businessName: escHtml(data.businessName) || 'Your Business Name',
+    category:     escHtml(data.serviceCategory) || 'Professional Services',
+    tagline:      escHtml(data.tagline),
+    headline:     escHtml(data.headline),
+    body:         escHtml(data.body),
+    cta:          escHtml(data.cta),
+    phone:        escHtml(data.phone),
+    email:        escHtml(data.email),
+    website:      escHtml(data.website),
+  }
+  const highlights  = flyerHighlights(data.highlights)
+  const hasContacts = Boolean(data.phone || data.email || data.website)
+
+  const contacts = [
+    d.phone   && `<div class="c-row"><span class="c-ico">📞</span><span>${d.phone}</span></div>`,
+    d.email   && `<div class="c-row"><span class="c-ico">✉️</span><span>${d.email}</span></div>`,
+    d.website && `<div class="c-row"><span class="c-ico">🌐</span><span>${d.website}</span></div>`,
+  ].filter(Boolean).join('')
+
+  const cat           = `<div class="cat">${d.category}</div>`
+  const h1            = `<h1>${d.businessName}</h1>`
+  const tag           = d.tagline ? `<div class="tag">${d.tagline}</div>` : ''
+  const headline      = d.headline ? `<div class="headline">${d.headline}</div>` : ''
+  const hl            = highlights.length ? `<ul class="hl">${highlights.map((h) => `<li>${escHtml(h)}</li>`).join('')}</ul>` : ''
+  const desc          = d.body ? `<div class="desc">${d.body}</div>` : ''
+  const contactsBlock = hasContacts ? `<div class="contacts">${contacts}</div>` : ''
+  const cta           = d.cta ? `<div class="cta">${d.cta}</div>` : ''
+  const footer        = `<div class="footer">Proudly serving senior living communities</div>`
+
+  let flyer
+  if (layoutId === 'modern') {
+    const sideContacts = hasContacts ? `<div class="side-contacts">${contacts}</div>` : ''
+    flyer = `
+      <div class="row">
+        <aside class="side">${cat}${h1}${tag}${sideContacts}</aside>
+        <main class="main">${headline}${hl}${desc}${cta}</main>
+      </div>
+      ${footer}`
+  } else if (layoutId === 'bold') {
+    const cardInner = `${hl}${desc}`
+    const card = cardInner.trim() ? `<div class="card">${cardInner}</div>` : ''
+    flyer = `${cat}${h1}${tag}${headline}${card}${contactsBlock}${cta}${footer}`
+  } else if (layoutId === 'elegant') {
+    flyer = `<div class="frame">${cat}${h1}<div class="rule"></div>${tag}${headline}${hl}${desc}${contactsBlock}${cta}${footer}</div>`
+  } else {
+    flyer = `
+      <div class="header">${cat}${h1}${tag}</div>
+      <div class="body">${headline}${hl}${desc}${contactsBlock}${cta}</div>
+      ${footer}`
+  }
+
+  const printScript = autoPrint
+    ? `<script>window.addEventListener('load',function(){setTimeout(function(){window.print()},300)})</script>`
+    : ''
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${d.businessName} — Flyer</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; background:#eef2f6; padding:20px; }
+.flyer { width:480px; margin:0 auto; background:#fff; overflow:hidden; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.14); }
+.cat { font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.hl { list-style:none; }
+.hl li { position:relative; padding-left:27px; font-size:13.5px; line-height:1.5; margin-bottom:9px; color:#374151; }
+.hl li:before { content:'✓'; position:absolute; left:0; top:0; width:19px; height:19px; border-radius:50%; background:var(--soft); color:var(--accent); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.desc { font-size:13.5px; line-height:1.7; white-space:pre-line; color:#4b5563; margin-bottom:18px; }
+.c-row { display:flex; align-items:center; gap:9px; font-size:13.5px; color:#374151; margin-bottom:7px; }
+.c-ico { flex-shrink:0; width:18px; text-align:center; }
+.footer { background:#f9fafb; border-top:1px solid #eef2f6; text-align:center; padding:13px; font-size:11px; color:#9ca3af; }
+
+/* Classic — top banner */
+.flyer.classic .header { background:linear-gradient(135deg,var(--from),var(--to)); color:#fff; padding:30px 28px; }
+.flyer.classic .header .cat { color:rgba(255,255,255,.82); margin-bottom:9px; }
+.flyer.classic .header h1 { font-size:27px; font-weight:800; line-height:1.15; }
+.flyer.classic .header .tag { font-size:14px; color:rgba(255,255,255,.9); margin-top:9px; }
+.flyer.classic .body { padding:26px 28px; }
+.flyer.classic .headline { font-size:19px; font-weight:800; color:#111827; margin-bottom:14px; }
+.flyer.classic .hl { margin-bottom:16px; }
+.flyer.classic .contacts { background:var(--soft); border-radius:12px; padding:14px 16px; margin-bottom:18px; }
+.flyer.classic .cta { background:linear-gradient(135deg,var(--from),var(--to)); color:#fff; text-align:center; padding:14px; border-radius:12px; font-weight:800; font-size:14px; }
+
+/* Modern — side panel */
+.flyer.modern .row { display:flex; }
+.flyer.modern .side { width:42%; background:linear-gradient(160deg,var(--from),var(--to)); color:#fff; padding:28px 22px; }
+.flyer.modern .side .cat { color:rgba(255,255,255,.85); margin-bottom:10px; }
+.flyer.modern .side h1 { font-size:22px; font-weight:800; line-height:1.15; }
+.flyer.modern .side .tag { font-size:13px; color:rgba(255,255,255,.9); margin-top:9px; }
+.flyer.modern .side-contacts { margin-top:22px; border-top:1px solid rgba(255,255,255,.28); padding-top:16px; }
+.flyer.modern .side-contacts .c-row { color:#fff; font-size:12.5px; }
+.flyer.modern .main { width:58%; padding:26px 22px; }
+.flyer.modern .headline { font-size:18px; font-weight:800; color:#111827; margin-bottom:14px; }
+.flyer.modern .hl { margin-bottom:16px; }
+.flyer.modern .cta { background:linear-gradient(135deg,var(--from),var(--to)); color:#fff; text-align:center; padding:13px; border-radius:12px; font-weight:800; font-size:13.5px; }
+
+/* Bold — full-bleed color */
+.flyer.bold { background:linear-gradient(150deg,var(--from),var(--to)); color:#fff; padding:34px 30px; text-align:center; }
+.flyer.bold .cat { color:rgba(255,255,255,.85); margin-bottom:12px; }
+.flyer.bold h1 { font-size:30px; font-weight:900; line-height:1.1; }
+.flyer.bold .tag { font-size:14.5px; color:rgba(255,255,255,.92); margin-top:10px; }
+.flyer.bold .headline { font-size:18px; font-weight:700; margin:20px 0 16px; color:#fff; }
+.flyer.bold .card { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); border-radius:14px; padding:18px 20px; margin-bottom:18px; text-align:left; }
+.flyer.bold .card .hl li { color:#fff; }
+.flyer.bold .card .hl li:before { background:rgba(255,255,255,.25); color:#fff; }
+.flyer.bold .card .desc { color:rgba(255,255,255,.92); margin-bottom:0; }
+.flyer.bold .contacts { display:inline-block; text-align:left; margin-bottom:18px; }
+.flyer.bold .c-row { color:#fff; }
+.flyer.bold .cta { background:#fff; color:var(--accent); text-align:center; padding:14px; border-radius:12px; font-weight:800; font-size:14px; }
+.flyer.bold .footer { background:transparent; border:0; color:rgba(255,255,255,.78); padding:0; margin-top:18px; }
+
+/* Elegant — framed serif */
+.flyer.elegant { font-family:Georgia,'Times New Roman',serif; padding:16px; }
+.flyer.elegant .frame { border:2px solid var(--accent); padding:30px 26px; text-align:center; }
+.flyer.elegant .cat { font-family:-apple-system,'Segoe UI',sans-serif; color:var(--accent); margin-bottom:12px; }
+.flyer.elegant h1 { font-size:27px; font-weight:700; color:#1f2937; line-height:1.2; }
+.flyer.elegant .rule { width:56px; height:3px; background:var(--accent); margin:14px auto; }
+.flyer.elegant .tag { font-size:14.5px; font-style:italic; color:#6b7280; margin-bottom:16px; }
+.flyer.elegant .headline { font-size:18px; font-weight:700; color:#1f2937; margin-bottom:14px; }
+.flyer.elegant .hl { display:inline-block; text-align:left; margin:0 auto 16px; }
+.flyer.elegant .desc { color:#4b5563; }
+.flyer.elegant .contacts { border-top:1px solid #e5e7eb; padding-top:14px; margin:16px auto 18px; display:inline-block; text-align:left; }
+.flyer.elegant .c-row { font-family:-apple-system,'Segoe UI',sans-serif; }
+.flyer.elegant .cta { display:inline-block; background:var(--accent); color:#fff; padding:12px 22px; border-radius:8px; font-weight:700; font-size:13.5px; font-family:-apple-system,'Segoe UI',sans-serif; }
+.flyer.elegant .footer { font-family:-apple-system,'Segoe UI',sans-serif; background:transparent; border:0; padding:0; margin-top:16px; }
+
+@media print {
+  body { background:#fff; padding:0; }
+  .flyer { box-shadow:none; border-radius:0; width:100%; }
+  @page { margin:0.4in; }
+}
+</style>
+</head>
+<body>
+<div class="flyer ${layoutId}" style="--from:${theme.from};--to:${theme.to};--accent:${theme.accent};--soft:${theme.soft}">${flyer}</div>
+${printScript}
+</body>
+</html>`
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -133,55 +308,93 @@ function StatusBadge({ status }) {
 
 // ── Flyer Preview ─────────────────────────────────────────────────────────────
 
-function FlyerPreview({ templateId, data }) {
-  const t = FLYER_TEMPLATES.find((x) => x.id === templateId) || FLYER_TEMPLATES[0]
-  const gradient = `linear-gradient(135deg, ${t.gradientFrom}, ${t.gradientTo})`
+// Renders the real flyer HTML inside a scaled iframe, so the preview is exactly
+// what prints (and its CSS is isolated from the app's styles).
+function FlyerPreview({ html }) {
+  const wrapRef  = useRef(null)
+  const frameRef = useRef(null)
+  const DESIGN_W = 520
+  const [scale, setScale] = useState(0.7)
+  const [docH, setDocH]   = useState(680)
+
+  function measure() {
+    const w = wrapRef.current?.clientWidth
+    if (w) setScale(w / DESIGN_W)
+    const body = frameRef.current?.contentWindow?.document?.body
+    if (body) setDocH(body.scrollHeight)
+  }
+
+  useEffect(() => {
+    if (!wrapRef.current) return
+    const ro = new ResizeObserver(measure)
+    ro.observe(wrapRef.current)
+    return () => ro.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const t = setTimeout(measure, 80)
+    return () => clearTimeout(t)
+  }, [html])
 
   return (
-    <div className="rounded-2xl shadow-lg overflow-hidden border border-gray-200 bg-white text-left" style={{ maxWidth: 520 }}>
-      {/* Header */}
-      <div style={{ background: gradient, padding: '28px 24px' }}>
-        <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.78)', marginBottom: 8 }}>
-          {data.serviceCategory || 'Professional Services'}
-        </p>
-        <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', lineHeight: 1.2, margin: 0 }}>
-          {data.businessName || 'Your Business Name'}
-        </p>
-        {data.tagline && (
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.88)', marginTop: 7 }}>
-            {data.tagline}
-          </p>
-        )}
+    <div ref={wrapRef} style={{ width: '100%', height: Math.round(docH * scale) }}>
+      <iframe
+        ref={frameRef}
+        title="Flyer preview"
+        srcDoc={html}
+        onLoad={measure}
+        scrolling="no"
+        style={{
+          width: DESIGN_W,
+          height: docH,
+          border: 0,
+          display: 'block',
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
+  )
+}
+
+// Tiny schematic shown on each layout button, tinted with the current theme.
+function LayoutThumb({ id, theme }) {
+  const grad = flyerGrad(theme)
+  const box  = { width: '100%', height: 40, borderRadius: 6, border: '1px solid #e5e7eb', overflow: 'hidden', background: '#fff' }
+  const line = (w, i) => <div key={i} style={{ height: 3, width: w, background: '#d1d5db', borderRadius: 2, marginBottom: 3 }} />
+
+  if (id === 'modern') {
+    return (
+      <div style={{ ...box, display: 'flex' }}>
+        <div style={{ width: '38%', background: grad }} />
+        <div style={{ flex: 1, padding: 5 }}>{['80%', '60%', '70%'].map(line)}</div>
       </div>
-
-      {/* Body */}
-      <div style={{ padding: '24px' }}>
-        {data.headline && (
-          <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', marginBottom: 12 }}>{data.headline}</p>
-        )}
-        {data.body && (
-          <p style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.7, whiteSpace: 'pre-line', marginBottom: 18 }}>{data.body}</p>
-        )}
-
-        {(data.phone || data.email || data.website) && (
-          <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 14, marginBottom: data.cta ? 18 : 0 }}>
-            {data.phone   && <p style={{ fontSize: 13, color: '#374151', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 8 }}>📞 {data.phone}</p>}
-            {data.email   && <p style={{ fontSize: 13, color: '#374151', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 8 }}>✉️ {data.email}</p>}
-            {data.website && <p style={{ fontSize: 13, color: '#374151', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 8 }}>🌐 {data.website}</p>}
-          </div>
-        )}
-
-        {data.cta && (
-          <div style={{ background: gradient, color: '#fff', textAlign: 'center', padding: '13px', borderRadius: 10, fontWeight: 700, fontSize: 13 }}>
-            {data.cta}
-          </div>
-        )}
+    )
+  }
+  if (id === 'bold') {
+    return (
+      <div style={{ ...box, background: grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
+        <div style={{ height: 5, width: '66%', background: 'rgba(255,255,255,.92)', borderRadius: 2, margin: '0 auto' }} />
+        <div style={{ height: 3, width: '46%', background: 'rgba(255,255,255,.6)', borderRadius: 2, margin: '0 auto' }} />
       </div>
-
-      {/* Footer */}
-      <div style={{ background: '#f9fafb', padding: '12px 24px', borderTop: '1px solid #f3f4f6', textAlign: 'center' }}>
-        <p style={{ fontSize: 11, color: '#9ca3af', margin: 0 }}>Proudly serving senior living communities</p>
+    )
+  }
+  if (id === 'elegant') {
+    return (
+      <div style={box}>
+        <div style={{ margin: 4, height: 'calc(100% - 8px)', border: `2px solid ${theme.accent}`, borderRadius: 3, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 3 }}>
+          <div style={{ height: 3, width: '48%', background: '#d1d5db', borderRadius: 2 }} />
+          <div style={{ height: 3, width: '30%', background: theme.accent, borderRadius: 2 }} />
+        </div>
       </div>
+    )
+  }
+  // classic
+  return (
+    <div style={box}>
+      <div style={{ height: 14, background: grad }} />
+      <div style={{ padding: 5 }}>{['85%', '65%'].map(line)}</div>
     </div>
   )
 }
@@ -351,20 +564,28 @@ function EmailComposer({ approvedApps, vendorInfo, onSent }) {
 // ── Flyer Creator ─────────────────────────────────────────────────────────────
 
 function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
-  const [templateId, setTemplateId] = useState('professional')
-  const [sendTo, setSendTo]         = useState([])
-  const [flyerSent, setFlyerSent]   = useState(false)
-  const [data, setData]             = useState({
+  const [layoutId, setLayoutId] = useState('classic')
+  const [themeId, setThemeId]   = useState('ocean')
+  const [sendTo, setSendTo]     = useState([])
+  const [flyerSent, setFlyerSent] = useState(false)
+  const [data, setData]         = useState({
     businessName:    vendorInfo.businessName  || '',
     serviceCategory: vendorInfo.serviceCategory || '',
-    tagline:  '',
-    headline: '',
-    body:     '',
-    cta:      'Contact Us Today',
-    phone:    vendorInfo.phone || '',
-    email:    vendorInfo.email || '',
-    website:  '',
+    tagline:    '',
+    headline:   '',
+    highlights: '',
+    body:       '',
+    cta:        'Contact Us Today',
+    phone:      vendorInfo.phone || '',
+    email:      vendorInfo.email || '',
+    website:    '',
   })
+
+  const theme = FLYER_THEMES.find((t) => t.id === themeId) || FLYER_THEMES[0]
+
+  // Rebuilt every render (cheap string work); debounced before it hits the iframe.
+  const liveHtml    = buildFlyerHTML(layoutId, theme, data)
+  const previewHtml = useDebounced(liveHtml, 180)
 
   function update(field, value) { setData((p) => ({ ...p, [field]: value })) }
 
@@ -373,175 +594,9 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
   }
 
   function handlePrint() {
-    const t    = FLYER_TEMPLATES.find((x) => x.id === templateId) || FLYER_TEMPLATES[0]
-    const grad = `linear-gradient(135deg, ${t.gradientFrom}, ${t.gradientTo})`
-    const win  = window.open('', '_blank', 'width=680,height=960')
-
-    // Escape any HTML special characters in user-supplied text
-    const esc = (s = '') => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-
-    win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>${esc(data.businessName) || 'Flyer'}</title>
-  <style>
-    /* ── Force browsers to print background colours & gradients ── */
-    * {
-      -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-      box-sizing: border-box;
-      margin: 0; padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      background: #f3f4f6;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 40px 32px;
-    }
-
-    /* ── Flyer card ── */
-    .flyer {
-      background: #ffffff;
-      border-radius: 16px;
-      overflow: hidden;
-      width: 100%;
-      max-width: 520px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-    }
-
-    /* ── Header — gradient band ── */
-    .header {
-      background: ${grad};
-      padding: 28px 24px;
-      color: #ffffff;
-    }
-    .header .cat {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: rgba(255,255,255,0.78);
-      margin-bottom: 8px;
-    }
-    .header h1 {
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1.2;
-      color: #ffffff;
-    }
-    .header .tag {
-      font-size: 13px;
-      color: rgba(255,255,255,0.88);
-      margin-top: 7px;
-    }
-
-    /* ── Body ── */
-    .body { padding: 24px; }
-    .headline {
-      font-size: 17px;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 12px;
-    }
-    .desc {
-      font-size: 13px;
-      color: #4b5563;
-      line-height: 1.7;
-      white-space: pre-line;
-      margin-bottom: 18px;
-    }
-
-    /* ── Contact rows ── */
-    .contacts {
-      border-top: 1px solid #f3f4f6;
-      padding-top: 14px;
-      margin-bottom: 18px;
-    }
-    .contact-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #374151;
-      margin-bottom: 6px;
-    }
-    .contact-row .icon { flex-shrink: 0; width: 18px; text-align: center; }
-
-    /* ── CTA button ── */
-    .cta {
-      background: ${grad};
-      color: #ffffff;
-      text-align: center;
-      padding: 13px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    /* ── Footer ── */
-    .footer {
-      background: #f9fafb;
-      padding: 12px 24px;
-      border-top: 1px solid #f3f4f6;
-      text-align: center;
-      font-size: 11px;
-      color: #9ca3af;
-    }
-
-    /* ── Print overrides ── */
-    @media print {
-      body {
-        background: #ffffff !important;
-        padding: 0 !important;
-        display: block;
-      }
-      .flyer {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        max-width: 100% !important;
-        width: 100% !important;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="flyer">
-    <div class="header">
-      <div class="cat">${esc(data.serviceCategory) || 'Professional Services'}</div>
-      <h1>${esc(data.businessName) || 'Business Name'}</h1>
-      ${data.tagline ? `<div class="tag">${esc(data.tagline)}</div>` : ''}
-    </div>
-
-    <div class="body">
-      ${data.headline ? `<div class="headline">${esc(data.headline)}</div>` : ''}
-      ${data.body     ? `<div class="desc">${esc(data.body)}</div>`         : ''}
-
-      ${(data.phone || data.email || data.website) ? `
-      <div class="contacts">
-        ${data.phone   ? `<div class="contact-row"><span class="icon">📞</span>${esc(data.phone)}</div>`   : ''}
-        ${data.email   ? `<div class="contact-row"><span class="icon">✉️</span>${esc(data.email)}</div>`   : ''}
-        ${data.website ? `<div class="contact-row"><span class="icon">🌐</span>${esc(data.website)}</div>` : ''}
-      </div>` : ''}
-
-      ${data.cta ? `<div class="cta">${esc(data.cta)}</div>` : ''}
-    </div>
-
-    <div class="footer">Proudly serving senior living communities</div>
-  </div>
-
-  <script>
-    // Wait for styles + fonts to settle before triggering print
-    window.addEventListener('load', function () {
-      setTimeout(function () { window.print() }, 250)
-    })
-  </script>
-</body>
-</html>`)
+    const win = window.open('', '_blank', 'width=720,height=980')
+    if (!win) return
+    win.document.write(buildFlyerHTML(layoutId, theme, data, { autoPrint: true }))
     win.document.close()
   }
 
@@ -554,7 +609,8 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
       communityIds: sendTo,
       subject: data.headline || `Flyer from ${data.businessName}`,
       body: data.body,
-      flyerTemplate: templateId,
+      flyerLayout: layoutId,
+      flyerTheme: themeId,
       flyerData: data,
       sentAt: new Date().toISOString(),
     })
@@ -563,113 +619,134 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
     setTimeout(() => { setFlyerSent(false); onSent?.() }, 3000)
   }
 
-  const fields = [
-    { key: 'businessName',    label: 'Business Name',          placeholder: 'Your business name' },
-    { key: 'serviceCategory', label: 'Service Type',           placeholder: 'e.g. Transportation, Housekeeping' },
-    { key: 'tagline',         label: 'Tagline',                placeholder: 'A short memorable phrase (optional)' },
-    { key: 'headline',        label: 'Headline',               placeholder: 'e.g. "Now Serving Your Community!"' },
-  ]
+  const inp = 'w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
 
   return (
-    <div className="space-y-5">
-      {/* Template selector */}
-      <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Choose a Style</p>
-        <div className="grid grid-cols-4 gap-2">
-          {FLYER_TEMPLATES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTemplateId(t.id)}
-              title={t.label}
-              className={`flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                templateId === t.id
-                  ? 'border-blue-400 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-              }`}
-            >
-              <span
-                className="w-6 h-6 rounded-full flex-shrink-0"
-                style={{ background: `linear-gradient(135deg, ${t.gradientFrom}, ${t.gradientTo})` }}
-              />
-              <span className="text-[10px] text-center leading-tight">{t.label}</span>
-            </button>
-          ))}
+    <div className="space-y-6">
+      {/* ── Style pickers ─────────────────────────────────────────────── */}
+      <div className="space-y-4">
+        {/* Layout */}
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">1 · Choose a Layout</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {FLYER_LAYOUTS.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setLayoutId(l.id)}
+                className={`p-2 rounded-xl border text-left transition-all ${
+                  layoutId === l.id
+                    ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50/40'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <LayoutThumb id={l.id} theme={theme} />
+                <p className="text-xs font-bold text-gray-700 mt-1.5">{l.label}</p>
+                <p className="text-[10px] text-gray-400 leading-tight">{l.hint}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Color */}
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">2 · Choose a Color</p>
+          <div className="flex flex-wrap gap-2">
+            {FLYER_THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setThemeId(t.id)}
+                title={t.label}
+                className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border transition-all ${
+                  themeId === t.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: flyerGrad(t) }} />
+                <span className="text-xs font-semibold text-gray-600">{t.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Two-column: form + preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* ── Two-column: form + preview ────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form */}
         <div className="space-y-3">
-          {fields.map(({ key, label, placeholder }) => (
-            <div key={key}>
-              <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
-              <input
-                type="text"
-                value={data[key]}
-                onChange={(e) => update(key, e.target.value)}
-                placeholder={placeholder}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">3 · Fill in Your Details</p>
+
+          {[
+            { key: 'businessName',    label: 'Business Name',  placeholder: 'Your business name' },
+            { key: 'serviceCategory', label: 'Service Type',   placeholder: 'e.g. Transportation, Housekeeping' },
+            { key: 'tagline',         label: 'Tagline',        placeholder: 'A short memorable phrase (optional)' },
+            { key: 'headline',        label: 'Headline',       placeholder: 'e.g. "Now Serving Your Community!"' },
+          ].map((f) => (
+            <div key={f.key}>
+              <label className="text-xs font-semibold text-gray-500 block mb-1">{f.label}</label>
+              <input type="text" value={data[f.key]} onChange={(e) => update(f.key, e.target.value)} placeholder={f.placeholder} className={inp} />
             </div>
           ))}
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">
+              Key Highlights <span className="text-gray-300 font-normal">· one per line</span>
+            </label>
+            <textarea
+              value={data.highlights}
+              onChange={(e) => update('highlights', e.target.value)}
+              placeholder={'Licensed & insured\n24/7 availability\n15+ years serving seniors'}
+              rows={4}
+              className={`${inp} resize-none leading-relaxed`}
+            />
+            <p className="text-[11px] text-gray-400 mt-1">Shown as a checkmark list. Up to 5 lines.</p>
+          </div>
+
           <div>
             <label className="text-xs font-semibold text-gray-500 block mb-1">Description / Offer</label>
             <textarea
               value={data.body}
               onChange={(e) => update('body', e.target.value)}
               placeholder="Describe your services or a special offer for this community..."
-              rows={4}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              rows={3}
+              className={`${inp} resize-none`}
             />
           </div>
+
           <div>
             <label className="text-xs font-semibold text-gray-500 block mb-1">Call to Action</label>
-            <input
-              type="text"
-              value={data.cta}
-              onChange={(e) => update('cta', e.target.value)}
-              placeholder="e.g. Call Us Today"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <input type="text" value={data.cta} onChange={(e) => update('cta', e.target.value)} placeholder="e.g. Call Us Today" className={inp} />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             {[
-              { key: 'phone',   label: 'Phone',   placeholder: '(555) 000-0000', type: 'tel' },
-              { key: 'email',   label: 'Email',   placeholder: 'you@business.com', type: 'email' },
-            ].map(({ key, label, placeholder, type }) => (
-              <div key={key}>
-                <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
-                <input
-                  type={type}
-                  value={data[key]}
-                  onChange={(e) => update(key, e.target.value)}
-                  placeholder={placeholder}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              { key: 'phone', label: 'Phone', placeholder: '(555) 000-0000', type: 'tel' },
+              { key: 'email', label: 'Email', placeholder: 'you@business.com', type: 'email' },
+            ].map((f) => (
+              <div key={f.key}>
+                <label className="text-xs font-semibold text-gray-500 block mb-1">{f.label}</label>
+                <input type={f.type} value={data[f.key]} onChange={(e) => update(f.key, e.target.value)} placeholder={f.placeholder} className={inp} />
               </div>
             ))}
           </div>
+
           <div>
             <label className="text-xs font-semibold text-gray-500 block mb-1">Website (optional)</label>
-            <input
-              type="text"
-              value={data.website}
-              onChange={(e) => update('website', e.target.value)}
-              placeholder="www.yourbusiness.com"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <input type="text" value={data.website} onChange={(e) => update('website', e.target.value)} placeholder="www.yourbusiness.com" className={inp} />
           </div>
         </div>
 
         {/* Live preview */}
-        <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Live Preview</p>
-          <FlyerPreview templateId={templateId} data={data} />
+        <div className="lg:sticky lg:top-24 self-start">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Preview</p>
+            <span className="text-[10px] text-gray-400 font-medium">Exactly what prints</span>
+          </div>
+          <div className="rounded-2xl border border-gray-200 bg-gray-100 p-2 overflow-hidden">
+            <FlyerPreview html={previewHtml} />
+          </div>
         </div>
       </div>
 
-      {/* Send to communities */}
+      {/* ── Send to communities ───────────────────────────────────────── */}
       {approvedApps.length > 0 && (
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Send Flyer To</p>
@@ -678,9 +755,7 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
               <label
                 key={app.id}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border cursor-pointer transition-all ${
-                  sendTo.includes(app.communityId)
-                    ? 'bg-teal-50 border-teal-300'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                  sendTo.includes(app.communityId) ? 'bg-teal-50 border-teal-300' : 'bg-white border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <input
@@ -696,7 +771,7 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
         </div>
       )}
 
-      {/* Actions */}
+      {/* ── Actions ───────────────────────────────────────────────────── */}
       <div className="flex gap-3">
         <button
           onClick={handlePrint}
