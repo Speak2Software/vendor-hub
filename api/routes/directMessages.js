@@ -96,7 +96,7 @@ router.post('/', authenticate, async (req, res) => {
         const senderName = req.user.name || 'A vendor'
         const toEmail = community?.contactEmail || null
         // Manager deep-link: opens their dashboard with the vendor thread selected
-        const deepLinkUrl = `${APP_URL}/manager?tab=messages&vendorId=${vendorId}`
+        const deepLinkUrl = `${APP_URL}/manager/communications?tab=messages&vendorId=${vendorId}`
         for (const mgr of managers) {
           await notifyDirectMessage({ toEmail: toEmail || mgr.email, toName: mgr.name, senderName, messageBody: body.trim(), deepLinkUrl })
         }

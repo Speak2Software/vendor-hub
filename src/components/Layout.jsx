@@ -10,10 +10,11 @@ const navLinks = {
     { to: '/vendor/location',       label: 'My Location' },
   ],
   community_manager: [
-    { to: '/manager', label: 'Dashboard' },
-    { to: '/manager/vendors', label: 'My Vendors' },
-    { to: '/manager/map', label: 'Vendor Map' },
-    { to: '/manager/community', label: 'My Community' },
+    { to: '/manager',                label: 'Dashboard' },
+    { to: '/manager/communications', label: 'Communications' },
+    { to: '/manager/vendors',        label: 'My Vendors' },
+    { to: '/manager/map',            label: 'Vendor Map' },
+    { to: '/manager/community',      label: 'My Community' },
   ],
   admin: [
     { to: '/admin', label: 'Overview' },

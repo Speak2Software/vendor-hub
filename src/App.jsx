@@ -16,6 +16,7 @@ import CompanyProfile from './pages/vendor/CompanyProfile'
 import Apply from './pages/vendor/Apply'
 import VendorDashboard from './pages/vendor/VendorDashboard'
 import ManagerDashboard from './pages/manager/Dashboard'
+import ManagerCommunications from './pages/manager/Communications'
 import ApplicationDetail from './pages/manager/ApplicationDetail'
 import VendorMap from './pages/manager/VendorMap'
 import MyVendors from './pages/manager/MyVendors'
@@ -78,6 +79,9 @@ function AppRoutes() {
         {/* Community Manager */}
         <Route path="/manager" element={
           <ProtectedRoute roles={['community_manager']}><ManagerDashboard /></ProtectedRoute>
+        } />
+        <Route path="/manager/communications" element={
+          <ProtectedRoute roles={['community_manager']}><ManagerCommunications /></ProtectedRoute>
         } />
         <Route path="/manager/application/:id" element={
           <ProtectedRoute roles={['community_manager']}><ApplicationDetail /></ProtectedRoute>
