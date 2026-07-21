@@ -12,6 +12,7 @@ import {
   getReviewsForCommunity,
   haversineDistance,
 } from '../../utils/storage'
+import { normalizeLocations } from '../../utils/vendorLocations'
 import StarRating from '../../components/StarRating'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -78,8 +79,16 @@ const communityIcon = L.divIcon({
 function FlyTo({ lat, lng, zoom }) {
   const map = useMap()
   useEffect(() => {
-    map.flyTo([lat, lng], zoom, { duration: 1 })
-  }, [lat, lng, zoom])
+    if (!map || lat == null || lng == null) return
+    // Guard against the map being torn down mid-effect (React StrictMode
+    // double-invokes effects in dev, which can call flyTo on a removed map).
+    try {
+      if (!map._container) return
+      map.flyTo([lat, lng], zoom, { duration: 1 })
+    } catch {
+      /* map no longer mounted — safe to ignore */
+    }
+  }, [map, lat, lng, zoom])
   return null
 }
 
@@ -158,10 +167,12 @@ export default function VendorMap() {
 
       const enriched = vendorProfiles
         .map((vp) => {
-          const dist = haversineDistance(
-            comm.location.lat, comm.location.lng,
-            vp.location.lat, vp.location.lng,
-          )
+          const locs = normalizeLocations(vp)
+          if (!locs.length) return null
+          // Distance from the community to the vendor's NEAREST location.
+          const dist = Math.min(...locs.map((l) =>
+            haversineDistance(comm.location.lat, comm.location.lng, l.lat, l.lng)
+          ))
           const app    = appByVendor[vp.userId] || null
           const status = app ? app.status : 'none'
           return {
@@ -169,11 +180,13 @@ export default function VendorMap() {
             name:          vp.name,
             email:         vp.email,
             profile:       vp,
+            locations:     locs,
             app,
             status,
             distanceMiles: Math.round(dist * 10) / 10,
           }
         })
+        .filter(Boolean)
 
       setVendorsInRange(enriched.filter((v) => v.distanceMiles <= radius))
     }
@@ -425,11 +438,13 @@ export default function VendorMap() {
                 : makeVendorIcon(vendor.status)
               const businessName = vendor.app?.businessName || vendor.name
               const category = vendor.app?.serviceCategory || '—'
+              const locs = vendor.locations || normalizeLocations(vendor.profile)
 
-              return (
+              // One marker per business location this vendor serves from.
+              return locs.map((loc) => (
                 <Marker
-                  key={vendor.id}
-                  position={[vendor.profile.location.lat, vendor.profile.location.lng]}
+                  key={`${vendor.id}-${loc.id}`}
+                  position={[loc.lat, loc.lng]}
                   icon={icon}
                   eventHandlers={{
                     click:     () => handleSelectVendor(vendor),
@@ -441,10 +456,11 @@ export default function VendorMap() {
                     <div className="text-xs">
                       <p className="font-semibold leading-snug">{businessName}</p>
                       <p className="text-gray-500">{SERVICE_ICONS[category] || '📦'} {category}</p>
+                      {locs.length > 1 && <p className="text-gray-400">{loc.label}</p>}
                     </div>
                   </Tooltip>
                 </Marker>
-              )
+              ))
             })}
           </MapContainer>
 
@@ -556,6 +572,8 @@ function VendorDetail({ vendor, communityId, review, onClose }) {
   const meta       = STATUS_META[status] || STATUS_META.none
   const businessName = app?.businessName || vendor.name
   const category   = app?.serviceCategory || null
+  const locs       = vendor.locations || normalizeLocations(profile)
+  const maxRadius  = locs.length ? Math.max(...locs.map((l) => l.serviceRadiusMiles)) : (profile.serviceRadiusMiles || 0)
 
   return (
     <div className="flex flex-col h-full">
@@ -604,7 +622,9 @@ function VendorDetail({ vendor, communityId, review, onClose }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
           </svg>
           <p className="text-xs text-blue-700">
-            Serves up to <span className="font-semibold">{profile.serviceRadiusMiles} miles</span> from their location
+            {locs.length > 1
+              ? <>Serves from <span className="font-semibold">{locs.length} locations</span> (up to {maxRadius} mi each)</>
+              : <>Serves up to <span className="font-semibold">{maxRadius} miles</span> from their location</>}
           </p>
         </div>
 
@@ -677,7 +697,7 @@ function VendorDetail({ vendor, communityId, review, onClose }) {
             <div className="mt-3 bg-gray-50 rounded-lg px-3 py-2.5 text-left">
               <Row icon="✉️" value={vendor.email} />
               <Row icon="📍" value={`${distanceMiles} mi from your community`} />
-              <Row icon="🗺️" value={`Covers up to ${profile.serviceRadiusMiles} mi`} />
+              <Row icon="🗺️" value={locs.length > 1 ? `${locs.length} locations · up to ${maxRadius} mi` : `Covers up to ${maxRadius} mi`} />
             </div>
           </div>
         )}

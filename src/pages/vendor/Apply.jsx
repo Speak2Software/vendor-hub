@@ -5,7 +5,16 @@ import {
   getCommunities, getVendorProfile, getCompanyProfile,
   getApplicationsForVendor, getApplication, saveApplication, haversineDistance,
 } from '../../utils/storage'
+import { normalizeLocations } from '../../utils/vendorLocations'
 import { v4 as uuidv4 } from 'uuid'
+
+// Nearest distance (miles) from any of a vendor's locations to a community.
+function nearestDistance(locs, community) {
+  if (!locs.length || !community?.location) return null
+  return Math.min(...locs.map((l) =>
+    haversineDistance(l.lat, l.lng, community.location.lat, community.location.lng)
+  ))
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -68,15 +77,23 @@ export default function Apply() {
 
   // ── Visible communities (radius-filtered) ──────────────────────────────────
 
+  const locs = normalizeLocations(profile)
+
   const visible = (() => {
-    if (!profile) return allCommunities
+    if (!profile || !locs.length) return allCommunities
     const mult = RADIUS_TIERS[radiusTier]
-    const cap  = mult >= 999 ? Infinity : profile.serviceRadiusMiles * mult
     return allCommunities.filter((c) => {
       if (!c.location) return true
-      return haversineDistance(profile.location.lat, profile.location.lng, c.location.lat, c.location.lng) <= cap
+      // Visible if within (radius × tier) of ANY of the vendor's locations.
+      return locs.some((l) => {
+        const cap = mult >= 999 ? Infinity : l.serviceRadiusMiles * mult
+        return haversineDistance(l.lat, l.lng, c.location.lat, c.location.lng) <= cap
+      })
     })
   })()
+
+  const maxRadius = locs.length ? Math.max(...locs.map((l) => l.serviceRadiusMiles)) : 0
+  const locWord = locs.length > 1 ? 'your locations' : 'your location'
 
   const canExpand = radiusTier < RADIUS_TIERS.length - 1
 
@@ -344,7 +361,7 @@ export default function Apply() {
                     <p className="text-xs text-gray-400 mb-3">
                       {RADIUS_TIERS[radiusTier] >= 999
                         ? 'Showing all communities'
-                        : `Within ${Math.round(profile.serviceRadiusMiles * RADIUS_TIERS[radiusTier])} mi of your location`}
+                        : `Within ${Math.round(maxRadius * RADIUS_TIERS[radiusTier])} mi of ${locWord}`}
                     </p>
                   )}
 
@@ -359,9 +376,8 @@ export default function Apply() {
                     <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                       {visible.map((c) => {
                         const selected = communityIds.includes(c.id)
-                        const dist = profile && c.location
-                          ? Math.round(haversineDistance(profile.location.lat, profile.location.lng, c.location.lat, c.location.lng))
-                          : null
+                        const nd = nearestDistance(locs, c)
+                        const dist = nd !== null ? Math.round(nd) : null
                         const isFixed = editApp && communityIds.includes(c.id)
 
                         return (
@@ -432,7 +448,7 @@ export default function Apply() {
                     >
                       See more communities ↓
                       <span className="text-xs font-normal text-gray-400 ml-1.5">
-                        (expand to {Math.round(profile.serviceRadiusMiles * RADIUS_TIERS[radiusTier + 1])} mi)
+                        (expand to {Math.round(maxRadius * RADIUS_TIERS[radiusTier + 1])} mi)
                       </span>
                     </button>
                   )}

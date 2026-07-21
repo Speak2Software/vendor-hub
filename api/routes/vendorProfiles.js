@@ -31,6 +31,7 @@ router.get('/', authenticate, authorize('community_manager', 'admin'), async (re
           name:              u.name,
           email:             u.email,
           location:          p.location,
+          locations:         p.locations || [],
           serviceRadiusMiles: p.serviceRadiusMiles,
           logoUrl:           cp?.logoUrl || '',
           businessName:      cp?.businessName || '',
@@ -65,9 +66,17 @@ router.put('/:userId', authenticate, async (req, res) => {
     if (req.user.role === 'vendor' && req.user.id !== userId) {
       return res.status(403).json({ error: 'Forbidden' })
     }
+    const update = { ...req.body, _id: userId, updatedAt: new Date().toISOString() }
+    // Keep the legacy primary fields in sync with locations[0] so older readers
+    // (map filter, distance math) keep working.
+    if (Array.isArray(update.locations) && update.locations.length) {
+      const primary = update.locations[0]
+      update.location = { lat: primary.lat, lng: primary.lng }
+      update.serviceRadiusMiles = primary.serviceRadiusMiles
+    }
     const profile = await VendorProfile.findByIdAndUpdate(
       userId,
-      { ...req.body, _id: userId, updatedAt: new Date().toISOString() },
+      update,
       { upsert: true, new: true },
     ).lean()
     res.json(toPublic(profile))

@@ -146,7 +146,13 @@ async function run() {
 
   // ── Vendor Profiles ───────────────────────────────────────────────────────────
   const vendorProfiles = [
-    { _id: v1Id,  location: { lat: 33.4484, lng: -112.074  }, serviceRadiusMiles: 25, updatedAt: ago(44) },
+    { _id: v1Id,
+      location: { lat: 33.4484, lng: -112.074 }, serviceRadiusMiles: 25,
+      locations: [
+        { id: 'v1-main',  label: 'Phoenix HQ',  lat: 33.4484, lng: -112.074,  serviceRadiusMiles: 25 },
+        { id: 'v1-north', label: 'North Branch', lat: 33.6800, lng: -111.980, serviceRadiusMiles: 20 },
+      ],
+      updatedAt: ago(44) },
     { _id: v2Id,  location: { lat: 33.5200, lng: -112.0600 }, serviceRadiusMiles: 30, updatedAt: ago(39) },
     { _id: v3Id,  location: { lat: 32.7300, lng: -117.1500 }, serviceRadiusMiles: 40, updatedAt: ago(37) },
     { _id: v4Id,  location: { lat: 41.8700, lng: -87.6400  }, serviceRadiusMiles: 20, updatedAt: ago(34) },
