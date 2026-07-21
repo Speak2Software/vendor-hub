@@ -11,45 +11,13 @@ import {
   addApplicationNote,
   updateApplicationStatus,
 } from '../../utils/storage'
+import {
+  SERVICE_CATEGORIES as ALL_CATEGORIES,
+  SERVICE_CATEGORY_ICONS as SERVICE_ICONS,
+} from '../../utils/serviceCategories'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const ALL_CATEGORIES = [
-  'Medical / Healthcare',
-  'Transportation',
-  'Food & Nutrition Services',
-  'Housekeeping & Laundry',
-  'Maintenance & Facilities',
-  'Personal Care & Grooming',
-  'Physical / Occupational Therapy',
-  'Mental Health & Counseling',
-  'Entertainment & Activities',
-  'Technology & Telehealth',
-  'Financial Services',
-  'Legal Services',
-  'Insurance',
-  'Staffing & Workforce',
-  'Pharmacy & Medical Supplies',
-  'Other',
-]
 
-const SERVICE_ICONS = {
-  'Medical / Healthcare': '🏥',
-  'Transportation': '🚐',
-  'Food & Nutrition Services': '🍽️',
-  'Housekeeping & Laundry': '🧹',
-  'Maintenance & Facilities': '🔧',
-  'Personal Care & Grooming': '💆',
-  'Physical / Occupational Therapy': '🤸',
-  'Mental Health & Counseling': '🧠',
-  'Entertainment & Activities': '🎭',
-  'Technology & Telehealth': '💻',
-  'Financial Services': '💼',
-  'Legal Services': '⚖️',
-  'Insurance': '📋',
-  'Staffing & Workforce': '👥',
-  'Pharmacy & Medical Supplies': '💊',
-  'Other': '📦',
-}
 
 const STATUS_CFG = {
   approved: { label: 'Approved',   bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500',  border: 'border-green-200' },

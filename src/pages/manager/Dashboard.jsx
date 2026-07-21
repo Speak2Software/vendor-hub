@@ -1,31 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import StarRating from '../../components/StarRating'
+import ServiceCoverage from '../../components/ServiceCoverage'
+import { SERVICE_CATEGORY_ICONS } from '../../utils/serviceCategories'
 import { useManagerData } from '../../hooks/useManagerData'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
   })
-}
-
-const SERVICE_CATEGORY_ICONS = {
-  'Medical / Healthcare': '🏥',
-  'Transportation': '🚐',
-  'Food & Nutrition Services': '🍽️',
-  'Housekeeping & Laundry': '🧹',
-  'Maintenance & Facilities': '🔧',
-  'Personal Care & Grooming': '💆',
-  'Physical / Occupational Therapy': '🤸',
-  'Mental Health & Counseling': '🧠',
-  'Entertainment & Activities': '🎭',
-  'Technology & Telehealth': '💻',
-  'Financial Services': '💼',
-  'Legal Services': '⚖️',
-  'Insurance': '📋',
-  'Staffing & Workforce': '👥',
-  'Pharmacy & Medical Supplies': '💊',
-  'Other': '📦',
 }
 
 
@@ -147,6 +130,9 @@ export default function ManagerDashboard() {
 
       {/* ── Page body ────────────────────────────────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 py-7 space-y-7">
+
+        {/* ── Service coverage ─────────────────────────────────────────────── */}
+        <ServiceCoverage approved={approved} />
 
         {/* ── Pending applications ─────────────────────────────────────────── */}
         <section>

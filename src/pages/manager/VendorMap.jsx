@@ -13,6 +13,7 @@ import {
   haversineDistance,
 } from '../../utils/storage'
 import { normalizeLocations } from '../../utils/vendorLocations'
+import { SERVICE_CATEGORY_ICONS as SERVICE_ICONS } from '../../utils/serviceCategories'
 import StarRating from '../../components/StarRating'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -107,24 +108,6 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'none',     label: 'No Application',  dot: 'bg-indigo-400' },
 ]
 
-const SERVICE_ICONS = {
-  'Medical / Healthcare': '🏥',
-  'Transportation': '🚐',
-  'Food & Nutrition Services': '🍽️',
-  'Housekeeping & Laundry': '🧹',
-  'Maintenance & Facilities': '🔧',
-  'Personal Care & Grooming': '💆',
-  'Physical / Occupational Therapy': '🤸',
-  'Mental Health & Counseling': '🧠',
-  'Entertainment & Activities': '🎭',
-  'Technology & Telehealth': '💻',
-  'Financial Services': '💼',
-  'Legal Services': '⚖️',
-  'Insurance': '📋',
-  'Staffing & Workforce': '👥',
-  'Pharmacy & Medical Supplies': '💊',
-  'Other': '📦',
-}
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })

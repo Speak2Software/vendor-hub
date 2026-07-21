@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { SERVICE_CATEGORIES } from '../../utils/serviceCategories'
 import { getCompanyProfile, saveCompanyProfile, getApplicationsForVendor } from '../../utils/storage'
 import { uploadImage } from '../../utils/uploadImage'
 import { uploadFile }  from '../../utils/uploadFile'
@@ -9,13 +10,6 @@ import { useToast } from '../../components/Toast'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SERVICE_CATEGORIES = [
-  'Medical / Healthcare', 'Transportation', 'Food & Nutrition Services',
-  'Housekeeping & Laundry', 'Maintenance & Facilities', 'Personal Care & Grooming',
-  'Physical / Occupational Therapy', 'Mental Health & Counseling',
-  'Entertainment & Activities', 'Technology & Telehealth', 'Financial Services',
-  'Legal Services', 'Insurance', 'Staffing & Workforce', 'Pharmacy & Medical Supplies', 'Other',
-]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
