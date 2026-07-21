@@ -19,6 +19,7 @@ import ManagerDashboard from './pages/manager/Dashboard'
 import ManagerCommunications from './pages/manager/Communications'
 import ApplicationDetail from './pages/manager/ApplicationDetail'
 import VendorMap from './pages/manager/VendorMap'
+import FindVendors from './pages/manager/FindVendors'
 import MyVendors from './pages/manager/MyVendors'
 import CommunityProfile from './pages/manager/CommunityProfile'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -88,6 +89,9 @@ function AppRoutes() {
         } />
         <Route path="/manager/vendors" element={
           <ProtectedRoute roles={['community_manager']}><MyVendors /></ProtectedRoute>
+        } />
+        <Route path="/manager/find-vendors" element={
+          <ProtectedRoute roles={['community_manager']}><FindVendors /></ProtectedRoute>
         } />
         <Route path="/manager/map" element={
           <ProtectedRoute roles={['community_manager']}><VendorMap /></ProtectedRoute>

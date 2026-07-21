@@ -13,6 +13,7 @@ const navLinks = {
     { to: '/manager',                label: 'Dashboard' },
     { to: '/manager/communications', label: 'Communications' },
     { to: '/manager/vendors',        label: 'My Vendors' },
+    { to: '/manager/find-vendors',   label: 'Find Vendors' },
     { to: '/manager/map',            label: 'Vendor Map' },
     { to: '/manager/community',      label: 'My Community' },
   ],

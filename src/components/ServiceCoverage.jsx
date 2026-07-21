@@ -73,18 +73,20 @@ export default function ServiceCoverage({ approved = [] }) {
             <>
               <div className="flex flex-wrap gap-2">
                 {gaps.map((category) => (
-                  <span
+                  <Link
                     key={category}
-                    className="inline-flex items-center gap-1.5 bg-gray-50 border border-dashed border-gray-300 text-gray-400 rounded-full px-2.5 py-1.5 text-xs font-medium"
+                    to={`/manager/find-vendors?category=${encodeURIComponent(category)}`}
+                    title={`Find ${category} vendors`}
+                    className="inline-flex items-center gap-1.5 bg-gray-50 border border-dashed border-gray-300 text-gray-500 rounded-full px-2.5 py-1.5 text-xs font-medium hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   >
-                    <span className="text-sm leading-none grayscale opacity-60">{categoryIcon(category)}</span>
+                    <span className="text-sm leading-none opacity-70">{categoryIcon(category)}</span>
                     <span>{category}</span>
-                  </span>
+                  </Link>
                 ))}
               </div>
               <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100">
-                <Link to="/manager/map" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                  Find vendors near you
+                <Link to="/manager/find-vendors" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1">
+                  Search all vendors
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                   </svg>

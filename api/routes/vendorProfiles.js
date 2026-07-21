@@ -4,41 +4,43 @@ const User = require('../models/User')
 const CompanyProfile = require('../models/CompanyProfile')
 const { authenticate, authorize } = require('../middleware/auth')
 
-// GET /api/vendor-profiles — all profiles with location, joined with user name/email + logoUrl
-// Used by the Vendor Map for community managers
+// GET /api/vendor-profiles — every vendor, joined with their location + company info.
+// Drives both the Vendor Map (which ignores vendors with no location) and the
+// Find Vendors directory (which lists them all, searchable).
 router.get('/', authenticate, authorize('community_manager', 'admin'), async (req, res) => {
   try {
-    const profiles = await VendorProfile.find({
-      'location.lat': { $ne: 0 },
-      'location.lng': { $ne: 0 },
-    }).lean()
+    // Driven off vendor Users so vendors who never set a location are still findable.
+    const users = await User.find({ role: 'vendor' }).lean()
+    const ids   = users.map((u) => u._id)
 
-    const ids = profiles.map((p) => p._id)
-    const [users, companyProfiles] = await Promise.all([
-      User.find({ role: 'vendor', _id: { $in: ids } }).lean(),
+    const [profiles, companyProfiles] = await Promise.all([
+      VendorProfile.find({ _id: { $in: ids } }).lean(),
       CompanyProfile.find({ _id: { $in: ids } }).lean(),
     ])
-    const userMap    = Object.fromEntries(users.map((u) => [u._id, u]))
+    const profileMap = Object.fromEntries(profiles.map((p) => [p._id, p]))
     const companyMap = Object.fromEntries(companyProfiles.map((c) => [c._id, c]))
 
-    const result = profiles
-      .map((p) => {
-        const u = userMap[p._id]
-        if (!u) return null
-        const cp = companyMap[p._id]
-        return {
-          userId:            p._id,
-          name:              u.name,
-          email:             u.email,
-          location:          p.location,
-          locations:         p.locations || [],
-          serviceRadiusMiles: p.serviceRadiusMiles,
-          logoUrl:           cp?.logoUrl || '',
-          businessName:      cp?.businessName || '',
-          serviceCategory:   cp?.serviceCategory || '',
-        }
-      })
-      .filter(Boolean)
+    const result = users.map((u) => {
+      const p  = profileMap[u._id]
+      const cp = companyMap[u._id]
+      return {
+        userId:             u._id,
+        name:               u.name,
+        email:              u.email,
+        location:           p?.location || null,
+        locations:          p?.locations || [],
+        serviceRadiusMiles: p?.serviceRadiusMiles ?? null,
+        logoUrl:            cp?.logoUrl || '',
+        businessName:       cp?.businessName || '',
+        serviceCategory:    cp?.serviceCategory || '',
+        // Extra fields the directory searches over
+        servicesOffered:     cp?.servicesOffered || '',
+        businessDescription: cp?.businessDescription || '',
+        yearsInBusiness:     cp?.yearsInBusiness || '',
+        contactPhone:        cp?.contactPhone || '',
+        contactEmail:        cp?.contactEmail || '',
+      }
+    })
 
     res.json(result)
   } catch (err) {
