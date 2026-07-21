@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { sendBroadcast } from '../../utils/storage'
 import MessagingCenter from '../../components/MessagingCenter'
+import RecruitmentFlyerCreator from '../../components/flyer/RecruitmentFlyer'
 import { useManagerData } from '../../hooks/useManagerData'
 
 function formatDate(iso) {
@@ -12,13 +13,14 @@ function formatDate(iso) {
 }
 
 
-const COMMS_TABS = ['messages', 'broadcast']
+const COMMS_TABS = ['messages', 'broadcast', 'flyer']
 
 export default function ManagerCommunications() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const {
-    reload, approved, broadcasts, enrichedThreads, availableParties, totalUnread,
+    reload, approved, broadcasts, community,
+    enrichedThreads, availableParties, totalUnread,
   } = useManagerData(user)
 
   const requested = searchParams.get('tab')
@@ -66,6 +68,7 @@ export default function ManagerCommunications() {
   const tabs = [
     { id: 'messages',  icon: '\ud83d\udcac', label: totalUnread > 0 ? `My Messages (${totalUnread})` : 'My Messages' },
     { id: 'broadcast', icon: '\ud83d\udce2', label: 'Vendor Broadcast' },
+    { id: 'flyer',     icon: '\ud83d\udccb', label: 'Recruitment Flyer' },
   ]
 
   if (!user?.communityId) {
@@ -250,6 +253,12 @@ export default function ManagerCommunications() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Keyed on the community id so the form seeds itself once the
+                community finishes loading (its defaults come from that data). */}
+            {tab === 'flyer' && (
+              <RecruitmentFlyerCreator key={community?.id || 'loading'} community={community} />
             )}
           </div>
         </div>
