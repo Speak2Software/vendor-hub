@@ -25,6 +25,17 @@ export const SIGNUP_CONTENT_DEFAULTS = {
     testimonialName:     'James R.',
     testimonialTitle:    'Owner, BrightCare Medical Supplies',
   },
+  form: {
+    title:    'Create Your Free Account',
+    subtitle: 'Start connecting with communities in minutes',
+  },
+  trust: ['Free forever', 'No credit card', 'Cancel anytime'],
+  cta: {
+    headingLead:      'The senior care boom is here.',
+    headingHighlight: "Don't miss your window.",
+    body:             "By 2030, all Baby Boomers will be over 65. That's 73 million potential clients — and senior living communities are already scaling up to meet demand. Get your foot in the door now.",
+    buttonText:       'Join Vendor Hub Free',
+  },
 }
 
 /**
@@ -37,8 +48,14 @@ export function mergeSignupContent(stored) {
   const benefits = Array.isArray(stored.left?.benefits) && stored.left.benefits.length
     ? stored.left.benefits
     : d.left.benefits
+  const trust = Array.isArray(stored.trust) && stored.trust.length
+    ? stored.trust
+    : d.trust
   return {
     header: { ...d.header, ...(stored.header || {}) },
     left:   { ...d.left, ...(stored.left || {}), benefits },
+    form:   { ...d.form, ...(stored.form || {}) },
+    trust,
+    cta:    { ...d.cta, ...(stored.cta || {}) },
   }
 }

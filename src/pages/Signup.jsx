@@ -22,7 +22,7 @@ export default function Signup() {
     load()
   }, [])
 
-  const { header, left } = content
+  const { header, left, cta } = content
 
   function update(field) {
     return (e) => setForm({ ...form, [field]: e.target.value })
@@ -126,8 +126,8 @@ export default function Signup() {
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
             {/* Form header */}
             <div className="px-8 py-6 text-center" style={{background: 'linear-gradient(135deg, #0d3f73 0%, #1a73c8 100%)'}}>
-              <h2 className="text-xl font-extrabold text-white">Create Your Free Account</h2>
-              <p className="text-[#b3d4ed] text-sm mt-1">Start connecting with communities in minutes</p>
+              <h2 className="text-xl font-extrabold text-white">{content.form.title}</h2>
+              <p className="text-[#b3d4ed] text-sm mt-1">{content.form.subtitle}</p>
             </div>
 
             <div className="px-8 py-7">
@@ -191,26 +191,18 @@ export default function Signup() {
               </form>
 
               {/* Trust signals */}
-              <div className="mt-5 flex items-center justify-center gap-4 text-xs text-gray-400">
-                <span className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Free forever
-                </span>
-                <span className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  No credit card
-                </span>
-                <span className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Cancel anytime
-                </span>
-              </div>
+              {content.trust.length > 0 && (
+                <div className="mt-5 flex items-center justify-center gap-4 text-xs text-gray-400 flex-wrap">
+                  {content.trust.map((t, i) => (
+                    <span key={i} className="flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <p className="text-center text-sm text-gray-400 mt-4">
                 Already a member?{' '}
@@ -228,20 +220,21 @@ export default function Signup() {
       <section className="py-12" style={{background: 'linear-gradient(135deg, #1a2535 0%, #0d3f73 100%)'}}>
         <div className="max-w-2xl mx-auto px-4 text-center">
           <p className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
-            The senior care boom is here.{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
-              Don't miss your window.
-            </span>
+            {cta.headingLead}{cta.headingLead && cta.headingHighlight && ' '}
+            {cta.headingHighlight && (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
+                {cta.headingHighlight}
+              </span>
+            )}
           </p>
           <p className="text-[#b3d4ed] text-sm mb-6 max-w-lg mx-auto">
-            By 2030, all Baby Boomers will be over 65. That's 73 million potential clients — and senior
-            living communities are already scaling up to meet demand. Get your foot in the door now.
+            {cta.body}
           </p>
           <Link
             to="/signup"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-2xl text-base font-bold hover:from-yellow-300 hover:to-orange-300 transition-all shadow-lg hover:-translate-y-0.5 transform"
           >
-            Join Vendor Hub Free
+            {cta.buttonText}
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
             </svg>

@@ -40,6 +40,21 @@ export default function AdminContent() {
   function setLeft(field, value) {
     setContent((c) => ({ ...c, left: { ...c.left, [field]: value } }))
   }
+  function setForm(field, value) {
+    setContent((c) => ({ ...c, form: { ...c.form, [field]: value } }))
+  }
+  function setCta(field, value) {
+    setContent((c) => ({ ...c, cta: { ...c.cta, [field]: value } }))
+  }
+  function setTrust(i, value) {
+    setContent((c) => ({ ...c, trust: c.trust.map((t, idx) => (idx === i ? value : t)) }))
+  }
+  function addTrust() {
+    setContent((c) => ({ ...c, trust: [...c.trust, ''] }))
+  }
+  function removeTrust(i) {
+    setContent((c) => ({ ...c, trust: c.trust.filter((_, idx) => idx !== i) }))
+  }
   function setBenefit(i, field, value) {
     setContent((c) => {
       const benefits = c.left.benefits.map((b, idx) => (idx === i ? { ...b, [field]: value } : b))
@@ -56,7 +71,13 @@ export default function AdminContent() {
   async function handleSave() {
     setSaving(true)
     try {
-      await saveSiteContent('signup', { header: content.header, left: content.left })
+      await saveSiteContent('signup', {
+        header: content.header,
+        left: content.left,
+        form: content.form,
+        trust: content.trust,
+        cta: content.cta,
+      })
       toast.success('Signup content saved')
     } catch (err) {
       toast.error(err.message || 'Failed to save content')
@@ -167,6 +188,54 @@ export default function AdminContent() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ── Sign-up form card ──────────────────────────────────────────── */}
+        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-[#0d3f73] to-[#1a73c8] px-5 py-3">
+            <h2 className="text-white font-bold text-sm">Sign-up Form Card</h2>
+            <p className="text-blue-100 text-xs">Heading above the account form and the trust badges below it</p>
+          </div>
+          <div className="p-5 space-y-4">
+            <Field label="Form title" value={content.form.title} onChange={(v) => setForm('title', v)} placeholder="Create Your Free Account" />
+            <Field label="Form subtitle" value={content.form.subtitle} onChange={(v) => setForm('subtitle', v)} placeholder="Start connecting with communities in minutes" />
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-gray-600">Trust badges</label>
+                <button onClick={addTrust} className="text-xs text-[#1a73c8] font-semibold hover:underline">+ Add badge</button>
+              </div>
+              <div className="space-y-2">
+                {content.trust.map((t, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input type="text" value={t} onChange={(e) => setTrust(i, e.target.value)} placeholder="e.g. Free forever" className={inp} />
+                    <button onClick={() => removeTrust(i)} title="Remove badge" className="text-gray-400 hover:text-red-500 p-1 rounded hover:bg-red-50 flex-shrink-0">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+                {content.trust.length === 0 && <p className="text-xs text-gray-400 italic px-1">No badges — add one above.</p>}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Bottom CTA strip ───────────────────────────────────────────── */}
+        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-[#0d3f73] to-[#1a73c8] px-5 py-3">
+            <h2 className="text-white font-bold text-sm">Bottom Call-to-Action</h2>
+            <p className="text-blue-100 text-xs">The dark banner at the very bottom of the page</p>
+          </div>
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Heading — start" value={content.cta.headingLead} onChange={(v) => setCta('headingLead', v)} placeholder="The senior care boom is here." />
+              <Field label="Heading — highlight" hint="Shown in the gold gradient" value={content.cta.headingHighlight} onChange={(v) => setCta('headingHighlight', v)} placeholder="Don't miss your window." />
+            </div>
+            <Field label="Body" textarea rows={3} value={content.cta.body} onChange={(v) => setCta('body', v)} />
+            <Field label="Button text" value={content.cta.buttonText} onChange={(v) => setCta('buttonText', v)} placeholder="Join Vendor Hub Free" />
           </div>
         </section>
 
