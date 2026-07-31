@@ -1,29 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-
-const BENEFITS = [
-  {
-    emoji: '💰',
-    title: '$4.3 Trillion Market',
-    desc: 'Senior care is one of the fastest-growing industries in the U.S. — and the wealthiest generation is driving it.',
-  },
-  {
-    emoji: '📈',
-    title: 'Recurring Revenue',
-    desc: 'Community contracts mean predictable, repeat business — not one-time jobs. Build a stable client base.',
-  },
-  {
-    emoji: '🤝',
-    title: 'Pre-Qualified Leads',
-    desc: 'Every community in our network is actively looking for vendors like you. No cold calling. No guessing.',
-  },
-  {
-    emoji: '🏆',
-    title: 'Stand Out From Competitors',
-    desc: 'Verified vendor status signals trust and credibility — giving you a leg up on competitors not in our network.',
-  },
-]
+import { getSiteContent } from '../utils/storage'
+import { SIGNUP_CONTENT_DEFAULTS, mergeSignupContent } from '../utils/signupContent'
 
 
 export default function Signup() {
@@ -32,6 +11,18 @@ export default function Signup() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Admin-managed marketing copy, defaulting to the built-in text until loaded.
+  const [content, setContent] = useState(SIGNUP_CONTENT_DEFAULTS)
+  useEffect(() => {
+    async function load() {
+      const stored = await getSiteContent('signup').catch(() => null)
+      if (stored) setContent(mergeSignupContent(stored))
+    }
+    load()
+  }, [])
+
+  const { header, left } = content
 
   function update(field) {
     return (e) => setForm({ ...form, [field]: e.target.value })
@@ -61,20 +52,23 @@ export default function Signup() {
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-12 w-64 h-64 bg-[#4a96d4]/20 rounded-full blur-3xl" />
         <div className="relative max-w-3xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-widest uppercase">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Free to join — always
-          </div>
+          {header.badge && (
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-widest uppercase">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {header.badge}
+            </div>
+          )}
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight">
-            Tap Into a{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
-              $4.3 Trillion
-            </span>{' '}
-            Market
+            {header.titleLine1}{header.titleLine1 && ' '}
+            {header.titleHighlight && (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
+                {header.titleHighlight}
+              </span>
+            )}
+            {header.titleLine2 && ' '}{header.titleLine2}
           </h1>
           <p className="mt-4 text-[#b3d4ed] text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-            The 65+ population controls over <strong className="text-white">70% of U.S. disposable income</strong>.
-            Senior living communities need trusted vendors — and Vendor Hub puts you in front of them.
+            {header.subtitle}
           </p>
         </div>
       </section>
@@ -84,21 +78,21 @@ export default function Signup() {
 
         {/* Left: benefits */}
         <div>
-          <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
-            Why vendors choose us
-          </span>
+          {left.eyebrow && (
+            <span className="inline-block bg-[#deeef9] text-[#1a73c8] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
+              {left.eyebrow}
+            </span>
+          )}
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 leading-snug">
-            The smartest business decision you'll make this year
+            {left.heading}
           </h2>
           <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-            Senior living communities represent a stable, growing, and high-value client base. Our platform
-            removes the friction of finding and landing those contracts — so you can focus on delivering
-            great service.
+            {left.description}
           </p>
 
           <div className="space-y-5">
-            {BENEFITS.map((b) => (
-              <div key={b.title} className="flex gap-4 items-start">
+            {left.benefits.map((b, i) => (
+              <div key={i} className="flex gap-4 items-start">
                 <div className="w-12 h-12 rounded-2xl bg-[#f0f7fd] flex items-center justify-center text-2xl flex-shrink-0 shadow-sm border border-[#deeef9]">
                   {b.emoji}
                 </div>
@@ -111,19 +105,20 @@ export default function Signup() {
           </div>
 
           {/* Testimonial-style pull quote */}
-          <div className="mt-10 bg-[#f0f7fd] border border-[#deeef9] rounded-2xl p-5">
-            <p className="text-sm text-gray-700 leading-relaxed italic">
-              "We landed three long-term contracts within 60 days of joining Vendor Hub.
-              The senior care market is consistent, well-funded, and our best source of recurring revenue."
-            </p>
-            <div className="flex items-center gap-2 mt-3">
-              <div className="w-8 h-8 rounded-full bg-[#deeef9] flex items-center justify-center text-xs font-bold text-[#1a73c8]">JR</div>
-              <div>
-                <p className="text-xs font-bold text-gray-800">James R.</p>
-                <p className="text-xs text-gray-500">Owner, BrightCare Medical Supplies</p>
+          {left.testimonialQuote && (
+            <div className="mt-10 bg-[#f0f7fd] border border-[#deeef9] rounded-2xl p-5">
+              <p className="text-sm text-gray-700 leading-relaxed italic">
+                "{left.testimonialQuote}"
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="w-8 h-8 rounded-full bg-[#deeef9] flex items-center justify-center text-xs font-bold text-[#1a73c8]">{left.testimonialInitials}</div>
+                <div>
+                  <p className="text-xs font-bold text-gray-800">{left.testimonialName}</p>
+                  <p className="text-xs text-gray-500">{left.testimonialTitle}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right: sign-up form */}

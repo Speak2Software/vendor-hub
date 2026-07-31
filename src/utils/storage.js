@@ -97,6 +97,15 @@ export async function saveVendorProfile(profile) {
   return apiPut(`/api/vendor-profiles/${profile.userId}`, profile)
 }
 
+// ── Site content (editable marketing copy) ──────────────────────────────────────
+export async function getSiteContent(key) {
+  return apiGet(`/api/site-content/${key}`)
+}
+
+export async function saveSiteContent(key, content) {
+  return apiPut(`/api/site-content/${key}`, content)
+}
+
 // ── Applications ──────────────────────────────────────────────────────────────
 export async function getApplications() {
   return apiGet('/api/applications')

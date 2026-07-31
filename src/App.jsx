@@ -26,6 +26,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import CommunitiesAdmin from './pages/admin/Communities'
 import ManagersAdmin from './pages/admin/Managers'
 import VendorsAdmin from './pages/admin/Vendors'
+import AdminContent from './pages/admin/Content'
 
 function RoleRedirect() {
   const { user, loading } = useAuth()
@@ -112,6 +113,9 @@ function AppRoutes() {
         } />
         <Route path="/admin/vendors" element={
           <ProtectedRoute roles={['admin']}><VendorsAdmin /></ProtectedRoute>
+        } />
+        <Route path="/admin/content" element={
+          <ProtectedRoute roles={['admin']}><AdminContent /></ProtectedRoute>
         } />
 
         <Route path="*" element={<Navigate to="/" replace />} />

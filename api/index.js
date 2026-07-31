@@ -23,6 +23,7 @@ const reviewRoutes          = require('./routes/reviews')
 const messageRoutes         = require('./routes/messages')
 const directMessageRoutes   = require('./routes/directMessages')
 const broadcastRoutes       = require('./routes/broadcasts')
+const siteContentRoutes     = require('./routes/siteContent')
 
 const app = express()
 
@@ -56,6 +57,7 @@ app.use('/api/reviews',          reviewRoutes)
 app.use('/api/messages',         messageRoutes)
 app.use('/api/direct-messages',  directMessageRoutes)
 app.use('/api/broadcasts',       broadcastRoutes)
+app.use('/api/site-content',     siteContentRoutes)
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ ok: true }))
