@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { getCommunity, saveCommunity } from '../../utils/storage'
+import { getCommunity, saveCommunity, getApplicationsForCommunity } from '../../utils/storage'
 import { uploadImage } from '../../utils/uploadImage'
 import { formatPhone } from '../../utils/formatPhone'
 import { useToast } from '../../components/Toast'
+import ServiceCoverage from '../../components/ServiceCoverage'
 
 const CARE_LEVEL_OPTIONS = [
   'Independent Living',
@@ -39,6 +40,7 @@ export default function CommunityProfile() {
   const { user } = useAuth()
   const toast = useToast()
   const [community, setCommunity] = useState(null)
+  const [approved, setApproved] = useState([])
   const [form, setForm] = useState({
     name: '', address: '', description: '', size: '',
     careLevels: [],
@@ -56,7 +58,11 @@ export default function CommunityProfile() {
   useEffect(() => {
     async function load() {
       if (!user?.communityId) return
-      const c = await getCommunity(user.communityId)
+      const [c, apps] = await Promise.all([
+        getCommunity(user.communityId),
+        getApplicationsForCommunity(user.communityId).catch(() => []),
+      ])
+      setApproved(apps.filter((a) => a.status === 'approved'))
       if (c) {
         setCommunity(c)
         setForm({
@@ -233,6 +239,11 @@ export default function CommunityProfile() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Service coverage ─────────────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto px-4 pt-7">
+        <ServiceCoverage approved={approved} />
       </div>
 
       {/* ── Form ─────────────────────────────────────────────────────────────── */}

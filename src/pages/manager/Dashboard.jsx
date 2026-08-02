@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import StarRating from '../../components/StarRating'
-import ServiceCoverage from '../../components/ServiceCoverage'
 import { SERVICE_CATEGORY_ICONS } from '../../utils/serviceCategories'
 import { useManagerData } from '../../hooks/useManagerData'
 
@@ -130,9 +129,6 @@ export default function ManagerDashboard() {
 
       {/* ── Page body ────────────────────────────────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 py-7 space-y-7">
-
-        {/* ── Service coverage ─────────────────────────────────────────────── */}
-        <ServiceCoverage approved={approved} />
 
         {/* ── Pending applications ─────────────────────────────────────────── */}
         <section>
