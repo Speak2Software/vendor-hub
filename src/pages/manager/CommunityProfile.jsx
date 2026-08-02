@@ -171,7 +171,7 @@ export default function CommunityProfile() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-teal-600">
+      <div className="bg-gradient-to-br from-[#0d3f73] via-[#135aa0] to-[#1a73c8]">
         <div className="max-w-3xl mx-auto px-4 pt-7 pb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">

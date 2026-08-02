@@ -36,7 +36,7 @@ export default function ManagerDashboard() {
     <div className="bg-gray-50 min-h-screen">
 
       {/* ── Hero banner ──────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-teal-600">
+      <div className="bg-gradient-to-br from-[#0d3f73] via-[#135aa0] to-[#1a73c8]">
         <div className="max-w-4xl mx-auto px-4 pt-7 pb-8">
           {/* Header row */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
