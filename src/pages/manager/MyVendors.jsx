@@ -684,7 +684,7 @@ export default function MyVendors() {
     <div className="bg-gray-50 min-h-screen">
 
       {/* ── Hero banner ──────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-[#0d3f73] via-[#135aa0] to-[#1a73c8]">
+      <div className="bg-gradient-to-b from-[#0d3f73] via-[#135aa0] to-[#1a73c8]">
         <div className="max-w-4xl mx-auto px-4 pt-7 pb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-7">
             <div>
