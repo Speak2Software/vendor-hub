@@ -17,18 +17,26 @@ const FROM    = process.env.MAIL_FROM || 'Vendor Hub <noreply@speak2vendors.com>
 const APP_URL = process.env.APP_URL   || 'https://www.speak2vendors.com'
 
 // ── Internal helper ───────────────────────────────────────────────────────────
-async function send({ to, subject, html }) {
+async function send({ to, subject, html, replyTo }) {
   if (!process.env.RESEND_API_KEY) {
     console.error('[mailer] RESEND_API_KEY is not set — skipping email to', to)
-    return
+    return { ok: false, reason: 'no_api_key' }
   }
   if (!resend) resend = new Resend(process.env.RESEND_API_KEY)
   try {
     console.error('[mailer] Sending email to', to, '| subject:', subject)
-    const result = await resend.emails.send({ from: FROM, to, subject, html })
+    const payload = { from: FROM, to, subject, html }
+    if (replyTo) payload.replyTo = replyTo
+    const result = await resend.emails.send(payload)
+    if (result?.error) {
+      console.error('[mailer] Resend error to', to, result.error)
+      return { ok: false, reason: result.error?.message || 'send_failed' }
+    }
     console.error('[mailer] Email sent OK to', to, '| id:', result?.data?.id || result?.id)
+    return { ok: true }
   } catch (err) {
     console.error('[mailer] Failed to send email to', to, err?.message, err?.response?.data)
+    return { ok: false, reason: err?.message || 'send_failed' }
   }
 }
 
@@ -154,4 +162,19 @@ async function notifyVendorEmail({ toEmail, toName, vendorName, subject, body })
   })
 }
 
-module.exports = { notifyDirectMessage, notifyBroadcast, notifyVendorEmail }
+/**
+ * Sent when a community manager invites a vendor from the Find Vendors page.
+ * The HTML body is a pre-built (email-safe) recruitment flyer; the subject is
+ * manager-authored. Replies route back to the community's contact email.
+ *
+ * @param {object} opts
+ * @param {string} opts.toEmail   - vendor's email
+ * @param {string} opts.subject   - manager-authored subject line
+ * @param {string} opts.html      - the flyer HTML (email body)
+ * @param {string} [opts.replyTo] - community contact email
+ */
+async function sendVendorInvite({ toEmail, subject, html, replyTo }) {
+  return send({ to: toEmail, subject, html, replyTo })
+}
+
+module.exports = { notifyDirectMessage, notifyBroadcast, notifyVendorEmail, sendVendorInvite }

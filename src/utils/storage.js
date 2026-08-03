@@ -97,6 +97,11 @@ export async function saveVendorProfile(profile) {
   return apiPut(`/api/vendor-profiles/${profile.userId}`, profile)
 }
 
+// ── Vendor invites ──────────────────────────────────────────────────────────────
+export async function inviteVendor({ vendorId, subject, html }) {
+  return apiPost('/api/vendor-invites', { vendorId, subject, html })
+}
+
 // ── Site content (editable marketing copy) ──────────────────────────────────────
 export async function getSiteContent(key) {
   return apiGet(`/api/site-content/${key}`)

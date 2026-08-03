@@ -6,6 +6,7 @@ import {
 } from '../../utils/storage'
 import { normalizeLocations } from '../../utils/vendorLocations'
 import { SERVICE_CATEGORIES, categoryIcon } from '../../utils/serviceCategories'
+import InviteVendorModal from './InviteVendorModal'
 
 const STATUS_META = {
   approved: { label: 'Approved',        badge: 'bg-emerald-100 text-emerald-700' },
@@ -43,6 +44,7 @@ export default function FindVendors() {
   const [category, setCategory]       = useState(searchParams.get('category') || '')
   const [maxDistance, setMaxDistance] = useState('any')
   const [status, setStatus]           = useState('all')
+  const [invitee, setInvitee]         = useState(null)
 
   // A category arriving in the URL means the manager came from a coverage gap.
   const fromCoverage = Boolean(searchParams.get('category'))
@@ -284,15 +286,26 @@ export default function FindVendors() {
                       </div>
                     </div>
 
-                    {/* Link through to the full application when there is one */}
-                    {v.app && (
-                      <Link
-                        to={`/manager/application/${v.app.id}`}
-                        className="text-xs font-semibold text-blue-600 hover:underline flex-shrink-0 whitespace-nowrap"
+                    {/* Actions */}
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => setInvitee(v)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#1a73c8] hover:bg-[#135aa0] px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
                       >
-                        View →
-                      </Link>
-                    )}
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                        </svg>
+                        Invite
+                      </button>
+                      {v.app && (
+                        <Link
+                          to={`/manager/application/${v.app.id}`}
+                          className="text-xs font-semibold text-blue-600 hover:underline whitespace-nowrap"
+                        >
+                          View →
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
@@ -307,6 +320,14 @@ export default function FindVendors() {
           </Link>
         </div>
       </div>
+
+      {invitee && (
+        <InviteVendorModal
+          vendor={invitee}
+          community={community}
+          onClose={() => setInvitee(null)}
+        />
+      )}
     </div>
   )
 }

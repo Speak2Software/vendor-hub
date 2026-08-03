@@ -24,6 +24,7 @@ const messageRoutes         = require('./routes/messages')
 const directMessageRoutes   = require('./routes/directMessages')
 const broadcastRoutes       = require('./routes/broadcasts')
 const siteContentRoutes     = require('./routes/siteContent')
+const vendorInviteRoutes    = require('./routes/vendorInvites')
 
 const app = express()
 
@@ -58,6 +59,7 @@ app.use('/api/messages',         messageRoutes)
 app.use('/api/direct-messages',  directMessageRoutes)
 app.use('/api/broadcasts',       broadcastRoutes)
 app.use('/api/site-content',     siteContentRoutes)
+app.use('/api/vendor-invites',   vendorInviteRoutes)
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ ok: true }))
