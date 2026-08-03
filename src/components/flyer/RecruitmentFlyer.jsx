@@ -83,7 +83,7 @@ export function buildRecruitmentFlyerHTML(layoutId, theme, data, { autoPrint = f
       ).join('')}</div>`
     : ''
   const contactsBlock = hasContacts ? `<div class="contacts">${contacts}</div>` : ''
-  const footer = `<div class="footer">Powered by Vendor Hub · speak2vendors.com</div>`
+  const footer = `<div class="footer">Powered by Speak2 · speak2vendors.com</div>`
 
   let body
   if (layoutId === 'modern') {

@@ -98,7 +98,7 @@ export function buildInviteEmailHTML({ community = {}, applyUrl = 'https://www.s
 
         <!-- Footer -->
         <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;padding:14px 28px;text-align:center">
-          <div style="font-size:11px;color:#9ca3af">Powered by Vendor Hub · speak2vendors.com</div>
+          <div style="font-size:11px;color:#9ca3af">Powered by Speak2 · speak2vendors.com</div>
         </td></tr>
 
       </table>
