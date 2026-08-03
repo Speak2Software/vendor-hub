@@ -1,8 +1,13 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import StarRating from '../../components/StarRating'
 import { SERVICE_CATEGORY_ICONS } from '../../utils/serviceCategories'
 import { useManagerData } from '../../hooks/useManagerData'
+import { printFlyer } from '../../components/flyer/FlyerKit'
+import { buildRecruitmentFlyerHTML, defaultRecruitmentData } from '../../components/flyer/RecruitmentFlyer'
+import { FLYER_THEMES } from '../../components/flyer/FlyerKit'
+import { buildVendorListHTML } from '../../utils/printVendorList'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -14,10 +19,21 @@ function formatDate(iso) {
 export default function ManagerDashboard() {
   const { user } = useAuth()
   const {
-    community, approved, pending, denied, reviewByApp, totalUnread,
+    community, applications, approved, pending, denied, reviewByApp, totalUnread,
   } = useManagerData(user)
 
+  const [vendorScope, setVendorScope] = useState('approved') // 'approved' | 'all'
+
   const firstName = user?.name?.split(' ')[0] || 'Manager'
+
+  function handlePrintVendors() {
+    const list = vendorScope === 'approved' ? approved : applications
+    printFlyer(buildVendorListHTML(community, list, vendorScope))
+  }
+
+  function handlePrintFlyer() {
+    printFlyer(buildRecruitmentFlyerHTML('classic', FLYER_THEMES[0], defaultRecruitmentData(community), { autoPrint: true }))
+  }
 
   if (!user?.communityId) {
     return (
@@ -129,6 +145,91 @@ export default function ManagerDashboard() {
 
       {/* ── Page body ────────────────────────────────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 py-7 space-y-7">
+
+        {/* ── Quick actions ────────────────────────────────────────────────── */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Print Vendors */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handlePrintVendors}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePrintVendors() } }}
+            className="group cursor-pointer rounded-2xl p-5 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-[#1a73c8] to-[#0d3f73] flex flex-col"
+          >
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                </svg>
+              </div>
+              <svg className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+            <p className="mt-4 text-lg font-extrabold leading-tight">Print Vendors</p>
+            <p className="text-sm text-white/80 leading-snug mt-0.5">Printable contact list for your records</p>
+            <div
+              className="mt-auto pt-3 inline-flex self-start rounded-lg bg-white/15 p-0.5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {[['approved', 'Approved'], ['all', 'All']].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={(e) => { e.stopPropagation(); setVendorScope(val) }}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
+                    vendorScope === val ? 'bg-white text-[#0d3f73]' : 'text-white/80 hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Print Flyer */}
+          <button
+            onClick={handlePrintFlyer}
+            className="group text-left rounded-2xl p-5 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-emerald-500 to-emerald-700 flex flex-col"
+          >
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+              </div>
+              <svg className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+            <p className="mt-4 text-lg font-extrabold leading-tight">Print Flyer</p>
+            <p className="text-sm text-white/80 leading-snug mt-0.5">Recruitment flyer to display or hand out</p>
+          </button>
+
+          {/* Messages */}
+          <Link
+            to="/manager/communications"
+            className="group relative rounded-2xl p-5 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-amber-500 to-orange-600 flex flex-col"
+          >
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                </svg>
+              </div>
+              {totalUnread > 0 && (
+                <span className="min-w-[26px] h-[26px] px-1.5 rounded-full bg-white text-orange-600 text-sm font-black flex items-center justify-center shadow">
+                  {totalUnread}
+                </span>
+              )}
+            </div>
+            <p className="mt-4 text-lg font-extrabold leading-tight">Messages</p>
+            <p className="text-sm text-white/80 leading-snug mt-0.5">
+              {totalUnread > 0
+                ? `${totalUnread} unread message${totalUnread === 1 ? '' : 's'} waiting`
+                : 'You’re all caught up'}
+            </p>
+          </Link>
+        </section>
 
         {/* ── Pending applications ─────────────────────────────────────────── */}
         <section>

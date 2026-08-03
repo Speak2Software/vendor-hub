@@ -120,10 +120,10 @@ const DEFAULT_STEPS = [
   'Submit your application to our community for review',
 ].join('\n')
 
-export default function RecruitmentFlyerCreator({ community }) {
-  const [layoutId, setLayoutId] = useState('classic')
-  const [themeId, setThemeId]   = useState('ocean')
-  const [data, setData] = useState({
+// Default flyer content derived from a community — shared by the Communications
+// creator and the dashboard's one-click "Print Flyer".
+export function defaultRecruitmentData(community) {
+  return {
     eyebrow:       'Now Accepting Vendor Partners',
     communityName: community?.name || '',
     address:       community?.address || '',
@@ -138,7 +138,13 @@ export default function RecruitmentFlyerCreator({ community }) {
     website:       '',
     logoUrl:       community?.logoUrl || '',
     showLogo:      Boolean(community?.logoUrl),
-  })
+  }
+}
+
+export default function RecruitmentFlyerCreator({ community }) {
+  const [layoutId, setLayoutId] = useState('classic')
+  const [themeId, setThemeId]   = useState('ocean')
+  const [data, setData] = useState(() => defaultRecruitmentData(community))
 
   const theme = FLYER_THEMES.find((t) => t.id === themeId) || FLYER_THEMES[0]
 
