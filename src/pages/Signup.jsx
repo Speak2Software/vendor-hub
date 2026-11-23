@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getSiteContent } from '../utils/storage'
 import { SIGNUP_CONTENT_DEFAULTS, mergeSignupContent } from '../utils/signupContent'
+import { PASSWORD_RULES, passwordChecks, validatePassword } from '../utils/passwordRules'
 
 
 export default function Signup() {
@@ -28,11 +29,14 @@ export default function Signup() {
     return (e) => setForm({ ...form, [field]: e.target.value })
   }
 
+  const pwChecks = passwordChecks(form.password)
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    const pw = validatePassword(form.password)
+    if (!pw.valid) { setError(pw.error); return }
     if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
     setLoading(true)
     try {
       await signup({ name: form.name, email: form.email, password: form.password })
@@ -166,8 +170,30 @@ export default function Signup() {
                     value={form.password}
                     onChange={update('password')}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a73c8] focus:border-transparent bg-gray-50 placeholder-gray-400"
-                    placeholder="Min. 6 characters"
+                    placeholder="Create a password"
                   />
+                  {/* Live requirement checklist */}
+                  {form.password.length > 0 && (
+                    <ul className="mt-2 grid grid-cols-1 gap-1">
+                      {PASSWORD_RULES.map((rule) => {
+                        const ok = pwChecks[rule.key]
+                        return (
+                          <li key={rule.key} className={`flex items-center gap-1.5 text-xs ${ok ? 'text-emerald-600' : 'text-gray-400'}`}>
+                            {ok ? (
+                              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                              </svg>
+                            ) : (
+                              <span className="w-3.5 h-3.5 flex-shrink-0 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                              </span>
+                            )}
+                            {rule.label}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Confirm Password</label>

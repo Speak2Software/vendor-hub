@@ -2,6 +2,7 @@ const router = require('express').Router()
 const jwt = require('jsonwebtoken')
 const { v4: uuidv4 } = require('uuid')
 const User = require('../models/User')
+const { validatePassword } = require('../utils/passwordRules')
 
 function signToken(user) {
   return jwt.sign(
@@ -36,6 +37,9 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role = 'vendor' } = req.body
     if (!name || !email || !password) return res.status(400).json({ error: 'name, email, and password are required' })
+
+    const pw = validatePassword(password)
+    if (!pw.valid) return res.status(400).json({ error: pw.error })
 
     const existing = await User.findOne({ email: email.toLowerCase() })
     if (existing) return res.status(409).json({ error: 'Email already in use' })
