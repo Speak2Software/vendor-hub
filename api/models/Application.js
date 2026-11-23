@@ -56,6 +56,7 @@ const applicationSchema = new mongoose.Schema(
     reference2Company:     { type: String, default: '' },
     reference2Phone:       { type: String, default: '' },
 
+    source:        { type: String, default: '' }, // e.g. 'qr-referral' when auto-applied via a community QR
     notes:         { type: [noteSchema],   default: [] },
     statusHistory: { type: [historySchema], default: [] },
   },

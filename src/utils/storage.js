@@ -97,6 +97,15 @@ export async function saveVendorProfile(profile) {
   return apiPut(`/api/vendor-profiles/${profile.userId}`, profile)
 }
 
+// ── Community sign-up referral ───────────────────────────────────────────────────
+export async function getCommunityPublic(id) {
+  return apiGet(`/api/communities/${id}/public`)
+}
+
+export async function applyReferral(communityId) {
+  return apiPost('/api/applications/referral', { communityId })
+}
+
 // ── Vendor invites ──────────────────────────────────────────────────────────────
 export async function inviteVendor({ vendorId, subject, html }) {
   return apiPost('/api/vendor-invites', { vendorId, subject, html })

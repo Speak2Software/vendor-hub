@@ -20,10 +20,14 @@ export function defaultInviteSubject(community) {
  * @param {object} opts.community  - the manager's community (name, address, logoUrl)
  * @param {string} [opts.applyUrl] - where the QR / button points (signup)
  */
-export function buildInviteEmailHTML({ community = {}, applyUrl = 'https://www.speak2vendors.com/signup' } = {}) {
+export function buildInviteEmailHTML({ community = {}, applyUrl } = {}) {
   const name = esc(community.name || 'Our Community')
   const address = community.address ? esc(community.address) : ''
-  const url = String(applyUrl).trim()
+  // Default to a community-specific link so sign-ups auto-apply to this community.
+  const defaultUrl = community.id
+    ? `https://www.speak2vendors.com/signup?c=${community.id}`
+    : 'https://www.speak2vendors.com/signup'
+  const url = String(applyUrl || defaultUrl).trim()
   const qr = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&color=${NAVY.replace('#', '')}&bgcolor=ffffff&data=${encodeURIComponent(url)}`
 
   const logoCell = community.logoUrl

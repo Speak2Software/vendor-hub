@@ -2,8 +2,14 @@ const router = require('express').Router()
 const { v4: uuidv4 } = require('uuid')
 const Application = require('../models/Application')
 const VendorProfile = require('../models/VendorProfile')
+const CompanyProfile = require('../models/CompanyProfile')
+const Community = require('../models/Community')
+const User = require('../models/User')
 const { authenticate, authorize } = require('../middleware/auth')
 const { geocodeAddress } = require('../utils/geocode')
+const { businessFieldsFromProfile } = require('../utils/applicationFromProfile')
+
+const ACTIVE_STATUSES = ['pending', 'approved'] // block duplicate applies to these
 
 // GET /api/applications?vendorId=&communityId=
 router.get('/', authenticate, async (req, res) => {
@@ -42,6 +48,48 @@ router.get('/:id', authenticate, async (req, res) => {
 })
 
 // POST /api/applications — vendors only
+// POST /api/applications/referral — auto-apply a vendor to a community after they
+// signed up via that community's QR code / link. Creates a thin pending application
+// (business details fill in later when the vendor completes their company profile).
+router.post('/referral', authenticate, authorize('vendor'), async (req, res) => {
+  try {
+    const { communityId } = req.body
+    if (!communityId) return res.status(400).json({ error: 'communityId is required' })
+
+    const community = await Community.findById(communityId).lean()
+    if (!community) return res.status(404).json({ error: 'Community not found' })
+
+    // Don't duplicate an existing active application.
+    const existing = await Application.findOne({
+      vendorId: req.user.id, communityId, status: { $in: ACTIVE_STATUSES },
+    }).lean()
+    if (existing) return res.status(200).json({ ...toPublic(existing), alreadyApplied: true })
+
+    const [cp, user] = await Promise.all([
+      CompanyProfile.findById(req.user.id).lean(),
+      User.findById(req.user.id).lean(),
+    ])
+
+    const now = new Date().toISOString()
+    const app = await Application.create({
+      _id: uuidv4(),
+      vendorId: req.user.id,
+      communityId,
+      ...businessFieldsFromProfile(cp, user),
+      servicesOffered: cp?.servicesOffered || '',
+      personalNote: '',
+      source: 'qr-referral',
+      status: 'pending',
+      submittedAt: now,
+      statusHistory: [{ status: 'pending', timestamp: now, note: 'Signed up via community QR code.' }],
+    })
+    res.status(201).json(toPublic(app.toObject()))
+  } catch (err) {
+    console.error('[applications/referral]', err?.message)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 router.post('/', authenticate, authorize('vendor'), async (req, res) => {
   try {
     const id = uuidv4()

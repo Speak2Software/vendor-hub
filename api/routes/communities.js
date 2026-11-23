@@ -14,6 +14,18 @@ router.get('/', authenticate, async (req, res) => {
   }
 })
 
+// GET /api/communities/:id/public — PUBLIC minimal info for the signup page
+// (so a logged-out visitor arriving from a community QR sees who they're joining).
+router.get('/:id/public', async (req, res) => {
+  try {
+    const c = await Community.findById(req.params.id).lean()
+    if (!c) return res.status(404).json({ error: 'Community not found' })
+    res.json({ id: c._id, name: c.name, logoUrl: c.logoUrl || '' })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // GET /api/communities/:id
 router.get('/:id', authenticate, async (req, res) => {
   try {

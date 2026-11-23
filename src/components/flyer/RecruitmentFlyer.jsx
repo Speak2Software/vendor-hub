@@ -132,7 +132,10 @@ export function defaultRecruitmentData(community) {
     highlights:    '',
     steps:         DEFAULT_STEPS,
     cta:           'Scan to Apply',
-    applyUrl:      'https://www.speak2vendors.com/signup',
+    // Community-specific link: scanning the QR and signing up auto-applies to this community.
+    applyUrl:      community?.id
+      ? `https://www.speak2vendors.com/signup?c=${community.id}`
+      : 'https://www.speak2vendors.com/signup',
     phone:         community?.showPhone ? (community?.contactPhone || '') : '',
     email:         community?.showEmail ? (community?.contactEmail || '') : '',
     website:       '',

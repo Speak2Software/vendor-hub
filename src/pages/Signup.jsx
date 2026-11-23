@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getSiteContent } from '../utils/storage'
+import { getSiteContent, getCommunityPublic, applyReferral } from '../utils/storage'
 import { SIGNUP_CONTENT_DEFAULTS, mergeSignupContent } from '../utils/signupContent'
 import { PASSWORD_RULES, passwordChecks, validatePassword } from '../utils/passwordRules'
 
@@ -9,9 +9,19 @@ import { PASSWORD_RULES, passwordChecks, validatePassword } from '../utils/passw
 export default function Signup() {
   const { signup } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Community referral: arriving via a community's QR code / link (?c=<id>) means
+  // the new vendor should be auto-applied to that community on sign-up.
+  const referralId = searchParams.get('c')
+  const [refCommunity, setRefCommunity] = useState(null)
+  useEffect(() => {
+    if (!referralId) return
+    getCommunityPublic(referralId).then(setRefCommunity).catch(() => setRefCommunity(null))
+  }, [referralId])
 
   // Admin-managed marketing copy, defaulting to the built-in text until loaded.
   const [content, setContent] = useState(SIGNUP_CONTENT_DEFAULTS)
@@ -40,6 +50,10 @@ export default function Signup() {
     setLoading(true)
     try {
       await signup({ name: form.name, email: form.email, password: form.password })
+      // Auto-apply to the referring community (best-effort — never blocks signup).
+      if (referralId) {
+        await applyReferral(referralId).catch(() => {})
+      }
       navigate('/vendor', { replace: true })
     } catch (err) {
       setError(err.message)
@@ -135,6 +149,16 @@ export default function Signup() {
             </div>
 
             <div className="px-8 py-7">
+              {refCommunity && (
+                <div className="mb-4 bg-[#eef6fd] border border-[#b3d4ed] rounded-xl px-3 py-2.5 flex items-center gap-2.5">
+                  {refCommunity.logoUrl
+                    ? <img src={refCommunity.logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain bg-white flex-shrink-0" />
+                    : <span className="text-lg flex-shrink-0">🏘️</span>}
+                  <p className="text-xs text-[#0d3f73] leading-snug">
+                    You'll be applied to <span className="font-bold">{refCommunity.name}</span> as soon as you create your account.
+                  </p>
+                </div>
+              )}
               {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-700">{error}</div>
               )}
