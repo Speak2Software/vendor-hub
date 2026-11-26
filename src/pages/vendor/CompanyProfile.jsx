@@ -7,6 +7,7 @@ import { uploadImage } from '../../utils/uploadImage'
 import { uploadFile }  from '../../utils/uploadFile'
 import { formatPhone } from '../../utils/formatPhone'
 import { useToast } from '../../components/Toast'
+import PageLoader from '../../components/PageLoader'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ export default function CompanyProfile() {
   const [logoPreview, setLogoPreview] = useState(null)
   const [uploading, setUploading]     = useState(false)
   const [uploadError, setUploadError] = useState(null)
+  const [loaded, setLoaded]           = useState(false)
   const fileInputRef = useRef(null)
 
   // ── Testimonials state ────────────────────────────────────────────────────
@@ -145,6 +147,7 @@ export default function CompanyProfile() {
           setForm((f) => ({ ...f, contactName: user.name || '', contactEmail: user.email || '' }))
         }
       }
+      setLoaded(true)
     }
     load()
   }, [user.id])
@@ -282,6 +285,8 @@ export default function CompanyProfile() {
   const isComplete = pct === 100
 
   const errBorder = (f) => errors[f] ? 'border-red-300 ring-1 ring-red-300' : ''
+
+  if (!loaded) return <PageLoader label="Loading your profile…" />
 
   return (
     <div className="bg-gray-50 min-h-screen">

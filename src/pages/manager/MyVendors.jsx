@@ -15,6 +15,7 @@ import {
   SERVICE_CATEGORIES as ALL_CATEGORIES,
   SERVICE_CATEGORY_ICONS as SERVICE_ICONS,
 } from '../../utils/serviceCategories'
+import PageLoader from '../../components/PageLoader'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -597,9 +598,10 @@ export default function MyVendors() {
   const [search, setSearch] = useState('')
   const [expandedId, setExpandedId] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [loaded, setLoaded] = useState(false)
 
   async function load() {
-    if (!user?.communityId) return
+    if (!user?.communityId) { setLoaded(true); return }
     const [comm, apps, revs, vendorProfiles] = await Promise.all([
       getCommunity(user.communityId),
       getApplicationsForCommunity(user.communityId),
@@ -613,6 +615,7 @@ export default function MyVendors() {
     const logoMap = {}
     vendorProfiles.forEach((vp) => { if (vp.logoUrl) logoMap[vp.userId] = vp.logoUrl })
     setLogoByVendor(logoMap)
+    setLoaded(true)
   }
 
   useEffect(() => { load() }, [user?.communityId])
@@ -679,6 +682,8 @@ export default function MyVendors() {
       </div>
     )
   }
+
+  if (!loaded) return <PageLoader label="Loading vendors…" />
 
   return (
     <div className="bg-gray-50 min-h-screen">

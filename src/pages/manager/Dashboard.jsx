@@ -5,11 +5,12 @@ import { useManagerData } from '../../hooks/useManagerData'
 import { printFlyer, FLYER_THEMES } from '../../components/flyer/FlyerKit'
 import { buildRecruitmentFlyerHTML, defaultRecruitmentData } from '../../components/flyer/RecruitmentFlyer'
 import { buildVendorListHTML } from '../../utils/printVendorList'
+import PageLoader from '../../components/PageLoader'
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
   const {
-    community, applications, approved, pending, denied, totalUnread,
+    loaded, community, applications, approved, pending, denied, totalUnread,
   } = useManagerData(user)
 
   const [vendorScope, setVendorScope] = useState('approved') // 'approved' | 'all'
@@ -35,6 +36,8 @@ export default function ManagerDashboard() {
       </div>
     )
   }
+
+  if (!loaded) return <PageLoader label="Loading your dashboard…" />
 
   const stats = [
     { value: approved.length, label: 'Approved',     dot: 'bg-emerald-400' },

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getUsers, getCommunities, createUser, updateUser } from '../../utils/storage'
 import { useToast } from '../../components/Toast'
+import PageLoader from '../../components/PageLoader'
 
 const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 
@@ -17,12 +18,14 @@ export default function ManagersAdmin() {
   const [form, setForm] = useState({ name: '', email: '', password: '', communityId: '' })
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [loaded, setLoaded] = useState(false)
   const initialForm = useRef('')
 
   async function reload() {
     const [usrs, comms] = await Promise.all([getUsers(), getCommunities()])
     setManagers(usrs.filter((u) => u.role === 'community_manager'))
     setCommunities(comms)
+    setLoaded(true)
   }
 
   useEffect(() => { reload() }, [])
@@ -86,6 +89,8 @@ export default function ManagersAdmin() {
         [m.name, m.email, communityMap[m.communityId]?.name]
           .some((v) => v?.toLowerCase().includes(q)))
     : managers
+
+  if (!loaded) return <PageLoader label="Loading managers…" />
 
   return (
     <div className="max-w-4xl mx-auto p-4 py-6">

@@ -6,6 +6,7 @@ import { uploadImage } from '../../utils/uploadImage'
 import { geocodeAddress } from '../../utils/geocode'
 import { formatPhone } from '../../utils/formatPhone'
 import { useToast } from '../../components/Toast'
+import PageLoader from '../../components/PageLoader'
 
 const communityIcon = L.divIcon({
   className: '',
@@ -79,6 +80,7 @@ export default function CommunitiesAdmin() {
   const [logoFile, setLogoFile] = useState(null)
   const [logoPreview, setLogoPreview] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const logoInputRef = useRef()
   const [geoStatus, setGeoStatus] = useState('idle') // idle | loading | found | notfound
   const lastGeocoded = useRef('')
@@ -88,6 +90,7 @@ export default function CommunitiesAdmin() {
     const [comms, usrs] = await Promise.all([getCommunities(), getUsers()])
     setCommunities(comms)
     setManagers(usrs.filter((u) => u.role === 'community_manager'))
+    setLoaded(true)
   }
 
   useEffect(() => { reload() }, [])
@@ -192,6 +195,8 @@ export default function CommunitiesAdmin() {
     setDeleteConfirm(null)
     await reload()
   }
+
+  if (!loaded) return <PageLoader label="Loading communities…" />
 
   if (editing !== null) {
     return (

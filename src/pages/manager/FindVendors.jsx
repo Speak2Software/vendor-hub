@@ -7,6 +7,7 @@ import {
 import { normalizeLocations } from '../../utils/vendorLocations'
 import { SERVICE_CATEGORIES, categoryIcon } from '../../utils/serviceCategories'
 import InviteVendorModal from './InviteVendorModal'
+import PageLoader from '../../components/PageLoader'
 
 const STATUS_META = {
   approved: { label: 'Approved',        badge: 'bg-emerald-100 text-emerald-700' },
@@ -139,6 +140,8 @@ export default function FindVendors() {
       </div>
     )
   }
+
+  if (!loaded) return <PageLoader label="Loading vendors…" />
 
   const selectCls = 'border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a73c8]'
 

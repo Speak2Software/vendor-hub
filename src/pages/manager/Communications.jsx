@@ -5,6 +5,7 @@ import { sendBroadcast } from '../../utils/storage'
 import MessagingCenter from '../../components/MessagingCenter'
 import RecruitmentFlyerCreator from '../../components/flyer/RecruitmentFlyer'
 import { useManagerData } from '../../hooks/useManagerData'
+import PageLoader from '../../components/PageLoader'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -19,7 +20,7 @@ export default function ManagerCommunications() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const {
-    reload, approved, broadcasts, community,
+    loaded, reload, approved, broadcasts, community,
     enrichedThreads, availableParties, totalUnread,
   } = useManagerData(user)
 
@@ -87,6 +88,8 @@ export default function ManagerCommunications() {
       </div>
     )
   }
+
+  if (!loaded) return <PageLoader label="Loading communications…" />
 
   return (
     <div className="bg-gray-50 min-h-screen">

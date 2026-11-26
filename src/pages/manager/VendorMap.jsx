@@ -15,6 +15,7 @@ import {
 import { normalizeLocations } from '../../utils/vendorLocations'
 import { SERVICE_CATEGORY_ICONS as SERVICE_ICONS } from '../../utils/serviceCategories'
 import StarRating from '../../components/StarRating'
+import PageLoader from '../../components/PageLoader'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 function makeVendorIcon(status) {
@@ -125,6 +126,7 @@ export default function VendorMap() {
   const [selectedVendor, setSelectedVendor] = useState(null)
   const [hoveredId,      setHoveredId]      = useState(null)
   const [panelOpen,      setPanelOpen]      = useState(false)
+  const [loaded,         setLoaded]         = useState(false)
 
   // ── Filter state ─────────────────────────────────────────────────────────
   const [statusFilter,     setStatusFilter]     = useState('all')       // 'all' | 'approved' | 'pending' | 'none'
@@ -135,10 +137,10 @@ export default function VendorMap() {
   // ── Data loading ─────────────────────────────────────────────────────────
   useEffect(() => {
     async function load() {
-      if (!user?.communityId) return
+      if (!user?.communityId) { setLoaded(true); return }
       const comm = await getCommunity(user.communityId)
       setCommunity(comm)
-      if (!comm?.location) return
+      if (!comm?.location) { setLoaded(true); return }
 
       const [applications, vendorProfiles, revs] = await Promise.all([
         getApplicationsForCommunity(user.communityId),
@@ -172,6 +174,7 @@ export default function VendorMap() {
         .filter(Boolean)
 
       setVendorsInRange(enriched.filter((v) => v.distanceMiles <= radius))
+      setLoaded(true)
     }
     load()
   }, [user?.communityId, radius])
@@ -238,6 +241,8 @@ export default function VendorMap() {
       </div>
     )
   }
+
+  if (!loaded) return <PageLoader label="Loading vendor map…" />
 
   if (community && !community.location) {
     return (

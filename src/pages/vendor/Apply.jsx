@@ -6,6 +6,7 @@ import {
   getApplicationsForVendor, getApplication, saveApplication, haversineDistance,
 } from '../../utils/storage'
 import { normalizeLocations } from '../../utils/vendorLocations'
+import PageLoader from '../../components/PageLoader'
 import { v4 as uuidv4 } from 'uuid'
 
 // Nearest distance (miles) from any of a vendor's locations to a community.
@@ -50,6 +51,7 @@ export default function Apply() {
   const [companyProfile, setCompany]    = useState(null)
   const [allCommunities, setAll]        = useState([])
   const [editApp, setEditApp]           = useState(null)
+  const [loaded, setLoaded]             = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -71,6 +73,7 @@ export default function Apply() {
           setNote('')
         }
       }
+      setLoaded(true)
     }
     load()
   }, [user.id, editId])
@@ -197,6 +200,8 @@ export default function Apply() {
     setCount(newApps.length)
     setSubmitted(true)
   }
+
+  if (!loaded) return <PageLoader label="Loading…" />
 
   // ── No company profile guard ───────────────────────────────────────────────
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getApplicationsForVendor, getCommunity, revokeApplication } from '../../utils/storage'
+import PageLoader from '../../components/PageLoader'
 
 const statusConfig = {
   pending:  { label: 'Pending Review', bg: 'bg-amber-100',  text: 'text-amber-800',  dot: 'bg-amber-400' },
@@ -19,6 +20,7 @@ export default function VendorDashboard() {
   const navigate = useNavigate()
   const [apps, setApps] = useState([])
   const [confirmRevokeId, setConfirmRevokeId] = useState(null)
+  const [loaded, setLoaded] = useState(false)
 
   async function load() {
     const raw = await getApplicationsForVendor(user.id)
@@ -26,9 +28,12 @@ export default function VendorDashboard() {
       raw.map(async (a) => ({ ...a, community: await getCommunity(a.communityId) })),
     )
     setApps(enriched.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
+    setLoaded(true)
   }
 
   useEffect(() => { load() }, [user.id])
+
+  if (!loaded) return <PageLoader label="Loading your applications…" />
 
   async function handleRevoke(id) {
     await revokeApplication(id)

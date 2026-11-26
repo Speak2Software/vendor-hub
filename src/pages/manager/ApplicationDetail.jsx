@@ -8,6 +8,7 @@ import {
   getCommunity,
   getCompanyProfile,
 } from '../../utils/storage'
+import PageLoader from '../../components/PageLoader'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -80,7 +81,7 @@ export default function ApplicationDetail() {
     setActionNote('')
   }
 
-  if (!app) return null
+  if (!app) return <PageLoader label="Loading application…" />
 
   const cfg = statusConfig[app.status] || statusConfig.pending
 

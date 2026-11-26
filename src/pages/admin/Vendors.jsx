@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getUsers, getApplications, getCommunities, getReviewsForVendor } from '../../utils/storage'
 import StarRating from '../../components/StarRating'
+import PageLoader from '../../components/PageLoader'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -18,6 +19,7 @@ export default function VendorsAdmin() {
   const [communities, setCommunities] = useState([])
   const [reviewsByVendor, setReviewsByVendor] = useState({})
   const [search, setSearch] = useState('')
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -30,6 +32,7 @@ export default function VendorsAdmin() {
       const reviewResults = await Promise.all(vendorList.map((v) => getReviewsForVendor(v.id)))
       const byVendor = Object.fromEntries(vendorList.map((v, i) => [v.id, reviewResults[i]]))
       setReviewsByVendor(byVendor)
+      setLoaded(true)
     }
     load()
   }, [])
@@ -43,6 +46,8 @@ export default function VendorsAdmin() {
         return [v.name, v.email, ...businessNames].some((s) => s?.toLowerCase().includes(q))
       })
     : vendors
+
+  if (!loaded) return <PageLoader label="Loading vendors…" />
 
   return (
     <div className="max-w-4xl mx-auto p-4 py-6">

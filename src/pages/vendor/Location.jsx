@@ -7,6 +7,7 @@ import { getVendorProfile, saveVendorProfile, getCommunities, haversineDistance 
 import { geocodeAddress } from '../../utils/geocode'
 import { normalizeLocations, newLocationId } from '../../utils/vendorLocations'
 import { useToast } from '../../components/Toast'
+import PageLoader from '../../components/PageLoader'
 
 const activeIcon = L.divIcon({
   className: '',
@@ -73,6 +74,7 @@ export default function VendorLocation() {
   const [communities, setCommunities] = useState([])
   const [nearbyCommunities, setNearbyCommunities] = useState([])
   const [isNewVendor, setIsNewVendor] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   const [addrQuery, setAddrQuery] = useState('')
   const [addrStatus, setAddrStatus] = useState('idle') // idle | loading | found | notfound
@@ -99,6 +101,7 @@ export default function VendorLocation() {
         requestGeo(first.id)
       }
       setCommunities(comms)
+      setLoaded(true)
     }
     load()
   }, [user.id])
@@ -197,6 +200,8 @@ export default function VendorLocation() {
   }
 
   const center = active || DEFAULT_CENTER
+
+  if (!loaded) return <PageLoader label="Loading your locations…" />
 
   return (
     <div className="bg-gray-50 min-h-screen">

@@ -6,6 +6,7 @@ import { uploadImage } from '../../utils/uploadImage'
 import { formatPhone } from '../../utils/formatPhone'
 import { useToast } from '../../components/Toast'
 import ServiceCoverage from '../../components/ServiceCoverage'
+import PageLoader from '../../components/PageLoader'
 
 const CARE_LEVEL_OPTIONS = [
   'Independent Living',
@@ -53,16 +54,18 @@ export default function CommunityProfile() {
   const [logoPreview, setLogoPreview] = useState(null)
   const [uploading, setUploading]     = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [loaded, setLoaded] = useState(false)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
     async function load() {
-      if (!user?.communityId) return
+      if (!user?.communityId) { setLoaded(true); return }
       const [c, apps] = await Promise.all([
         getCommunity(user.communityId),
         getApplicationsForCommunity(user.communityId).catch(() => []),
       ])
       setApproved(apps.filter((a) => a.status === 'approved'))
+      setLoaded(true)
       if (c) {
         setCommunity(c)
         setForm({
@@ -173,6 +176,8 @@ export default function CommunityProfile() {
       </div>
     )
   }
+
+  if (!loaded) return <PageLoader label="Loading your community…" />
 
   return (
     <div className="bg-gray-50 min-h-screen">
