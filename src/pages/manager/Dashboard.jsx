@@ -1,38 +1,27 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import StarRating from '../../components/StarRating'
-import { SERVICE_CATEGORY_ICONS } from '../../utils/serviceCategories'
 import { useManagerData } from '../../hooks/useManagerData'
-import { printFlyer } from '../../components/flyer/FlyerKit'
+import { printFlyer, FLYER_THEMES } from '../../components/flyer/FlyerKit'
 import { buildRecruitmentFlyerHTML, defaultRecruitmentData } from '../../components/flyer/RecruitmentFlyer'
-import { FLYER_THEMES } from '../../components/flyer/FlyerKit'
 import { buildVendorListHTML } from '../../utils/printVendorList'
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
-  })
-}
-
 
 export default function ManagerDashboard() {
   const { user } = useAuth()
   const {
-    community, applications, approved, pending, denied, reviewByApp, totalUnread,
+    community, applications, approved, pending, denied, totalUnread,
   } = useManagerData(user)
 
   const [vendorScope, setVendorScope] = useState('approved') // 'approved' | 'all'
 
   const firstName = user?.name?.split(' ')[0] || 'Manager'
 
+  function handlePrintFlyer() {
+    printFlyer(buildRecruitmentFlyerHTML('classic', FLYER_THEMES[0], defaultRecruitmentData(community), { autoPrint: true }))
+  }
+
   function handlePrintVendors() {
     const list = vendorScope === 'approved' ? approved : applications
     printFlyer(buildVendorListHTML(community, list, vendorScope))
-  }
-
-  function handlePrintFlyer() {
-    printFlyer(buildRecruitmentFlyerHTML('classic', FLYER_THEMES[0], defaultRecruitmentData(community), { autoPrint: true }))
   }
 
   if (!user?.communityId) {
@@ -46,17 +35,22 @@ export default function ManagerDashboard() {
     )
   }
 
+  const stats = [
+    { value: approved.length, label: 'Approved',     dot: 'bg-emerald-400' },
+    { value: pending.length,  label: 'Pending',      dot: 'bg-amber-400' },
+    { value: denied.length,   label: 'Not approved', dot: 'bg-rose-400' },
+    { value: totalUnread,     label: 'Unread',       dot: 'bg-sky-300' },
+  ]
 
   return (
     <div className="bg-gray-50 min-h-screen">
 
-      {/* ── Hero banner ──────────────────────────────────────────────────────── */}
+      {/* ── Hero: community details + compact stat box ───────────────────────── */}
       <div className="bg-gradient-to-b from-[#0d3f73] via-[#135aa0] to-[#1a73c8]">
         <div className="max-w-4xl mx-auto px-4 pt-7 pb-8">
-          {/* Header row */}
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
-            <div className="flex items-center gap-4">
-              {/* Community icon */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            {/* Community info */}
+            <div className="flex items-center gap-4 min-w-0">
               <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0">
                 {community?.logoUrl ? (
                   <img src={community.logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover" />
@@ -66,118 +60,97 @@ export default function ManagerDashboard() {
                   </svg>
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-0.5">
                   {firstName}'s Dashboard
                 </p>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight truncate">
                   {community?.name || 'My Community'}
                 </h1>
                 {community?.address && (
-                  <p className="text-blue-200 text-xs mt-0.5">{community.address}</p>
+                  <p className="text-blue-200 text-xs mt-0.5 truncate">{community.address}</p>
+                )}
+                {community?.careLevels?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {community.careLevels.map((cl) => (
+                      <span key={cl} className="text-[11px] font-medium bg-white/15 text-white px-2 py-0.5 rounded-full border border-white/20">
+                        {cl}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              <Link
-                to="/manager/communications"
-                className="relative flex items-center gap-1.5 bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                </svg>
-                Messages
-                {totalUnread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-amber-400 rounded-full text-[10px] font-black text-white flex items-center justify-center">
-                    {totalUnread}
-                  </span>
-                )}
-              </Link>
-              <Link
-                to="/manager/community"
-                className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-              >
-                Edit Profile
-              </Link>
-              <Link
-                to="/manager/vendors"
-                className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-              >
-                My Vendors
-              </Link>
-            </div>
-          </div>
 
-          {/* Care levels */}
-          {community?.careLevels?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-6">
-              {community.careLevels.map((cl) => (
-                <span key={cl} className="text-xs font-medium bg-white/15 text-white px-2.5 py-1 rounded-full border border-white/20">
-                  {cl}
-                </span>
+            {/* Compact stat box */}
+            <div className="bg-white/10 ring-1 ring-white/20 rounded-2xl px-4 py-3.5 grid grid-cols-2 gap-x-6 gap-y-3.5 flex-shrink-0 self-start sm:self-center">
+              {stats.map((s) => (
+                <div key={s.label} className="flex items-center gap-2.5">
+                  <span className={`w-2.5 h-2.5 rounded-full ${s.dot} flex-shrink-0`} />
+                  <div className="leading-none">
+                    <div className="text-xl font-extrabold text-white tabular-nums">{s.value}</div>
+                    <div className="text-[11px] text-blue-100 mt-1 whitespace-nowrap">{s.label}</div>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-
-          {/* Stat tiles */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { icon: '✅', label: 'Approved Vendors', value: approved.length, bg: 'bg-emerald-500/20', ring: 'ring-emerald-400/40' },
-              { icon: '⏳', label: 'Pending Review',   value: pending.length,  bg: 'bg-amber-500/20',   ring: 'ring-amber-400/40', badge: pending.length > 0 },
-              { icon: '🚫', label: 'Not Approved',     value: denied.length,   bg: 'bg-white/10',       ring: 'ring-white/20' },
-            ].map((s) => (
-              <div key={s.label} className={`${s.bg} ring-1 ${s.ring} rounded-2xl px-4 py-4 backdrop-blur-sm relative`}>
-                {s.badge && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full text-[10px] font-black text-white flex items-center justify-center">
-                    !
-                  </span>
-                )}
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-extrabold text-white">{s.value}</span>
-                  <span className="text-lg">{s.icon}</span>
-                </div>
-                <p className="text-xs text-blue-100 mt-1 leading-snug">{s.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
-      {/* ── Page body ────────────────────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-4 py-7 space-y-7">
+      {/* ── Primary actions ──────────────────────────────────────────────────── */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-        {/* ── Quick actions ────────────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Print Vendors */}
+          {/* Print My Flyer */}
+          <button
+            onClick={handlePrintFlyer}
+            className="group text-left rounded-3xl p-6 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-[#1a73c8] to-[#0d3f73] flex flex-col"
+          >
+            <div className="flex items-start justify-between">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                </svg>
+              </div>
+              <svg className="w-6 h-6 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+            <p className="mt-5 text-xl font-extrabold leading-tight">Print My Flyer</p>
+            <p className="text-sm text-white/80 leading-snug mt-1">Recruitment flyer to display or hand out to vendors</p>
+          </button>
+
+          {/* Print Vendor List */}
           <div
             role="button"
             tabIndex={0}
             onClick={handlePrintVendors}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePrintVendors() } }}
-            className="group cursor-pointer rounded-2xl p-5 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-[#1a73c8] to-[#0d3f73] flex flex-col"
+            className="group cursor-pointer rounded-3xl p-6 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-emerald-500 to-emerald-700 flex flex-col"
           >
             <div className="flex items-start justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                 </svg>
               </div>
-              <svg className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-6 h-6 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
             </div>
-            <p className="mt-4 text-lg font-extrabold leading-tight">Print Vendors</p>
-            <p className="text-sm text-white/80 leading-snug mt-0.5">Printable contact list for your records</p>
+            <p className="mt-5 text-xl font-extrabold leading-tight">Print Vendor List</p>
+            <p className="text-sm text-white/80 leading-snug mt-1">Printable contact list for your records</p>
             <div
-              className="mt-auto pt-3 inline-flex self-start rounded-lg bg-white/15 p-0.5"
+              className="mt-auto pt-4 inline-flex self-start rounded-lg bg-white/15 p-0.5"
               onClick={(e) => e.stopPropagation()}
             >
               {[['approved', 'Approved'], ['all', 'All']].map(([val, label]) => (
                 <button
                   key={val}
                   onClick={(e) => { e.stopPropagation(); setVendorScope(val) }}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
-                    vendorScope === val ? 'bg-white text-[#0d3f73]' : 'text-white/80 hover:text-white'
+                  className={`px-3.5 py-1 rounded-md text-xs font-bold transition-colors ${
+                    vendorScope === val ? 'bg-white text-emerald-700' : 'text-white/80 hover:text-white'
                   }`}
                 >
                   {label}
@@ -186,190 +159,7 @@ export default function ManagerDashboard() {
             </div>
           </div>
 
-          {/* Print Flyer */}
-          <button
-            onClick={handlePrintFlyer}
-            className="group text-left rounded-2xl p-5 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-emerald-500 to-emerald-700 flex flex-col"
-          >
-            <div className="flex items-start justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                </svg>
-              </div>
-              <svg className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </div>
-            <p className="mt-4 text-lg font-extrabold leading-tight">Print Flyer</p>
-            <p className="text-sm text-white/80 leading-snug mt-0.5">Recruitment flyer to display or hand out</p>
-          </button>
-
-          {/* Messages */}
-          <Link
-            to="/manager/communications"
-            className="group relative rounded-2xl p-5 text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-br from-amber-500 to-orange-600 flex flex-col"
-          >
-            <div className="flex items-start justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                </svg>
-              </div>
-              {totalUnread > 0 && (
-                <span className="min-w-[26px] h-[26px] px-1.5 rounded-full bg-white text-orange-600 text-sm font-black flex items-center justify-center shadow">
-                  {totalUnread}
-                </span>
-              )}
-            </div>
-            <p className="mt-4 text-lg font-extrabold leading-tight">Messages</p>
-            <p className="text-sm text-white/80 leading-snug mt-0.5">
-              {totalUnread > 0
-                ? `${totalUnread} unread message${totalUnread === 1 ? '' : 's'} waiting`
-                : 'You’re all caught up'}
-            </p>
-          </Link>
-        </section>
-
-        {/* ── Pending applications ─────────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
-              Pending Applications
-              {pending.length > 0 && (
-                <span className="inline-flex items-center justify-center w-5 h-5 bg-amber-500 text-white text-xs font-black rounded-full">
-                  {pending.length}
-                </span>
-              )}
-            </h2>
-            {pending.length > 0 && (
-              <Link to="/manager/vendors" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                View all
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </Link>
-            )}
-          </div>
-
-          {pending.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-10 text-center">
-              <p className="text-2xl mb-2">🎉</p>
-              <p className="text-sm font-semibold text-gray-600">All caught up!</p>
-              <p className="text-xs text-gray-400 mt-1">No pending applications to review.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {pending.map((app) => (
-                <Link
-                  key={app.id}
-                  to={`/manager/application/${app.id}`}
-                  className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:border-amber-300 hover:shadow-md transition-all group"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0 text-xl">
-                    {SERVICE_CATEGORY_ICONS[app.serviceCategory] || '📦'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{app.businessName}</p>
-                    <p className="text-xs text-gray-500 truncate">{app.serviceCategory} · {app.contactName}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Submitted {formatDate(app.submittedAt)}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2.5 py-1 rounded-full">Review →</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ── Approved vendors grid ─────────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-800">Approved Vendors</h2>
-            {approved.length > 0 && (
-              <Link to="/manager/vendors" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1">
-                Manage all
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </Link>
-            )}
-          </div>
-
-          {approved.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-10 text-center">
-              <p className="text-2xl mb-2">🤝</p>
-              <p className="text-sm font-semibold text-gray-600">No approved vendors yet</p>
-              <p className="text-xs text-gray-400 mt-1">Approve vendor applications to build your partner network.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {approved.map((app) => {
-                const lastApproved = app.statusHistory?.findLast?.((h) => h.status === 'approved')
-                return (
-                  <Link
-                    key={app.id}
-                    to={`/manager/application/${app.id}`}
-                    className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all group overflow-hidden"
-                  >
-                    <div className="h-1 bg-gradient-to-r from-emerald-400 to-teal-500" />
-                    <div className="p-4 flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0 text-lg">
-                        {SERVICE_CATEGORY_ICONS[app.serviceCategory] || '📦'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{app.businessName}</p>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 flex-shrink-0">
-                            ✓ Approved
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{app.serviceCategory}</p>
-                        <p className="text-xs text-gray-400">{app.contactPhone}</p>
-                        {reviewByApp[app.id]?.rating > 0 && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <StarRating rating={reviewByApp[app.id].rating} />
-                            <span className="text-[11px] text-amber-600 font-medium">{reviewByApp[app.id].rating}/5</span>
-                          </div>
-                        )}
-                        {lastApproved && (
-                          <p className="text-xs text-gray-400 mt-1">Since {formatDate(lastApproved.timestamp)}</p>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* ── Denied ────────────────────────────────────────────────────────── */}
-        {denied.length > 0 && (
-          <section>
-            <h2 className="text-base font-bold text-gray-800 mb-4">Denied Applications</h2>
-            <div className="space-y-2">
-              {denied.map((app) => (
-                <Link
-                  key={app.id}
-                  to={`/manager/application/${app.id}`}
-                  className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:border-red-200 hover:shadow-md transition-all opacity-70 group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0 text-lg">
-                    {SERVICE_CATEGORY_ICONS[app.serviceCategory] || '📦'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{app.businessName}</p>
-                    <p className="text-xs text-gray-500 truncate">{app.serviceCategory}</p>
-                  </div>
-                  <span className="text-xs bg-red-100 text-red-700 font-semibold px-2.5 py-1 rounded-full flex-shrink-0">Denied</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
+        </div>
       </div>
     </div>
   )
