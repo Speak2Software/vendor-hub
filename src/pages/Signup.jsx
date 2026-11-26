@@ -280,15 +280,22 @@ export default function Signup() {
           <p className="text-[#b3d4ed] text-sm mb-6 max-w-lg mx-auto">
             {cta.body}
           </p>
-          <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-2xl text-base font-bold hover:from-yellow-300 hover:to-orange-300 transition-all shadow-lg hover:-translate-y-0.5 transform"
-          >
-            {cta.buttonText}
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-            </svg>
-          </Link>
+          {(() => {
+            const btnUrl = cta.buttonUrl || '/signup'
+            const btnClass = 'inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-2xl text-base font-bold hover:from-yellow-300 hover:to-orange-300 transition-all shadow-lg hover:-translate-y-0.5 transform'
+            const inner = (
+              <>
+                {cta.buttonText}
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </>
+            )
+            // External links (http/https) open in a new tab; internal paths use the router.
+            return /^https?:\/\//i.test(btnUrl)
+              ? <a href={btnUrl} target="_blank" rel="noreferrer" className={btnClass}>{inner}</a>
+              : <Link to={btnUrl} className={btnClass}>{inner}</Link>
+          })()}
         </div>
       </section>
 

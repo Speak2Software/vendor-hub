@@ -35,6 +35,7 @@ export const SIGNUP_CONTENT_DEFAULTS = {
     headingHighlight: "Don't miss your window.",
     body:             "By 2030, all Baby Boomers will be over 65. That's 73 million potential clients — and senior living communities are already scaling up to meet demand. Get your foot in the door now.",
     buttonText:       'Join Vendor Hub Free',
+    buttonUrl:        '/signup',
   },
 }
 

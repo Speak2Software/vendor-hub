@@ -235,7 +235,10 @@ export default function AdminContent() {
               <Field label="Heading — highlight" hint="Shown in the gold gradient" value={content.cta.headingHighlight} onChange={(v) => setCta('headingHighlight', v)} placeholder="Don't miss your window." />
             </div>
             <Field label="Body" textarea rows={3} value={content.cta.body} onChange={(v) => setCta('body', v)} />
-            <Field label="Button text" value={content.cta.buttonText} onChange={(v) => setCta('buttonText', v)} placeholder="Join Vendor Hub Free" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Button text" value={content.cta.buttonText} onChange={(v) => setCta('buttonText', v)} placeholder="Join Vendor Hub Free" />
+              <Field label="Button URL" hint="Where the button links. Use /signup for the sign-up page, or a full https:// link." value={content.cta.buttonUrl} onChange={(v) => setCta('buttonUrl', v)} placeholder="/signup" />
+            </div>
           </div>
         </section>
 
