@@ -641,8 +641,8 @@ export default function MyVendors() {
     [approved]
   )
 
-  const missingCategories = useMemo(() =>
-    ALL_CATEGORIES.filter(c => !approvedCategories.includes(c)).slice(0, 6),
+  const missingCount = useMemo(() =>
+    ALL_CATEGORIES.filter(c => !approvedCategories.includes(c)).length,
     [approvedCategories]
   )
 
@@ -702,64 +702,62 @@ export default function MyVendors() {
             </div>
           </div>
 
-          {/* ── Summary tiles ────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { icon: '✅', label: 'Approved',       value: approved.length,  bg: 'bg-emerald-500/20', ring: 'ring-emerald-400/40', sub: `${approvedCategories.length} categor${approvedCategories.length === 1 ? 'y' : 'ies'} covered` },
-              { icon: '⏳', label: 'Pending Review', value: pending.length,   bg: 'bg-amber-500/20',   ring: 'ring-amber-400/40',   sub: pending.length > 0 ? 'Needs attention' : 'All clear' },
-              { icon: '📬', label: 'New this month', value: newThisMonth,     bg: 'bg-white/10',       ring: 'ring-white/20',        sub: 'Applications received' },
-              { icon: '🚫', label: 'Not approved',   value: denied.length,    bg: 'bg-white/10',       ring: 'ring-white/20',        sub: 'Total denied' },
-            ].map((s) => (
-              <div key={s.label} className={`${s.bg} ring-1 ${s.ring} rounded-2xl px-4 py-4 backdrop-blur-sm`}>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-extrabold text-white">{s.value}</span>
-                  <span className="text-lg">{s.icon}</span>
+          {/* ── Compact stats + coverage ─────────────────────────────────────── */}
+          <div className="bg-white/10 ring-1 ring-white/20 rounded-2xl backdrop-blur-sm overflow-hidden">
+            {/* Stat strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/10">
+              {[
+                { label: 'Approved',       value: approved.length, dot: 'bg-emerald-400' },
+                { label: 'Pending',        value: pending.length,  dot: 'bg-amber-400' },
+                { label: 'New this month', value: newThisMonth,    dot: 'bg-sky-300' },
+                { label: 'Not approved',   value: denied.length,   dot: 'bg-rose-400' },
+              ].map((s) => (
+                <div key={s.label} className="flex items-center gap-2.5 px-4 py-3">
+                  <span className={`w-2.5 h-2.5 rounded-full ${s.dot} flex-shrink-0`} />
+                  <div className="leading-none min-w-0">
+                    <div className="text-xl font-extrabold text-white tabular-nums">{s.value}</div>
+                    <div className="text-[11px] text-blue-100 mt-1 truncate">{s.label}</div>
+                  </div>
                 </div>
-                <p className="text-xs text-blue-100 mt-0.5 leading-snug">{s.label}</p>
-                {s.sub && <p className="text-[11px] text-blue-200/70 mt-0.5 leading-snug">{s.sub}</p>}
+              ))}
+            </div>
+
+            {/* Coverage row */}
+            <div className="border-t border-white/10 px-4 py-3">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <p className="text-[11px] font-bold text-blue-100 uppercase tracking-widest">Service coverage</p>
+                  <div className="h-1.5 w-20 rounded-full bg-white/15 overflow-hidden flex-shrink-0">
+                    <div
+                      className="h-full bg-emerald-400 rounded-full transition-all"
+                      style={{ width: `${ALL_CATEGORIES.length ? (approvedCategories.length / ALL_CATEGORIES.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="text-[11px] text-blue-200 flex-shrink-0 whitespace-nowrap">
+                  {approvedCategories.length} of {ALL_CATEGORIES.length} covered
+                </span>
               </div>
-            ))}
+              {approvedCategories.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {approvedCategories.map(c => (
+                    <span key={c} className="inline-flex items-center gap-1 text-[11px] bg-white/15 text-white border border-white/15 px-2 py-0.5 rounded-full">
+                      {SERVICE_ICONS[c] || '📦'} {c}
+                    </span>
+                  ))}
+                  {missingCount > 0 && (
+                    <span className="text-[11px] text-blue-200/80 self-center">+{missingCount} not yet covered</span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[11px] text-blue-200/80">No approved vendors yet — no categories covered.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-
-      {/* ── Coverage snapshot ────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-700">Service Coverage</h2>
-          <span className="text-xs text-gray-400">{approvedCategories.length} of {ALL_CATEGORIES.length} categories</span>
-        </div>
-        {approvedCategories.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {approvedCategories.map(c => (
-              <span key={c} className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded-lg">
-                {SERVICE_ICONS[c] || '📦'} {c}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-gray-400 mb-3">No approved vendors yet.</p>
-        )}
-        {missingCategories.length > 0 && (
-          <>
-            <p className="text-xs text-gray-500 font-medium mb-1.5">Not yet covered:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {missingCategories.map(c => (
-                <span key={c} className="inline-flex items-center gap-1 text-xs bg-gray-50 text-gray-400 border border-dashed border-gray-200 px-2 py-1 rounded-lg">
-                  {SERVICE_ICONS[c] || '📦'} {c}
-                </span>
-              ))}
-              {missingCategories.length < ALL_CATEGORIES.filter(c => !approvedCategories.includes(c)).length && (
-                <span className="text-xs text-gray-400 self-center">
-                  +{ALL_CATEGORIES.filter(c => !approvedCategories.includes(c)).length - missingCategories.length} more
-                </span>
-              )}
-            </div>
-          </>
-        )}
-      </div>
 
       {/* ── Vendor list ──────────────────────────────────────────────────────── */}
       <div>

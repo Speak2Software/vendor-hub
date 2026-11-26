@@ -43,6 +43,12 @@ export default function ManagerCommunications() {
     )
   }
 
+  const allSelected = approved.length > 0 && broadcastRecipients.length === approved.length
+
+  function toggleSelectAll() {
+    setBroadcastRecipients(allSelected ? [] : approved.map((a) => a.vendorId))
+  }
+
   async function handleSendBroadcast(e) {
     e.preventDefault()
     if (!broadcastBody.trim()) { setBroadcastError('Message body is required.'); return }
@@ -132,9 +138,20 @@ export default function ManagerCommunications() {
                 <form onSubmit={handleSendBroadcast} className="space-y-5">
                   {/* Recipient selector */}
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
-                      Send To — Approved Vendors
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                        Send To — Approved Vendors
+                      </p>
+                      {approved.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={toggleSelectAll}
+                          className="text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                        >
+                          {allSelected ? 'Clear all' : 'Select all'}
+                        </button>
+                      )}
+                    </div>
                     {approved.length === 0 ? (
                       <p className="text-xs text-gray-400 italic bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
                         No approved vendors yet. Approve vendor applications to send broadcasts.
