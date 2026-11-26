@@ -694,10 +694,14 @@ export default function MyVendors() {
             </div>
             <div className="flex gap-2">
               {pending.length > 0 && (
-                <span className="flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/40 text-amber-100 text-sm font-bold px-3 py-2 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('Pending'); setExpandedId(null) }}
+                  className="flex items-center gap-1.5 bg-amber-400/20 hover:bg-amber-400/30 border border-amber-300/40 text-amber-100 text-sm font-bold px-3 py-2 rounded-xl transition-colors"
+                >
                   <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
                   {pending.length} pending
-                </span>
+                </button>
               )}
             </div>
           </div>
