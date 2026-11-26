@@ -138,6 +138,9 @@ export default function ManagerCommunications() {
 
             {tab === 'broadcast' && (
               <div className="space-y-6">
+                <p className="text-sm text-gray-500">
+                  Select vendors and send a message to them below for easy communications.
+                </p>
                 <form onSubmit={handleSendBroadcast} className="space-y-5">
                   {/* Recipient selector */}
                   <div>
@@ -161,7 +164,7 @@ export default function ManagerCommunications() {
                       </p>
                     ) : (
                       <>
-                        <div className="space-y-2 mb-2">
+                        <div className={`space-y-2 mb-2 ${approved.length > 5 ? 'max-h-80 overflow-y-auto pr-1' : ''}`}>
                           {approved.map((app) => (
                             <label
                               key={app.id}
