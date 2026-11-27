@@ -102,7 +102,7 @@ export default function ManagerCommunications() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-white">Communications</h1>
-            <p className="text-blue-100 text-sm mt-0.5">Message vendors directly or broadcast to your network</p>
+            <p className="text-blue-100 text-sm mt-0.5">Message your vendors, send an update to everyone, or make a flyer to recruit new ones</p>
           </div>
         </div>
       </div>

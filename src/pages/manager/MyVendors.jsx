@@ -684,6 +684,7 @@ export default function MyVendors() {
               <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">My Community</p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">My Vendors</h1>
               {community && <p className="text-blue-200 text-sm mt-0.5">{community.name}</p>}
+              <p className="text-blue-100 text-sm mt-2 max-w-md">Review applications and manage the vendors serving your community.</p>
             </div>
             <div className="flex gap-2">
               {pending.length > 0 && (
@@ -770,9 +771,27 @@ export default function MyVendors() {
         </div>
 
         {/* Cards */}
-        {filtered.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 py-10 text-center">
-            <p className="text-sm text-gray-400">No vendors match your filters.</p>
+        {applications.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-12 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-3 text-2xl">🤝</div>
+            <p className="text-base font-bold text-gray-800">No vendors yet</p>
+            <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto leading-relaxed">
+              When vendors apply to your community they'll show up here. Get started by finding vendors or printing a flyer to invite them.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mt-5">
+              <Link to="/manager/find-vendors" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] transition-all shadow-sm">
+                Find vendors →
+              </Link>
+              <Link to="/manager/communications?tab=flyer" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
+                Print a flyer
+              </Link>
+            </div>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-10 text-center">
+            <p className="text-2xl mb-2">🔍</p>
+            <p className="text-sm font-semibold text-gray-600">No vendors match your filters</p>
+            <p className="text-xs text-gray-400 mt-1">Try a different tab, search, or service type.</p>
           </div>
         ) : (
           <div className="space-y-2">

@@ -199,6 +199,7 @@ export default function CommunityProfile() {
                 {form.address && (
                   <p className="text-blue-200 text-sm mt-1">{form.address}</p>
                 )}
+                <p className="text-blue-100 text-sm mt-2 max-w-md">This is how your community appears to vendors. Keep it up to date.</p>
               </div>
             </div>
             {/* Completeness ring */}
