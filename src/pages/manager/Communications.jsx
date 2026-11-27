@@ -6,6 +6,7 @@ import MessagingCenter from '../../components/MessagingCenter'
 import RecruitmentFlyerCreator from '../../components/flyer/RecruitmentFlyer'
 import { useManagerData } from '../../hooks/useManagerData'
 import PageLoader from '../../components/PageLoader'
+import RichTextEditor, { stripTags } from '../../components/RichTextEditor'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -52,7 +53,7 @@ export default function ManagerCommunications() {
 
   async function handleSendBroadcast(e) {
     e.preventDefault()
-    if (!broadcastBody.trim()) { setBroadcastError('Message body is required.'); return }
+    if (!stripTags(broadcastBody)) { setBroadcastError('Message body is required.'); return }
     setBroadcastError('')
     setBroadcastSending(true)
     try {
@@ -213,13 +214,13 @@ export default function ManagerCommunications() {
                   {/* Body */}
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Message</label>
-                    <textarea
+                    <RichTextEditor
                       value={broadcastBody}
-                      onChange={(e) => setBroadcastBody(e.target.value)}
-                      placeholder="Write your message to vendors here..."
-                      rows={6}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none leading-relaxed"
+                      onChange={setBroadcastBody}
+                      placeholder="Write your message to vendors here…"
+                      minHeight={160}
                     />
+                    <p className="text-xs text-gray-400 mt-1">Use the toolbar to add bold text, bullets, and more.</p>
                   </div>
 
                   {broadcastError && (
@@ -263,7 +264,7 @@ export default function ManagerCommunications() {
                               {bc.subject && (
                                 <p className="text-sm font-semibold text-gray-800 truncate">{bc.subject}</p>
                               )}
-                              <p className="text-xs text-gray-500 mt-0.5 truncate">{bc.body.slice(0, 90)}{bc.body.length > 90 ? '…' : ''}</p>
+                              <p className="text-xs text-gray-500 mt-0.5 truncate">{stripTags(bc.body).slice(0, 90)}…</p>
                             </div>
                             <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
                               {bc.vendorIds?.length > 0 ? `${bc.vendorIds.length} vendor${bc.vendorIds.length !== 1 ? 's' : ''}` : 'All vendors'}

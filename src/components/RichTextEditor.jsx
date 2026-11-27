@@ -53,7 +53,9 @@ const ToolbarButton = ({ onClick, title, children }) => (
 
 export default function RichTextEditor({ value, onChange, placeholder = '', minHeight = 160 }) {
   const ref = useRef(null)
-  const lastHtml = useRef(value || '')
+  // null (not value) so the first effect run always seeds the editor, even when
+  // the initial value is non-empty (e.g. a flyer's default description).
+  const lastHtml = useRef(null)
   const [empty, setEmpty] = useState(!stripTags(value))
 
   // Seed / re-seed the editor when the value changes from outside (e.g. a template),

@@ -95,7 +95,8 @@ async function notifyDirectMessage({ toEmail, toName, senderName, messageBody, d
  * @param {string}   opts.body
  */
 async function notifyBroadcast({ toEmail, toName, communityName, subject, body }) {
-  const preview = body.length > 300 ? body.slice(0, 300) + '…' : body
+  // `body` may contain simple rich-text HTML (bold / italic / bullet lists)
+  // produced by the manager's editor; render it in full.
   await send({
     to:      toEmail,
     subject: subject || `Message from ${communityName} — Vendor Hub`,
@@ -108,8 +109,8 @@ async function notifyBroadcast({ toEmail, toName, communityName, subject, body }
         <div style="padding:24px">
           <p style="margin:0 0 16px;font-size:15px;color:#111827">Hi ${toName},</p>
           ${subject ? `<p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#111827">${subject}</p>` : ''}
-          <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 24px;font-size:14px;color:#374151;line-height:1.7;white-space:pre-line">
-            ${preview}
+          <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 24px;font-size:14px;color:#374151;line-height:1.7">
+            ${body}
           </div>
           <a href="${APP_URL}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#0d9488);color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700">
             Open Vendor Hub →

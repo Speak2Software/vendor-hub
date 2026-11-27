@@ -3,6 +3,7 @@ import {
   FLYER_THEMES, escHtml, flyerLines, useDebounced,
   flyerDocument, printFlyer, FlyerPreview, FlyerStylePickers,
 } from './FlyerKit'
+import RichTextEditor, { stripTags } from '../RichTextEditor'
 
 /**
  * Vendor Recruitment Flyer — the community manager's counterpart to the
@@ -44,7 +45,7 @@ export function buildRecruitmentFlyerHTML(layoutId, theme, data, { autoPrint = f
     communityName: escHtml(data.communityName) || 'Our Community',
     address:       escHtml(data.address),
     headline:      escHtml(data.headline),
-    body:          escHtml(data.body),
+    body:          stripTags(data.body) ? data.body : '', // rich HTML (sanitized); '' when visually empty
     cta:           escHtml(data.cta) || 'Scan to Apply',
     phone:         escHtml(data.phone),
     email:         escHtml(data.email),
@@ -189,12 +190,11 @@ export default function RecruitmentFlyerCreator({ community }) {
 
           <div>
             <label className="text-xs font-semibold text-gray-500 block mb-1">Description</label>
-            <textarea
+            <RichTextEditor
               value={data.body}
-              onChange={(e) => update('body', e.target.value)}
+              onChange={(html) => update('body', html)}
               placeholder="Tell vendors why they should partner with your community…"
-              rows={3}
-              className={`${inp} resize-none`}
+              minHeight={120}
             />
           </div>
 
