@@ -220,27 +220,9 @@ export default function CommunityProfile() {
                   <span className="text-white text-xs font-bold">{completeness}%</span>
                 </div>
               </div>
-              <p className="text-blue-200 text-[10px] font-medium">Complete</p>
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="mt-5">
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-blue-200 text-xs font-medium">Profile completeness</p>
-              {completeness === 100 && (
-                <span className="text-emerald-300 text-xs font-bold flex items-center gap-1">
-                  ✓ All fields complete
-                </span>
-              )}
-            </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  completeness === 100 ? 'bg-emerald-400' : 'bg-white'
-                }`}
-                style={{ width: `${completeness}%` }}
-              />
+              <p className="text-blue-200 text-[10px] font-medium">
+                {completeness === 100 ? 'Complete' : 'Filled in'}
+              </p>
             </div>
           </div>
         </div>
@@ -256,11 +238,11 @@ export default function CommunityProfile() {
 
         {/* ── Logo Upload ────────────────────────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">🖼️</div>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base">🖼️</div>
             <div>
-              <h2 className="text-white font-bold text-sm">Community Logo</h2>
-              <p className="text-indigo-100 text-xs">Shown on your dashboard and to approved vendors</p>
+              <h2 className="text-gray-900 font-bold text-sm">Community Logo</h2>
+              <p className="text-gray-400 text-xs">Shown on your dashboard and to approved vendors</p>
             </div>
           </div>
           <div className="p-6">
@@ -339,11 +321,11 @@ export default function CommunityProfile() {
 
         {/* ── Basic Info ─────────────────────────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">🏘️</div>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-base">🏘️</div>
             <div>
-              <h2 className="text-white font-bold text-sm">Community Information</h2>
-              <p className="text-blue-100 text-xs">Basic details about your community</p>
+              <h2 className="text-gray-900 font-bold text-sm">Community Information</h2>
+              <p className="text-gray-400 text-xs">Basic details about your community</p>
             </div>
           </div>
           <div className="p-6 space-y-4">
@@ -420,11 +402,11 @@ export default function CommunityProfile() {
 
         {/* ── Care Levels ───────────────────────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">🩺</div>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-base">🩺</div>
             <div>
-              <h2 className="text-white font-bold text-sm">Care Levels Offered</h2>
-              <p className="text-teal-100 text-xs">Select all care levels available at your community</p>
+              <h2 className="text-gray-900 font-bold text-sm">Care Levels Offered</h2>
+              <p className="text-gray-400 text-xs">Select all care levels available at your community</p>
             </div>
           </div>
           <div className="p-6">
@@ -456,11 +438,11 @@ export default function CommunityProfile() {
 
         {/* ── Contact Information ───────────────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-violet-600 to-purple-500 px-6 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">📬</div>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-base">📬</div>
             <div>
-              <h2 className="text-white font-bold text-sm">Contact Information</h2>
-              <p className="text-purple-100 text-xs">Add contact details and choose what vendors can see</p>
+              <h2 className="text-gray-900 font-bold text-sm">Contact Information</h2>
+              <p className="text-gray-400 text-xs">Add contact details and choose what vendors can see</p>
             </div>
           </div>
           <div className="p-6 space-y-5">
@@ -516,11 +498,11 @@ export default function CommunityProfile() {
 
         {/* ── Vendor Recruitment Flyer → moved to Communications ───────────── */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-rose-600 to-pink-500 px-6 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-base">📋</div>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base">📋</div>
             <div>
-              <h2 className="text-white font-bold text-sm">Vendor Recruitment Flyer</h2>
-              <p className="text-rose-100 text-xs">Now lives in Communications — with layouts, colors & live preview</p>
+              <h2 className="text-gray-900 font-bold text-sm">Vendor Recruitment Flyer</h2>
+              <p className="text-gray-400 text-xs">Now lives in Communications — with layouts, colors & live preview</p>
             </div>
           </div>
           <div className="p-6">
@@ -531,7 +513,7 @@ export default function CommunityProfile() {
             </p>
             <Link
               to="/manager/communications?tab=flyer"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-600 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-rose-700 hover:to-pink-600 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] transition-all shadow-sm"
             >
               Open Flyer Creator
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
