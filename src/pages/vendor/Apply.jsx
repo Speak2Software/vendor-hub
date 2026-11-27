@@ -37,9 +37,10 @@ export default function Apply() {
   const navigate        = useNavigate()
   const [searchParams]  = useSearchParams()
   const editId          = searchParams.get('edit')
+  const preselectId     = searchParams.get('community')
 
   const [step, setStep]           = useState(0)
-  const [communityIds, setIds]    = useState([])
+  const [communityIds, setIds]    = useState(preselectId ? [preselectId] : [])
   const [servicesOffered, setPitch] = useState('')
   const [personalNote, setNote]   = useState('')
   const [radiusTier, setTier]     = useState(0)
