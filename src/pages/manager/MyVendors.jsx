@@ -12,7 +12,6 @@ import {
   updateApplicationStatus,
 } from '../../utils/storage'
 import {
-  SERVICE_CATEGORIES as ALL_CATEGORIES,
   SERVICE_CATEGORY_ICONS as SERVICE_ICONS,
 } from '../../utils/serviceCategories'
 import PageLoader from '../../components/PageLoader'
@@ -643,16 +642,6 @@ export default function MyVendors() {
     [applications]
   )
 
-  const approvedCategories = useMemo(() =>
-    [...new Set(approved.map(a => a.serviceCategory).filter(Boolean))],
-    [approved]
-  )
-
-  const missingCount = useMemo(() =>
-    ALL_CATEGORIES.filter(c => !approvedCategories.includes(c)).length,
-    [approvedCategories]
-  )
-
   // ── Filtered list ───────────────────────────────────────────────────────────
   const availableCategories = useMemo(() =>
     [...new Set(applications.map(a => a.serviceCategory).filter(Boolean))].sort(),
@@ -710,39 +699,6 @@ export default function MyVendors() {
             </div>
           </div>
 
-          {/* ── Service coverage ─────────────────────────────────────────────── */}
-          <div className="bg-white/10 ring-1 ring-white/20 rounded-2xl backdrop-blur-sm overflow-hidden">
-            <div className="px-4 py-3">
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <p className="text-[11px] font-bold text-blue-100 uppercase tracking-widest">Service coverage</p>
-                  <div className="h-1.5 w-20 rounded-full bg-white/15 overflow-hidden flex-shrink-0">
-                    <div
-                      className="h-full bg-emerald-400 rounded-full transition-all"
-                      style={{ width: `${ALL_CATEGORIES.length ? (approvedCategories.length / ALL_CATEGORIES.length) * 100 : 0}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="text-[11px] text-blue-200 flex-shrink-0 whitespace-nowrap">
-                  {approvedCategories.length} of {ALL_CATEGORIES.length} covered
-                </span>
-              </div>
-              {approvedCategories.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {approvedCategories.map(c => (
-                    <span key={c} className="inline-flex items-center gap-1 text-[11px] bg-white/15 text-white border border-white/15 px-2 py-0.5 rounded-full">
-                      {SERVICE_ICONS[c] || '📦'} {c}
-                    </span>
-                  ))}
-                  {missingCount > 0 && (
-                    <span className="text-[11px] text-blue-200/80 self-center">+{missingCount} not yet covered</span>
-                  )}
-                </div>
-              ) : (
-                <p className="text-[11px] text-blue-200/80">No approved vendors yet — no categories covered.</p>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
