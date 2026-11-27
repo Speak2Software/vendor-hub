@@ -9,6 +9,7 @@ export default function SignIn() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [slow, setSlow] = useState(false)
 
   const from = location.state?.from?.pathname
 
@@ -21,19 +22,21 @@ export default function SignIn() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setSlow(false)
     setLoading(true)
+    // If the API is waking from sleep the first request can take several
+    // seconds — let the user know instead of leaving them on a silent spinner.
+    const slowTimer = setTimeout(() => setSlow(true), 2500)
     try {
       const user = await login(form.email, form.password)
       navigate(from || roleHome(user.role), { replace: true })
     } catch {
       setError('Invalid email or password.')
     } finally {
+      clearTimeout(slowTimer)
       setLoading(false)
+      setSlow(false)
     }
-  }
-
-  function fillDemo(email, password) {
-    setForm({ email, password })
   }
 
   return (
@@ -83,6 +86,12 @@ export default function SignIn() {
             >
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
+
+            {slow && (
+              <p className="text-center text-xs text-gray-400 leading-relaxed">
+                Waking up the server — this can take a few seconds the first time. Hang tight…
+              </p>
+            )}
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-5">
@@ -93,25 +102,6 @@ export default function SignIn() {
           </p>
         </div>
 
-        {/* Demo credentials */}
-        <div className="mt-4 bg-white/10 border border-white/20 rounded-xl p-4">
-          <p className="text-xs font-bold text-white/80 mb-2">Demo credentials</p>
-          <div className="space-y-1.5">
-            {[
-              { label: 'Admin', email: 'admin@vendorhub.com', pw: 'admin123' },
-              { label: 'Manager', email: 'sandra@sunrisegarden.com', pw: 'manager123' },
-              { label: 'Vendor', email: 'vendor@demo.com', pw: 'vendor123' },
-            ].map(({ label, email, pw }) => (
-              <button
-                key={label}
-                onClick={() => fillDemo(email, pw)}
-                className="w-full text-left text-xs text-white/70 hover:text-white hover:bg-white/10 rounded px-2 py-1 transition-colors"
-              >
-                <span className="font-semibold">{label}:</span> {email} / {pw}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )

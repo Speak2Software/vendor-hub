@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { apiPost, apiGet, setToken, clearToken } from '../utils/storage'
+import { apiPost, apiGet, setToken, clearToken, wakeApi } from '../utils/storage'
 
 const AuthContext = createContext(null)
 
@@ -11,6 +11,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem('vh_jwt')
     if (!token) {
+      // No session yet — warm the API now so the upcoming login isn't the
+      // request that pays the cold-start cost.
+      wakeApi()
       setLoading(false)
       return
     }

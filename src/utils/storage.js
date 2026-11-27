@@ -48,6 +48,12 @@ export const apiPost   = (path, body)  => request('POST',   path, body)
 export const apiPut    = (path, body)  => request('PUT',    path, body)
 export const apiDelete = (path)        => request('DELETE', path)
 
+// Fire-and-forget ping to wake a sleeping API (e.g. Railway cold start) so the
+// first real request the user makes isn't the one that pays the wake-up cost.
+export function wakeApi() {
+  try { fetch(`${BASE}/api/health`, { method: 'GET' }).catch(() => {}) } catch { /* ignore */ }
+}
+
 // ── Auth (used by AuthContext) ─────────────────────────────────────────────────
 // AuthContext calls apiPost/apiGet directly — no wrappers needed here.
 
