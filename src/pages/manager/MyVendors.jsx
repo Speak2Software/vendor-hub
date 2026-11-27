@@ -34,9 +34,6 @@ function fmtDate(iso) {
 function fmtDateTime(iso) {
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 }
-function daysAgo(iso) {
-  return Math.floor((Date.now() - new Date(iso)) / 864e5)
-}
 
 // ── Star rating widget ────────────────────────────────────────────────────────
 function StarRating({ value, onChange, readonly = false, size = 'md' }) {
@@ -649,11 +646,6 @@ export default function MyVendors() {
     [approvedCategories]
   )
 
-  const newThisMonth = useMemo(() =>
-    applications.filter(a => daysAgo(a.submittedAt) <= 30).length,
-    [applications]
-  )
-
   // ── Filtered list ───────────────────────────────────────────────────────────
   const availableCategories = useMemo(() =>
     [...new Set(applications.map(a => a.serviceCategory).filter(Boolean))].sort(),
@@ -711,28 +703,9 @@ export default function MyVendors() {
             </div>
           </div>
 
-          {/* ── Compact stats + coverage ─────────────────────────────────────── */}
+          {/* ── Service coverage ─────────────────────────────────────────────── */}
           <div className="bg-white/10 ring-1 ring-white/20 rounded-2xl backdrop-blur-sm overflow-hidden">
-            {/* Stat strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/10">
-              {[
-                { label: 'Approved',       value: approved.length, dot: 'bg-emerald-400' },
-                { label: 'Pending',        value: pending.length,  dot: 'bg-amber-400' },
-                { label: 'New this month', value: newThisMonth,    dot: 'bg-sky-300' },
-                { label: 'Not approved',   value: denied.length,   dot: 'bg-rose-400' },
-              ].map((s) => (
-                <div key={s.label} className="flex items-center gap-2.5 px-4 py-3">
-                  <span className={`w-2.5 h-2.5 rounded-full ${s.dot} flex-shrink-0`} />
-                  <div className="leading-none min-w-0">
-                    <div className="text-xl font-extrabold text-white tabular-nums">{s.value}</div>
-                    <div className="text-[11px] text-blue-100 mt-1 truncate">{s.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Coverage row */}
-            <div className="border-t border-white/10 px-4 py-3">
+            <div className="px-4 py-3">
               <div className="flex items-center justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <p className="text-[11px] font-bold text-blue-100 uppercase tracking-widest">Service coverage</p>
