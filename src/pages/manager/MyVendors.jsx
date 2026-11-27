@@ -28,6 +28,13 @@ const STATUS_CFG = {
 
 const TABS = ['All', 'Approved', 'Pending', 'Denied']
 
+const TAB_STYLES = {
+  All:      { text: 'text-blue-700',    badge: 'bg-blue-100 text-blue-700',       dot: 'bg-blue-400' },
+  Approved: { text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  Pending:  { text: 'text-amber-700',   badge: 'bg-amber-100 text-amber-700',     dot: 'bg-amber-500' },
+  Denied:   { text: 'text-rose-700',    badge: 'bg-rose-100 text-rose-700',       dot: 'bg-rose-500' },
+}
+
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
@@ -746,23 +753,26 @@ export default function MyVendors() {
         <h2 className="text-sm font-semibold text-gray-700 mb-3">All Vendors</h2>
 
         {/* Tabs + search + category filter */}
-        <div className="space-y-2 mb-4">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-3 sm:p-4 mb-5 space-y-3">
           {/* Tabs */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
             {TABS.map(tab => {
               const count = tab === 'All' ? applications.length
                 : applications.filter(a => a.status === tab.toLowerCase()).length
+              const st = TAB_STYLES[tab]
+              const active = activeTab === tab
               return (
                 <button
                   key={tab}
                   onClick={() => { setActiveTab(tab); setExpandedId(null) }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    activeTab === tab ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all ${
+                    active ? `bg-white shadow-sm ${st.text}` : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${active ? st.dot : 'bg-gray-300'}`} />
                   {tab}
-                  <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full ${
-                    activeTab === tab ? 'bg-gray-100 text-gray-600' : 'text-gray-400'
+                  <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                    active ? st.badge : 'bg-gray-200/70 text-gray-500'
                   }`}>
                     {count}
                   </span>
@@ -772,29 +782,34 @@ export default function MyVendors() {
           </div>
 
           {/* Search + category */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
               </svg>
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search vendors…"
-                className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Search by name, contact, or service…"
+                className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent placeholder-gray-400"
               />
             </div>
-            <select
-              value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-600 bg-white"
-            >
-              <option value="">All types</option>
-              {availableCategories.map(c => (
-                <option key={c} value={c}>{SERVICE_ICONS[c]} {c}</option>
-              ))}
-            </select>
+            <div className="relative sm:w-56 flex-shrink-0">
+              <select
+                value={categoryFilter}
+                onChange={e => setCategoryFilter(e.target.value)}
+                className="w-full appearance-none text-sm border border-gray-200 rounded-xl pl-3 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-700 bg-white cursor-pointer"
+              >
+                <option value="">All service types</option>
+                {availableCategories.map(c => (
+                  <option key={c} value={c}>{SERVICE_ICONS[c]} {c}</option>
+                ))}
+              </select>
+              <svg className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
           </div>
         </div>
 
