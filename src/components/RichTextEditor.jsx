@@ -38,6 +38,21 @@ export function stripTags(html) {
   return (tpl.content.textContent || '').trim()
 }
 
+// Read-only renderer for rich-text content stored elsewhere (e.g. an
+// application's "services" field shown to a manager). Always re-sanitizes.
+export function RichTextView({ html, className = '' }) {
+  return (
+    <>
+      <div className={`rte-view ${className}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
+      <style>{`
+        .rte-view ul { list-style: disc; padding-left: 1.25rem; margin: 0.25rem 0; }
+        .rte-view ol { list-style: decimal; padding-left: 1.25rem; margin: 0.25rem 0; }
+        .rte-view li { margin: 0.125rem 0; }
+      `}</style>
+    </>
+  )
+}
+
 const ToolbarButton = ({ onClick, title, children }) => (
   <button
     type="button"

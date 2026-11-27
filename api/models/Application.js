@@ -57,6 +57,8 @@ const applicationSchema = new mongoose.Schema(
     reference2Phone:       { type: String, default: '' },
 
     source:        { type: String, default: '' }, // e.g. 'qr-referral' when auto-applied via a community QR
+    // Optional flyer the vendor attached to the application: { layout, theme, data }
+    attachedFlyer: { type: mongoose.Schema.Types.Mixed, default: null },
     notes:         { type: [noteSchema],   default: [] },
     statusHistory: { type: [historySchema], default: [] },
   },

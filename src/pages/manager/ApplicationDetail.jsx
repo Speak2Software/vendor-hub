@@ -9,6 +9,8 @@ import {
   getCompanyProfile,
 } from '../../utils/storage'
 import PageLoader from '../../components/PageLoader'
+import { RichTextView } from '../../components/RichTextEditor'
+import { FLYER_THEMES, FlyerPreview, buildVendorFlyerHTML } from '../../components/flyer/FlyerKit'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -165,9 +167,30 @@ export default function ApplicationDetail() {
         <dl className="space-y-2.5">
           <InfoRow label="Category" value={app.serviceCategory} />
           <InfoRow label="Description" value={app.businessDescription} />
-          <InfoRow label="Services offered" value={app.servicesOffered} />
+          {app.servicesOffered && (
+            <div className="flex flex-col sm:flex-row sm:gap-4">
+              <dt className="text-xs font-medium text-gray-500 sm:w-40 flex-shrink-0">Services offered</dt>
+              <dd className="text-sm text-gray-900 mt-0.5 sm:mt-0 flex-1">
+                <RichTextView html={app.servicesOffered} />
+              </dd>
+            </div>
+          )}
         </dl>
       </div>
+
+      {/* Attached flyer */}
+      {app.attachedFlyer?.data && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Flyer from this vendor</h2>
+          <div className="rounded-2xl border border-gray-200 bg-gray-100 p-2 overflow-hidden max-w-md">
+            <FlyerPreview html={buildVendorFlyerHTML(
+              app.attachedFlyer.layout || 'classic',
+              FLYER_THEMES.find((t) => t.id === app.attachedFlyer.theme) || FLYER_THEMES[0],
+              app.attachedFlyer.data || {},
+            )} />
+          </div>
+        </div>
+      )}
 
       {/* Compliance */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-4">

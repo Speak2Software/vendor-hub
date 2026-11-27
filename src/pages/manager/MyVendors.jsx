@@ -15,6 +15,7 @@ import {
   SERVICE_CATEGORY_ICONS as SERVICE_ICONS,
 } from '../../utils/serviceCategories'
 import PageLoader from '../../components/PageLoader'
+import { RichTextView } from '../../components/RichTextEditor'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -423,7 +424,9 @@ function VendorCard({ app, logoUrl, review, communityId, expanded, onToggle, onR
             {/* Services */}
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Services</p>
-              <p className="text-xs text-gray-600 leading-relaxed">{app.servicesOffered || app.businessDescription || '—'}</p>
+              {app.servicesOffered
+                ? <RichTextView html={app.servicesOffered} className="text-xs text-gray-600 leading-relaxed" />
+                : <p className="text-xs text-gray-600 leading-relaxed">{app.businessDescription || '—'}</p>}
             </div>
           </div>
 

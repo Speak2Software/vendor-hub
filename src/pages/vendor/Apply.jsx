@@ -4,9 +4,12 @@ import { useAuth } from '../../context/AuthContext'
 import {
   getCommunities, getVendorProfile, getCompanyProfile,
   getApplicationsForVendor, getApplication, saveApplication, haversineDistance,
+  getMessagesForVendor,
 } from '../../utils/storage'
 import { normalizeLocations } from '../../utils/vendorLocations'
 import PageLoader from '../../components/PageLoader'
+import RichTextEditor, { stripTags } from '../../components/RichTextEditor'
+import { FLYER_THEMES, FlyerPreview, buildVendorFlyerHTML } from '../../components/flyer/FlyerKit'
 import { v4 as uuidv4 } from 'uuid'
 
 // Nearest distance (miles) from any of a vendor's locations to a community.
@@ -52,18 +55,27 @@ export default function Apply() {
   const [companyProfile, setCompany]    = useState(null)
   const [allCommunities, setAll]        = useState([])
   const [editApp, setEditApp]           = useState(null)
+  const [flyers, setFlyers]             = useState([])     // vendor's saved flyers
+  const [attachedFlyer, setAttached]    = useState(null)   // { layout, theme, data } | null
   const [loaded, setLoaded]             = useState(false)
 
   useEffect(() => {
     async function load() {
-      const [vp, cp, comms] = await Promise.all([
+      const [vp, cp, comms, msgs] = await Promise.all([
         getVendorProfile(user.id),
         getCompanyProfile(user.id),
         getCommunities(),
+        getMessagesForVendor(user.id).catch(() => []),
       ])
       setProfile(vp)
       setCompany(cp)
       setAll(comms)
+      // Flyers the vendor has designed (saved when sent), newest first.
+      setFlyers(
+        msgs
+          .filter((m) => m.type === 'flyer' && m.flyerData)
+          .sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt))
+      )
 
       if (editId) {
         const existing = await getApplication(editId)
@@ -72,6 +84,7 @@ export default function Apply() {
           setIds([existing.communityId])
           setPitch(existing.servicesOffered || '')
           setNote('')
+          setAttached(existing.attachedFlyer || null)
         }
       }
       setLoaded(true)
@@ -113,7 +126,7 @@ export default function Apply() {
     return true
   }
   function validateStep1() {
-    if (!servicesOffered.trim()) { setError('Please describe the services you\'ll offer.'); return false }
+    if (!stripTags(servicesOffered)) { setError('Please describe the services you\'ll offer.'); return false }
     return true
   }
 
@@ -155,8 +168,9 @@ export default function Apply() {
       backgroundCheckConsent: cp.backgroundCheckConsent || false,
       termsAgreed:          cp.termsAgreed          || false,
       // Per-application fields
-      servicesOffered: servicesOffered.trim(),
+      servicesOffered: servicesOffered,
       personalNote:    personalNote.trim(),
+      attachedFlyer:   attachedFlyer,
       communityId:     commId,
       status:          'pending',
     }
@@ -481,14 +495,71 @@ export default function Apply() {
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
                     Services You'll Provide <span className="text-red-400">*</span>
                   </label>
-                  <textarea
-                    rows={5}
+                  <RichTextEditor
                     value={servicesOffered}
-                    onChange={(e) => setPitch(e.target.value)}
-                    placeholder={`Describe the specific services you'll offer ${communityIds.length === 1 ? 'this community' : 'these communities'}. Be specific — this is what managers read first.\n\ne.g. "We'll provide weekly housekeeping for resident rooms, daily laundry service, and deep cleaning every quarter…"`}
-                    className={`${inp} resize-none leading-relaxed`}
+                    onChange={setPitch}
+                    placeholder={`Describe the specific services you'll offer ${communityIds.length === 1 ? 'this community' : 'these communities'}. Be specific — this is what managers read first.`}
+                    minHeight={160}
                   />
-                  <p className="text-xs text-gray-400 mt-1 text-right">{servicesOffered.length} characters</p>
+                  <p className="text-xs text-gray-400 mt-1">Use the toolbar for bullets and bold to make your services easy to scan.</p>
+                </div>
+
+                {/* Attach a flyer */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Attach a Flyer <span className="font-normal normal-case text-gray-400">(optional)</span>
+                  </label>
+                  {flyers.length === 0 ? (
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs text-gray-500">
+                      You haven't designed a flyer yet. Create one in{' '}
+                      <Link to="/vendor/communications?tab=flyer" className="text-blue-600 font-semibold hover:underline">Communications → Flyer Creator</Link>,
+                      then it'll be available to attach here.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        {/* None option */}
+                        <button
+                          type="button"
+                          onClick={() => setAttached(null)}
+                          className={`w-full text-left px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
+                            !attachedFlyer ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          No flyer
+                        </button>
+                        {flyers.map((f) => {
+                          const sel = attachedFlyer && attachedFlyer.flyerId === f.id
+                          return (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => setAttached({ flyerId: f.id, layout: f.flyerLayout, theme: f.flyerTheme, data: f.flyerData })}
+                              className={`w-full text-left px-4 py-2.5 rounded-xl border-2 transition-all ${
+                                sel ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                              }`}
+                            >
+                              <p className="text-sm font-semibold text-gray-800 truncate">🎨 {f.subject || f.flyerData?.headline || 'Flyer'}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {f.flyerData?.businessName || ''}{f.sentAt ? ` · created ${new Date(f.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}
+                              </p>
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      {/* Preview of the selected flyer */}
+                      {attachedFlyer && (
+                        <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-100 p-2 overflow-hidden">
+                          <FlyerPreview html={buildVendorFlyerHTML(
+                            attachedFlyer.layout || 'classic',
+                            FLYER_THEMES.find((t) => t.id === attachedFlyer.theme) || FLYER_THEMES[0],
+                            attachedFlyer.data || {},
+                          )} />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* Personal note */}

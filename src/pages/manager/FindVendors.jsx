@@ -8,6 +8,7 @@ import { normalizeLocations } from '../../utils/vendorLocations'
 import { SERVICE_CATEGORIES, categoryIcon } from '../../utils/serviceCategories'
 import InviteVendorModal from './InviteVendorModal'
 import PageLoader from '../../components/PageLoader'
+import { stripTags } from '../../components/RichTextEditor'
 
 const STATUS_META = {
   approved: { label: 'Approved',        badge: 'bg-emerald-100 text-emerald-700' },
@@ -313,7 +314,7 @@ export default function FindVendors() {
 
                       {(v.servicesOffered || v.businessDescription) && (
                         <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">
-                          {v.servicesOffered || v.businessDescription}
+                          {stripTags(v.servicesOffered) || v.businessDescription}
                         </p>
                       )}
 

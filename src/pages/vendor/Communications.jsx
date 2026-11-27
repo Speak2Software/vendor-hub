@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../../context/AuthContext'
 import {
-  FLYER_LAYOUTS, FLYER_THEMES, flyerGrad, escHtml, flyerLines, useDebounced,
-  flyerDocument, FlyerPreview, LayoutThumb,
+  FLYER_LAYOUTS, FLYER_THEMES, flyerGrad, useDebounced,
+  FlyerPreview, LayoutThumb, buildVendorFlyerHTML,
 } from '../../components/flyer/FlyerKit'
 import { saveMessage } from '../../utils/storage'
 import MessagingCenter from '../../components/MessagingCenter'
@@ -99,69 +99,6 @@ With warmest regards,
 [Contact Name] and the [Business] Team`,
   },
 ]
-
-/**
- * Builds the vendor flyer content for one layout, then wraps it in the shared
- * flyer document. Used for BOTH the live preview and the print window.
- */
-function buildFlyerHTML(layoutId, theme, data, { autoPrint = false } = {}) {
-  const d = {
-    businessName: escHtml(data.businessName) || 'Your Business Name',
-    category:     escHtml(data.serviceCategory) || 'Professional Services',
-    tagline:      escHtml(data.tagline),
-    headline:     escHtml(data.headline),
-    body:         stripTags(data.body) ? data.body : '', // rich HTML (sanitized); '' when visually empty
-    cta:          escHtml(data.cta),
-    phone:        escHtml(data.phone),
-    email:        escHtml(data.email),
-    website:      escHtml(data.website),
-  }
-  const highlights  = flyerLines(data.highlights)
-  const hasContacts = Boolean(data.phone || data.email || data.website)
-
-  const contacts = [
-    d.phone   && `<div class="c-row"><span class="c-ico">📞</span><span>${d.phone}</span></div>`,
-    d.email   && `<div class="c-row"><span class="c-ico">✉️</span><span>${d.email}</span></div>`,
-    d.website && `<div class="c-row"><span class="c-ico">🌐</span><span>${d.website}</span></div>`,
-  ].filter(Boolean).join('')
-
-  const cat           = `<div class="cat">${d.category}</div>`
-  const h1            = `<h1>${d.businessName}</h1>`
-  const tag           = d.tagline ? `<div class="tag">${d.tagline}</div>` : ''
-  const headline      = d.headline ? `<div class="headline">${d.headline}</div>` : ''
-  const hl            = highlights.length ? `<ul class="hl">${highlights.map((h) => `<li>${escHtml(h)}</li>`).join('')}</ul>` : ''
-  const desc          = d.body ? `<div class="desc">${d.body}</div>` : ''
-  const contactsBlock = hasContacts ? `<div class="contacts">${contacts}</div>` : ''
-  const cta           = d.cta ? `<div class="cta">${d.cta}</div>` : ''
-  const footer        = `<div class="footer">Proudly serving senior living communities</div>`
-
-  let flyer
-  if (layoutId === 'modern') {
-    const sideContacts = hasContacts ? `<div class="side-contacts">${contacts}</div>` : ''
-    flyer = `
-      <div class="row">
-        <aside class="side">${cat}${h1}${tag}${sideContacts}</aside>
-        <main class="main">${headline}${hl}${desc}${cta}</main>
-      </div>
-      ${footer}`
-  } else if (layoutId === 'bold') {
-    const cardInner = `${hl}${desc}`
-    const card = cardInner.trim() ? `<div class="card">${cardInner}</div>` : ''
-    flyer = `${cat}${h1}${tag}${headline}${card}${contactsBlock}${cta}${footer}`
-  } else if (layoutId === 'elegant') {
-    flyer = `<div class="frame">${cat}${h1}<div class="rule"></div>${tag}${headline}${hl}${desc}${contactsBlock}${cta}${footer}</div>`
-  } else {
-    flyer = `
-      <div class="header">${cat}${h1}${tag}</div>
-      <div class="body">${headline}${hl}${desc}${contactsBlock}${cta}</div>
-      ${footer}`
-  }
-
-  return flyerDocument({
-    layoutId, theme, body: flyer, autoPrint,
-    title: `${d.businessName} — Flyer`,
-  })
-}
 
 
 function EmailComposer({ approvedApps, vendorInfo, onSent }) {
@@ -344,7 +281,7 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
   const theme = FLYER_THEMES.find((t) => t.id === themeId) || FLYER_THEMES[0]
 
   // Rebuilt every render (cheap string work); debounced before it hits the iframe.
-  const liveHtml    = buildFlyerHTML(layoutId, theme, data)
+  const liveHtml    = buildVendorFlyerHTML(layoutId, theme, data)
   const previewHtml = useDebounced(liveHtml, 180)
 
   function update(field, value) { setData((p) => ({ ...p, [field]: value })) }
@@ -356,7 +293,7 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
   function handlePrint() {
     const win = window.open('', '_blank', 'width=720,height=980')
     if (!win) return
-    win.document.write(buildFlyerHTML(layoutId, theme, data, { autoPrint: true }))
+    win.document.write(buildVendorFlyerHTML(layoutId, theme, data, { autoPrint: true }))
     win.document.close()
   }
 
