@@ -99,7 +99,7 @@ export default function VendorPortalDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const {
-    loaded, apps, messages,
+    loaded, apps,
     companyProfile, profile,
     approvedApps, pendingApps, deniedApps, revokedApps,
     vendorInfo, activityFeed,
@@ -111,11 +111,10 @@ export default function VendorPortalDashboard() {
     return (
     <div className="bg-gray-50 min-h-screen">
 
-      {/* ── Hero / Stats banner ──────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-teal-600">
+      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-b from-[#0d3f73] via-[#135aa0] to-[#1a73c8]">
         <div className="max-w-5xl mx-auto px-4 pt-7 pb-8">
-          {/* Greeting row */}
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-blue-200 text-sm font-medium tracking-wide">{getGreeting()},</p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-0.5 leading-tight">
@@ -128,41 +127,15 @@ export default function VendorPortalDashboard() {
                 </span>
               )}
             </div>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => goComms('email')}
-                className="flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
-                Send Message
-              </button>
-              <button
-                onClick={() => navigate('/vendor/apply')}
-                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/25 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-              >
-                + New Application
-              </button>
-            </div>
-          </div>
-
-          {/* Stats row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { icon: '🏘️', label: 'Active Communities', value: approvedApps.length, ring: 'ring-emerald-400/40', bg: 'bg-emerald-500/20' },
-              { icon: '⏳', label: 'Pending Review',     value: pendingApps.length,  ring: 'ring-amber-400/40',   bg: 'bg-amber-500/20' },
-              { icon: '📨', label: 'Messages Sent',      value: messages.length,     ring: 'ring-blue-300/40',    bg: 'bg-white/10' },
-              { icon: '📋', label: 'Total Applications', value: apps.length,         ring: 'ring-white/20',       bg: 'bg-white/10' },
-            ].map((s) => (
-              <div key={s.label} className={`${s.bg} ring-1 ${s.ring} rounded-2xl px-4 py-4 backdrop-blur-sm`}>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-extrabold text-white">{s.value}</span>
-                  <span className="text-lg">{s.icon}</span>
-                </div>
-                <p className="text-xs text-blue-100 mt-1 leading-snug">{s.label}</p>
-              </div>
-            ))}
+            <button
+              onClick={() => navigate('/vendor/apply')}
+              className="flex items-center justify-center gap-2 bg-white text-[#0d3f73] hover:bg-blue-50 px-5 py-3 rounded-xl text-sm font-bold shadow-sm transition-all flex-shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Apply to a community
+            </button>
           </div>
         </div>
       </div>
@@ -395,18 +368,10 @@ export default function VendorPortalDashboard() {
             <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</h2>
               <div className="space-y-2">
-                <button
-                  onClick={() => navigate('/vendor/apply')}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#1a73c8] to-[#0d3f73] text-white text-sm font-bold hover:from-[#135aa0] hover:to-[#0d3f73] shadow-sm transition-all text-left"
-                >
-                  <span className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 text-base">➕</span>
-                  Apply to New Community
-                </button>
                 {[
-                  { icon: '✉️', label: 'Send Email',         action: () => goComms('email') },
-                  { icon: '🎨', label: 'Create a Flyer',     action: () => goComms('flyer') },
-                  { icon: '📍', label: 'Update My Location',  action: () => navigate('/vendor/location') },
-                  { icon: '📋', label: 'Manage Applications', action: () => navigate('/vendor/status') },
+                  { icon: '✉️', label: 'Send a message',     action: () => goComms('email') },
+                  { icon: '🎨', label: 'Create a flyer',     action: () => goComms('flyer') },
+                  { icon: '📍', label: 'Update my location',  action: () => navigate('/vendor/location') },
                 ].map((a) => (
                   <button
                     key={a.label}
