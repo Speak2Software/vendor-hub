@@ -25,13 +25,6 @@ const DISTANCE_OPTIONS = [
   { value: 100,   label: 'Within 100 mi' },
 ]
 
-const STATUS_OPTIONS = [
-  { value: 'all',      label: 'All vendors' },
-  { value: 'none',     label: 'Not yet applied' },
-  { value: 'pending',  label: 'Pending review' },
-  { value: 'approved', label: 'Approved' },
-]
-
 export default function FindVendors() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -44,7 +37,6 @@ export default function FindVendors() {
   const [q, setQ]                     = useState('')
   const [category, setCategory]       = useState(searchParams.get('category') || '')
   const [maxDistance, setMaxDistance] = useState('any')
-  const [status, setStatus]           = useState('all')
   const [invitee, setInvitee]         = useState(null)
 
   // A category arriving in the URL means the manager came from a coverage gap.
@@ -99,7 +91,6 @@ export default function FindVendors() {
     return enriched
       .filter((v) => {
         if (category && v.serviceCategory !== category) return false
-        if (status !== 'all' && v.status !== status) return false
         if (maxDistance !== 'any') {
           if (v.distanceMiles == null || v.distanceMiles > maxDistance) return false
         }
@@ -121,12 +112,21 @@ export default function FindVendors() {
         if (b.distanceMiles == null) return -1
         return a.distanceMiles - b.distanceMiles
       })
-  }, [enriched, q, category, maxDistance, status])
+  }, [enriched, q, category, maxDistance])
 
-  const activeFilters = (category ? 1 : 0) + (maxDistance !== 'any' ? 1 : 0) + (status !== 'all' ? 1 : 0) + (q.trim() ? 1 : 0)
+  // Vendor count per service category — drives the picker tiles.
+  const categoryCounts = useMemo(() => {
+    const counts = {}
+    enriched.forEach((v) => {
+      if (v.serviceCategory) counts[v.serviceCategory] = (counts[v.serviceCategory] || 0) + 1
+    })
+    return counts
+  }, [enriched])
+
+  const activeFilters = (category ? 1 : 0) + (maxDistance !== 'any' ? 1 : 0) + (q.trim() ? 1 : 0)
 
   function clearFilters() {
-    setQ(''); setCategory(''); setMaxDistance('any'); setStatus('all')
+    setQ(''); setCategory(''); setMaxDistance('any')
     setSearchParams({}, { replace: true })
   }
 
@@ -143,8 +143,6 @@ export default function FindVendors() {
 
   if (!loaded) return <PageLoader label="Loading vendors…" />
 
-  const selectCls = 'border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a73c8]'
-
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* ── Header ───────────────────────────────────────────────────────── */}
@@ -157,7 +155,7 @@ export default function FindVendors() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-white">Find Vendors</h1>
-            <p className="text-blue-100 text-sm mt-0.5">Search every vendor on Vendor Hub and invite them to serve your community</p>
+            <p className="text-blue-100 text-sm mt-0.5">Pick the kind of vendor you need, then invite them to your community</p>
           </div>
         </div>
       </div>
@@ -177,9 +175,55 @@ export default function FindVendors() {
           </div>
         )}
 
-        {/* ── Search + filters ───────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
-          <div className="relative">
+        {/* ── Step 1: choose the service you need ──────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5">
+          <p className="text-sm font-bold text-gray-800 mb-3">What kind of vendor are you looking for?</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {/* All vendors */}
+            <button
+              onClick={() => { setCategory(''); setSearchParams({}, { replace: true }) }}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${
+                category === ''
+                  ? 'border-[#1a73c8] bg-[#eef6fd] ring-1 ring-[#1a73c8]'
+                  : 'border-gray-200 bg-white hover:border-[#9cc4e8]'
+              }`}
+            >
+              <span className="text-xl flex-shrink-0">🗂️</span>
+              <span className="min-w-0">
+                <span className={`block text-sm font-semibold truncate ${category === '' ? 'text-[#0d3f73]' : 'text-gray-700'}`}>All vendors</span>
+                <span className="block text-[11px] text-gray-400">{enriched.length} total</span>
+              </span>
+            </button>
+
+            {SERVICE_CATEGORIES.map((c) => {
+              const count = categoryCounts[c] || 0
+              const selected = category === c
+              return (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${
+                    selected
+                      ? 'border-[#1a73c8] bg-[#eef6fd] ring-1 ring-[#1a73c8]'
+                      : count === 0
+                        ? 'border-gray-100 bg-gray-50 opacity-60 hover:opacity-100'
+                        : 'border-gray-200 bg-white hover:border-[#9cc4e8]'
+                  }`}
+                >
+                  <span className="text-xl flex-shrink-0">{categoryIcon(c)}</span>
+                  <span className="min-w-0">
+                    <span className={`block text-sm font-semibold truncate ${selected ? 'text-[#0d3f73]' : 'text-gray-700'}`}>{c}</span>
+                    <span className="block text-[11px] text-gray-400">{count === 0 ? 'None yet' : `${count} available`}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ── Search by name + distance ────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div className="relative flex-1">
             <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
@@ -187,40 +231,35 @@ export default function FindVendors() {
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by business name, service, or what they offer…"
+              placeholder="Or search by vendor name…"
               className="w-full border border-gray-200 rounded-xl pl-10 pr-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1a73c8]"
             />
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectCls}>
-              <option value="">All service areas</option>
-              {SERVICE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-
-            <select value={maxDistance} onChange={(e) => setMaxDistance(e.target.value === 'any' ? 'any' : Number(e.target.value))} className={selectCls}>
+          <div className="relative sm:w-48 flex-shrink-0">
+            <select
+              value={maxDistance}
+              onChange={(e) => setMaxDistance(e.target.value === 'any' ? 'any' : Number(e.target.value))}
+              className="w-full appearance-none border border-gray-200 rounded-xl pl-3 pr-9 py-2.5 text-sm text-gray-700 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a73c8]"
+            >
               {DISTANCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectCls}>
-              {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-
-            {activeFilters > 0 && (
-              <button
-                onClick={clearFilters}
-                className="px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
-              >
-                Clear
-              </button>
-            )}
+            <svg className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
           </div>
+        </div>
 
-          <p className="text-xs text-gray-400">
-            {loaded
-              ? <>Showing <span className="font-bold text-gray-700">{filtered.length}</span> of {enriched.length} vendors</>
-              : 'Loading vendors…'}
+        {/* ── Results heading ──────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-1 pt-1">
+          <p className="text-sm font-bold text-gray-800">
+            {category || 'All'} vendors
+            <span className="text-gray-400 font-semibold"> · {filtered.length}</span>
           </p>
+          {activeFilters > 0 && (
+            <button onClick={clearFilters} className="text-xs text-blue-600 font-semibold hover:underline">
+              Reset
+            </button>
+          )}
         </div>
 
         {/* ── Results ────────────────────────────────────────────────────── */}
