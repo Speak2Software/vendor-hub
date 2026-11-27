@@ -47,7 +47,9 @@ export function useVendorData(user) {
   const src = companyProfile || primaryApp || {}
   const vendorInfo = {
     vendorId:        user.id,
-    businessName:    src.businessName    || user.name,
+    // Prefer the company profile's business name, then any application's, and
+    // only fall back to the user's own name if neither exists.
+    businessName:    companyProfile?.businessName || primaryApp?.businessName || src.businessName || user.name,
     contactName:     src.contactName     || user.name,
     email:           src.contactEmail    || user.email,
     phone:           src.contactPhone    || '',

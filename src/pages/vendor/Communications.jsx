@@ -10,6 +10,7 @@ import { saveMessage } from '../../utils/storage'
 import MessagingCenter from '../../components/MessagingCenter'
 import { useVendorData } from '../../hooks/useVendorData'
 import RichTextEditor, { textToHtml, stripTags } from '../../components/RichTextEditor'
+import PageLoader from '../../components/PageLoader'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -513,7 +514,7 @@ export default function VendorCommunications() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const {
-    load, messages, vendorInfo, approvedApps,
+    loaded, load, messages, vendorInfo, approvedApps,
     enrichedThreads, availableParties, totalUnread,
   } = useVendorData(user)
 
@@ -525,6 +526,10 @@ export default function VendorCommunications() {
     const t = searchParams.get('tab')
     if (COMMS_TABS.includes(t)) setTab(t)
   }, [searchParams])
+
+  // Wait for profile/apps to load so the composers seed with the real business
+  // name (not the user's name) before they mount and freeze their initial state.
+  if (!loaded) return <PageLoader label="Loading communications…" />
 
   const tabs = [
     { id: 'messages', icon: '\ud83d\udcac', label: totalUnread > 0 ? `My Messages (${totalUnread})` : 'My Messages' },
