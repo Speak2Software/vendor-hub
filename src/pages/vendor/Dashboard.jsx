@@ -155,8 +155,9 @@ export default function VendorPortalDashboard() {
   const firstName = user.name?.split(' ')[0] || 'there'
 
   // ── Communities near the vendor's location(s), excluding ones already applied to
+  const [radius, setRadius] = useState(25) // miles; adjustable 5–200
   const vendorLocs = useMemo(() => normalizeLocations(profile), [profile])
-  const nearbyCommunities = useMemo(() => {
+  const allNearby = useMemo(() => {
     if (!vendorLocs.length) return []
     const appliedIds = new Set(apps.map((a) => a.communityId))
     return communities
@@ -166,8 +167,10 @@ export default function VendorPortalDashboard() {
         return { ...c, distanceMiles: Math.round(dist * 10) / 10 }
       })
       .sort((a, b) => a.distanceMiles - b.distanceMiles)
-      .slice(0, 4)
   }, [communities, vendorLocs, apps])
+  const withinRadius = useMemo(() => allNearby.filter((c) => c.distanceMiles <= radius), [allNearby, radius])
+  const nearbyCommunities = withinRadius.slice(0, 6)
+  const moreWithinRadius = withinRadius.length - nearbyCommunities.length
 
   const stats = [
     { label: 'Active communities', value: approvedApps.length, dot: 'bg-emerald-400' },
@@ -237,7 +240,7 @@ export default function VendorPortalDashboard() {
 
         {/* ── Communities near you ───────────────────────────────────────────── */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-bold text-gray-800">Communities near you</h2>
             <Link to="/vendor/apply" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1">
               See all
@@ -246,6 +249,24 @@ export default function VendorPortalDashboard() {
               </svg>
             </Link>
           </div>
+
+          {/* Distance slider (only once a location is set) */}
+          {profile && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-3 mb-4 flex items-center gap-3">
+              <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">Within</span>
+              <input
+                type="range"
+                min={5}
+                max={200}
+                step={5}
+                value={radius}
+                onChange={(e) => setRadius(Number(e.target.value))}
+                className="flex-1 h-1.5 accent-[#1a73c8] cursor-pointer"
+                aria-label="Search radius in miles"
+              />
+              <span className="text-sm font-bold text-[#1a73c8] tabular-nums whitespace-nowrap w-14 text-right">{radius} mi</span>
+            </div>
+          )}
 
           {!profile ? (
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
@@ -256,15 +277,30 @@ export default function VendorPortalDashboard() {
                 Set my location →
               </Link>
             </div>
-          ) : nearbyCommunities.length === 0 ? (
+          ) : allNearby.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
               <p className="text-sm font-semibold text-gray-600">You've reached every community near you</p>
               <p className="text-xs text-gray-400 mt-1">You've already applied to the communities closest to your location. Nice work!</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {nearbyCommunities.map((c) => <NearbyCommunityCard key={c.id} community={c} />)}
+          ) : nearbyCommunities.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
+              <p className="text-sm font-semibold text-gray-600">No communities within {radius} miles</p>
+              <p className="text-xs text-gray-400 mt-1">
+                The nearest is about {Math.round(allNearby[0].distanceMiles)} mi away — drag the slider right to search farther.
+              </p>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {nearbyCommunities.map((c) => <NearbyCommunityCard key={c.id} community={c} />)}
+              </div>
+              {moreWithinRadius > 0 && (
+                <p className="text-xs text-gray-400 mt-3 text-center">
+                  +{moreWithinRadius} more within {radius} mi ·{' '}
+                  <Link to="/vendor/apply" className="text-blue-600 font-semibold hover:underline">see all</Link>
+                </p>
+              )}
+            </>
           )}
         </section>
 

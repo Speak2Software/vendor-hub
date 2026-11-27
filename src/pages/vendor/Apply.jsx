@@ -10,7 +10,6 @@ import { normalizeLocations } from '../../utils/vendorLocations'
 import PageLoader from '../../components/PageLoader'
 import RichTextEditor, { stripTags } from '../../components/RichTextEditor'
 import { FLYER_THEMES, FlyerPreview, buildVendorFlyerHTML } from '../../components/flyer/FlyerKit'
-import { v4 as uuidv4 } from 'uuid'
 
 // Nearest distance (miles) from any of a vendor's locations to a community.
 function nearestDistance(locs, community) {
@@ -185,9 +184,11 @@ export default function Apply() {
         ],
       }
     }
+    // New application: no client `id` so saveApplication POSTs (and the server
+    // generates the _id). Sending an id makes it PUT to a nonexistent record → 404.
     return {
       ...base,
-      id: uuidv4(), vendorId: user.id,
+      vendorId: user.id,
       submittedAt: now, notes: [],
       statusHistory: [{ status: 'pending', timestamp: now, note: 'Application submitted.' }],
     }
