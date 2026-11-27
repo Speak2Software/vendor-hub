@@ -53,7 +53,12 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,s
 .hl { list-style:none; }
 .hl li { position:relative; padding-left:27px; font-size:13.5px; line-height:1.5; margin-bottom:9px; color:#374151; }
 .hl li:before { content:'✓'; position:absolute; left:0; top:0; width:19px; height:19px; border-radius:50%; background:var(--soft); color:var(--accent); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
-.desc { font-size:13.5px; line-height:1.7; white-space:pre-line; color:#4b5563; margin-bottom:18px; }
+.desc { font-size:13.5px; line-height:1.7; color:#4b5563; margin-bottom:18px; }
+.desc ul { list-style:disc; padding-left:20px; margin:6px 0; }
+.desc ol { list-style:decimal; padding-left:20px; margin:6px 0; }
+.desc li { margin:3px 0; }
+.desc b, .desc strong { font-weight:700; }
+.desc u { text-decoration:underline; }
 .c-row { display:flex; align-items:center; gap:9px; font-size:13.5px; color:#374151; margin-bottom:7px; }
 .c-ico { flex-shrink:0; width:18px; text-align:center; }
 .footer { background:#f9fafb; border-top:1px solid #eef2f6; text-align:center; padding:13px; font-size:11px; color:#9ca3af; }

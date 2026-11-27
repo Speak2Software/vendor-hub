@@ -9,6 +9,7 @@ import {
 import { saveMessage } from '../../utils/storage'
 import MessagingCenter from '../../components/MessagingCenter'
 import { useVendorData } from '../../hooks/useVendorData'
+import RichTextEditor, { textToHtml, stripTags } from '../../components/RichTextEditor'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -109,7 +110,7 @@ function buildFlyerHTML(layoutId, theme, data, { autoPrint = false } = {}) {
     category:     escHtml(data.serviceCategory) || 'Professional Services',
     tagline:      escHtml(data.tagline),
     headline:     escHtml(data.headline),
-    body:         escHtml(data.body),
+    body:         stripTags(data.body) ? data.body : '', // rich HTML (sanitized); '' when visually empty
     cta:          escHtml(data.cta),
     phone:        escHtml(data.phone),
     email:        escHtml(data.email),
@@ -183,7 +184,7 @@ function EmailComposer({ approvedApps, vendorInfo, onSent }) {
   function applyTemplate(tmpl) {
     setTemplate(tmpl.id)
     setSubject(fill(tmpl.subject))
-    setBody(fill(tmpl.body))
+    setBody(textToHtml(fill(tmpl.body)))
   }
 
   function toggle(id) {
@@ -191,9 +192,9 @@ function EmailComposer({ approvedApps, vendorInfo, onSent }) {
   }
 
   async function handleSend() {
-    if (!recipients.length)  { setError('Select at least one community.'); return }
-    if (!subject.trim())     { setError('Subject is required.'); return }
-    if (!body.trim())        { setError('Message body is required.'); return }
+    if (!recipients.length)   { setError('Select at least one community.'); return }
+    if (!subject.trim())      { setError('Subject is required.'); return }
+    if (!stripTags(body))     { setError('Message body is required.'); return }
     setError('')
     await saveMessage({
       id: uuidv4(),
@@ -201,7 +202,7 @@ function EmailComposer({ approvedApps, vendorInfo, onSent }) {
       type: 'email',
       communityIds: recipients,
       subject: subject.trim(),
-      body: body.trim(),
+      body,
       sentAt: new Date().toISOString(),
     })
     setSent(true)
@@ -283,14 +284,13 @@ function EmailComposer({ approvedApps, vendorInfo, onSent }) {
       {/* Body */}
       <div>
         <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Message</label>
-        <textarea
+        <RichTextEditor
           value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Write your message here, or choose a template above to get started..."
-          rows={9}
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none leading-relaxed"
+          onChange={setBody}
+          placeholder="Write your message here, or choose a template above to get started…"
+          minHeight={200}
         />
-        <p className="text-xs text-gray-400 mt-1 text-right">{body.length} characters</p>
+        <p className="text-xs text-gray-400 mt-1 text-right">Use the toolbar to add bold text, bullets, and more.</p>
       </div>
 
       {error && (
@@ -462,12 +462,11 @@ function FlyerCreator({ vendorInfo, approvedApps, onSent }) {
 
           <div>
             <label className="text-xs font-semibold text-gray-500 block mb-1">Description / Offer</label>
-            <textarea
+            <RichTextEditor
               value={data.body}
-              onChange={(e) => update('body', e.target.value)}
-              placeholder="Describe your services or a special offer for this community..."
-              rows={3}
-              className={`${inp} resize-none`}
+              onChange={(html) => update('body', html)}
+              placeholder="Describe your services or a special offer for this community…"
+              minHeight={120}
             />
           </div>
 
@@ -667,7 +666,7 @@ export default function VendorCommunications() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-800 truncate">{msg.subject}</p>
                             {msg.body && (
-                              <p className="text-xs text-gray-400 mt-0.5 truncate">{msg.body.slice(0, 80)}…</p>
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">{stripTags(msg.body).slice(0, 80)}…</p>
                             )}
                           </div>
                           <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${
